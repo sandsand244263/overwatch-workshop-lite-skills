@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Overwatch Workshop Lite icon">
+  <rect width="256" height="256" rx="52" fill="#15191F"/>
+  <path d="M128 30L196 69V147L128 186L60 147V69Z" fill="#202834" stroke="#F28C28" stroke-width="12"/>
+  <path d="M84 90L106 166L128 118L150 166L172 90" fill="none" stroke="#FAFAFA" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+  <circle cx="128" cy="210" r="14" fill="#F28C28"/>
+</svg>

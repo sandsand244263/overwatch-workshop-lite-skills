@@ -1,0 +1,24 @@
+{
+  "name": "workshop-lite",
+  "owner": {
+    "name": "sandsand244263",
+    "url": "https://github.com/sandsand244263"
+  },
+  "metadata": {
+    "description": "Marketplace hosting the workshop-lite plugin."
+  },
+  "plugins": [
+    {
+      "name": "workshop-lite",
+      "description": "守望先锋工坊 .ow 代码生成、审查、解释与调试助手（仅中文）",
+      "version": "1.0.0",
+      "author": {
+        "name": "sandsand244263",
+        "url": "https://github.com/sandsand244263"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/sandsand244263/workshop-lite"
+    }
+  ]
+}

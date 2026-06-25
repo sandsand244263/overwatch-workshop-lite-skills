@@ -1,0 +1,7 @@
+interface:
+  display_name: "Overwatch Workshop Lite"
+  short_description: "守望先锋工坊 .ow 代码生成、审查、解释与调试助手"
+  icon_small: "./assets/workshop-lite-small.svg"
+  icon_large: "./assets/workshop-lite-large.svg"
+  brand_color: "#F28C28"
+  default_prompt: "Use $workshop-lite to generate, review, or debug Overwatch Workshop .ow code."
