@@ -1,5 +1,3 @@
-[![skills.sh](https://skills.sh/b/sandsand244263/overwatch-workshop-lite-skills)](https://skills.sh/b/sandsand244263/overwatch-workshop-lite-skills)
-
 # workshop-lite
 
 > 查工坊语法不用翻几十页的官方文档了。
@@ -92,6 +90,12 @@ workshop-lite/
 
 ---
 
+## 英雄列表
+
+当前参考的英雄列表约 **50 名**，部分较新英雄（如 Sierra 等）暂未收录。欢迎提交 PR 补充，或提 Issue 告知遗漏。
+
+---
+
 ## 安全边界
 
 - **不会主动修改你的 `.ow` 文件**——你给代码，它给建议/生成，你自己决定改不改
@@ -110,7 +114,7 @@ workshop-lite/
 
 ## 数据来源
 
-本 skill 的工坊语法/函数/枚举数据基于 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展。感谢 XHanL 的整理工作。
+本 skill 的工坊语法/函数/枚举数据基于 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL) 的整理工作。
 
 元素成本数据来自作者在工坊内的实际测试，非暴雪官方公开常量。
 
