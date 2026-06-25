@@ -1,4 +1,4 @@
-[![skills.sh](https://skills.sh/b/sandsand244263/workshop-lite)](https://skills.sh/b/sandsand244263/workshop-lite)
+[![skills.sh](https://skills.sh/b/sandsand244263/overwatch-workshop-lite-skills)](https://skills.sh/b/sandsand244263/overwatch-workshop-lite-skills)
 
 # workshop-lite
 
@@ -26,7 +26,7 @@
 ## 快速开始
 
 ```bash
-npx skills add sandsand244263/workshop-lite
+npx skills add sandsand244263/overwatch-workshop-lite-skills
 ```
 
 装完后对 AI 说：
