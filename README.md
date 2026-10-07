@@ -12,8 +12,9 @@
 
 写过 `.ow` 的人都知道：
 
-- 226 个动作函数、264 个条件/值函数，谁能全记住？
-- 50 个英雄、36 种交流枚举、参数顺序一错就报"应有一个关系运算子"
+- 225 个动作函数、264 个条件/值函数，谁能全记住？
+- 611 条内置 `字符串(...)` 词条，多了记不住、编了又不认
+- 52 个英雄、36 种交流枚举、参数顺序一错就报"应有一个关系运算子"
 - 元素预算动不动超限，到底哪一步最贵？
 - 代码能跑但就是不对，半天找不到坑在哪
 
@@ -72,10 +73,11 @@ workshop-lite/
 │   ├── workshop-lite-small.svg    小图标
 │   └── workshop-lite-large.svg    大 logo
 ├── references/
-│   ├── syntax.md                  语法参考（结构、事件、变量、控制流）
-│   ├── actions.md                 226 个动作函数签名
+│   ├── syntax.md                  语法参考（结构、事件、变量、控制流、导入差异）
+│   ├── actions.md                 225 个动作函数签名
 │   ├── values.md                  264 个条件/值函数参考
-│   ├── enums.md                   英雄/地图/按钮/交流/模式枚举
+│   ├── strings.md                 611 条内置 `字符串(...)` 词条
+│   ├── enums.md                   英雄/地图/按钮/交流/模式/扩展枚举
 │   ├── patterns.md                设计模式与代码质量要求
 │   ├── pitfalls.md                52 条必查避坑清单
 │   ├── ui-notes.md                HUD/UI 排版说明
@@ -92,7 +94,7 @@ workshop-lite/
 
 ## 英雄列表
 
-当前参考的英雄列表约 **50 名**，部分较新英雄（如 Sierra 等）暂未收录。欢迎提交 PR 补充，或提 Issue 告知遗漏。
+参考英雄列表已与插件数据对齐，共 **52 名**（重装 14 / 输出 24 / 支援 14），含此前漏收的 西拉、死怨。数据随 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop) 更新，发现遗漏欢迎提 Issue。
 
 ---
 
@@ -115,6 +117,8 @@ workshop-lite/
 ## 数据来源
 
 本 skill 的工坊语法/函数/枚举数据基于 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL) 的整理工作。
+
+数据基线：扩展 3.11.35（源码 `src/web/model.ts`），2026-10 重新核对。
 
 元素成本数据来自作者在工坊内的实际测试，非暴雪官方公开常量。
 

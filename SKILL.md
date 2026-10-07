@@ -34,13 +34,17 @@ reset, double-tap, hold-to-trigger, or toggle locks), prefer putting the core in
 keep the action block focused on state writes and outcomes; if one rule starts handling too many timing
 responsibilities, split it by edge or responsibility instead of stacking more action-level `If` checks.
 12. When the user asks to save elements, reduce element count, or review budget-heavy code, check `references/element-costs.md` and `references/element-audit.md` before proposing structural changes.
+13. `字符串(...)` can only use built-in presets - never invent content for it. Pick an exact entry from `references/strings.md`; if you need free-form text, use `自定义字符串(...)` instead (placeholder cap `{2}`).
+14. Function and enum names containing quotes must use Chinese curly quotes `“ ”`, e.g. `如条件为“真”则循环`, `当为“假”时中止`, `对任意为“真”`; ASCII straight quotes fail at import. Also, when code will be pasted into the game, some refresh slots need `全部禁用` rather than `无` - see `references/syntax.md`.
+15. Lines starting with `#` inside the reference code blocks are annotations for humans, not Workshop syntax. Real `.ow` comments are `//`, `"注释"` (action/condition blocks only), or `/* */`.
 
 ## Reference Map
 
 - `references/syntax.md` - File structure, settings blocks, event types, variables, shorthand syntax, advanced variable patterns, control flow, and wait semantics.
 - `references/actions.md` - Action signatures, HUD/effect APIs, movement/state helpers, variable operations, gameplay control, projectiles, beams, and the complete action function list.
 - `references/values.md` - Value and condition functions, common constants, strings, colors, map workshop settings, player/hero data, and the complete value/function list.
-- `references/enums.md` - Hero list, map list, button names, communication enums, relative enums, and game mode enums.
+- `references/enums.md` - 英雄 52 名、地图 84 张、按钮名称、交流枚举、相对枚举、游戏模式、事件玩家/队伍过滤、扩展清单与元素成本、源数据勘误。
+- `references/strings.md` - 611 条内置 `字符串(...)` 预设词条（45 条带 `{0}`~`{2}` 占位符的格式模板 + 566 条固定词条）。
 - `references/patterns.md` - Code quality requirements, performance-sensitive patterns, third-person and hero-selection patterns, and common one-line techniques.
 - `references/ui-notes.md` - HUD / UI display notes, including multi-color HUD layout, slot sizing, sorting, and presentation-layer budgeting guidance.
 - `references/pitfalls.md` - Mandatory pitfall checklist for reviews and debugging.
