@@ -96,6 +96,8 @@ workshop-lite/
 
 参考英雄列表已与插件数据对齐，共 **52 名**（重装 14 / 输出 24 / 支援 14），含此前漏收的 西拉、死怨。数据随 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop) 更新，发现遗漏欢迎提 Issue。
 
+> **已知滞后（2026-10-07）**：游戏本体已先行——第 5 赛季「暗红之律」上线后，游戏内英雄达 **54 名**，本 skill 尚缺 **D.Mon**（第 4 赛季新增重装）与 **血律**（第 5 赛季新增支援）；同时「黑影」在游戏中已由输出改为 **支援**，本 skill 仍标为输出。地图同样缺新增的 **监测站：格里姆火山**。补齐进度见下方「数据来源」一节。
+
 ---
 
 ## 安全边界
@@ -116,11 +118,38 @@ workshop-lite/
 
 ## 数据来源
 
-本 skill 的工坊语法/函数/枚举数据基于 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL) 的整理工作。
+### 一手来源：游戏本体（用 OWLib 导出）
+
+本 skill 里的名词表——动作函数、条件/值函数、各种枚举、内置 `字符串(...)` 词条、扩展项——最终都来自游戏本体的工坊数据。
+
+这个数据可以用开源工具 [overtools/OWLib](https://github.com/overtools/OWLib) 里的 DataTool，从**本机已安装的游戏**里直接导出：
+
+```
+DataTool.exe "<游戏目录>" list-workshop --language zhCN --rcn --json --out=workshop.json
+```
+
+- `--language zhCN` 指定简体中文；`--rcn` 用于国服 / 网易客户端（加载中国区专属内容）
+- 导出内容含 `Actions`、`Values`、`Dropdowns`、`TextOptions`、`Extensions` 五类，即本 skill 全部名词的来源
+- DataTool 跟随游戏版本更新，通常每月一版。在 [releases](https://github.com/overtools/OWLib/releases) 直接下载 `toolchain-release.zip` 即可，不需要 Discord
+
+### 现成中文成品：XHanL 扩展
+
+本 skill 的**中文名词**取自 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展，它已经把游戏数据整理成带中文名与提示的数据表。感谢 [@XHanL](https://github.com/XHanL)。
 
 数据基线：扩展 3.11.35（源码 `src/web/model.ts`），2026-10 重新核对。
 
-元素成本数据来自作者在工坊内的实际测试，非暴雪官方公开常量。
+### 中文工坊工具的前身
+
+| 项目 | 状态 | 说明 |
+|---|---|---|
+| [SkyinHand/owatch](https://github.com/SkyinHand/owatch) | 2021 年后停止 | 第一代中文工坊插件，用 Python 脚本提取动作函数并自动生成拼音 |
+| [qaz075115961/owl-CN](https://github.com/qaz075115961/owl-CN) | 2024 年后停止 | 在 owatch 基础上继续开发 |
+| [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop) | 维护中（MIT） | 当前中文数据来源，名词随游戏新英雄更新 |
+| [overtools/OWLib](https://github.com/overtools/OWLib) | 维护中（MIT） | 上游工具，直接从游戏文件导出，跟游戏版本走 |
+
+### 元素成本数据
+
+元素成本来自作者在工坊内的实际测试，非暴雪官方公开常量。
 
 ---
 
