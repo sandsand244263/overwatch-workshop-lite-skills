@@ -1,7 +1,7 @@
 ---
 name: workshop-lite
 description: Use when the user asks about Overwatch Workshop, 守望先锋工坊, 创意工坊, OW 工坊, or `.ow` code, including 生成, 审查, 解释, 调试, 重构, and 校验 rules, events, actions, values, enums, syntax, patterns, and common pitfalls.
-version: 1.1.0
+version: 1.2.0
 allowed-tools: Read, Grep, Write, bash
 ---
 

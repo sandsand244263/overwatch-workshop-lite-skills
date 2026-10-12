@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v1.1.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v1.2.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -96,9 +96,13 @@ workshop-lite/
 
 ## 英雄列表
 
-参考英雄列表已与插件数据对齐，共 **52 名**（重装 14 / 输出 24 / 支援 14），含此前漏收的 西拉、死怨。数据随 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop) 更新，发现遗漏欢迎提 Issue。
+英雄列表已由**游戏本体一手数据**对齐，共 **54 名**（重装 15 / 输出 23 / 支援 16）。
 
-> **已知滞后（2026-10-07）**：游戏本体已先行——第 5 赛季「暗红之律」上线后，游戏内英雄达 **54 名**，本 skill 尚缺 **D.Mon**（第 4 赛季新增重装）与 **血律**（第 5 赛季新增支援）；同时「黑影」在游戏中已由输出改为 **支援**，本 skill 仍标为输出。地图同样缺新增的 **监测站：格里姆火山**。补齐进度见下方「数据来源」一节。
+- 第 4 赛季新增重装 **D.Mon**，第 5 赛季新增支援 **血律**
+- 第 5 赛季「黑影」由输出改为 **支援**，本表已按游戏现状归类
+- 数据来源见下方「数据来源」一节；发现遗漏欢迎提 Issue
+
+> 对齐基准：国服 2.25.0.0.154461（用 OWLib 的 `list-heroes` / `list-workshop` 导出）。
 
 ---
 
@@ -136,9 +140,9 @@ DataTool.exe "<游戏目录>" list-workshop --language zhCN --rcn --json --out=w
 
 ### 现成中文成品：XHanL 扩展
 
-本 skill 的**中文名词**取自 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展，它已经把游戏数据整理成带中文名与提示的数据表。感谢 [@XHanL](https://github.com/XHanL)。
+本 skill 的**中文名词**同时参考 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT License），一个守望先锋工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL)。
 
-数据基线：扩展 3.11.35（源码 `src/web/model.ts`），2026-10 重新核对。
+数据基线：**游戏本体国服 2.25.0.0.154461**（一手 dump 为准）；XHanL 扩展 3.11.35（源码 `src/web/model.ts`）作为对照，两者不一致处以游戏数据为准。
 
 ### 中文工坊工具的前身
 
