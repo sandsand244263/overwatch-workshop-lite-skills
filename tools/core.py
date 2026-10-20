@@ -369,6 +369,31 @@ def check_var_refs(text, problems):
             problems.append((line, "error", "%s.%s 没有声明为玩家变量" % (m.group(0).split(".")[0], m.group(1))))
 
 
+def check_unassigned(text, problems):
+    """声明了但从未赋值的变量（会静默保持 0）。warning。"""
+    names = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
+    if not names:
+        return
+    written = set()
+    for pat in (r"(?:设置|修改)全局变量\(\s*(\w+)", r"(?:设置|修改)玩家变量\([^,，]+[,，]\s*(\w+)"):
+        written |= set(re.findall(pat, text))
+    used = set(re.findall(r"(?:全局|事件玩家|本地玩家)\.(\w+)", text))
+    for n in sorted((used & names) - written):
+        problems.append((0, "warning", "变量 %s 声明了但从未赋值，会一直是 0" % n))
+
+
+def check_lazy_display(text, problems):
+    """大字体信息/记入查看器 里引用的变量若在同一规则内随后被改写，提示用快照。warning。"""
+    for m in re.finditer(r'大字体信息\([^\n]*', text):
+        seg = text[m.start(): m.start() + 400]
+        for var in set(re.findall(r"全局\.(\w+)", seg[:200])):
+            if re.search(r"(?:设置|修改)全局变量\(\s*%s" % re.escape(var), seg[200:400]):
+                line = text.count(chr(10), 0, m.start()) + 1
+                problems.append((line, "warning",
+                                 "大字体信息 里的 全局.%s 是延迟取值，同一规则内随后被改写——"
+                                 "先用临时变量快照再显示" % var))
+
+
 def check_types(text, problems):
     """按参数类型校验（类型来自 data/signatures.md）。
 
@@ -603,6 +628,8 @@ def lint(path, sigs, labels, settings=None, options=None):
     scan_calls(masked, sigs, labels, problems, options)
     check_arg_count(masked, problems)
     check_types(masked, problems)
+    check_unassigned(masked, problems)
+    check_lazy_display(masked, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
