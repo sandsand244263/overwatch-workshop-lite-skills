@@ -12,6 +12,17 @@
 
 ---
 
+## [2.2.1] - 2026-10-20
+
+清理冗余，回归覆盖补齐。
+
+- 删除 `docs/element-costs.md`（76 条实测用的是不同基准，已被 limits.md 的标定公式取代）
+- 回归命令改为同时扫 `tools/probes/*.ow` 与 `tools/probes/calib/*.ow`，共 24 个样本
+- 移除误提交的 `tools/__pycache__`，`.gitignore` 补 `__pycache__/`、`*.pyc`
+- 维护技能里重复的 `workshop_diff.py` 删除，统一走 `ws.py diff`
+
+---
+
 ## [2.2.0] - 2026-10-20
 
 元素数估算完成标定：18 个探针实测，`ws.py count` 与游戏诊断 **18/18 一致**。

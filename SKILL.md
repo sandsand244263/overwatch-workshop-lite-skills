@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.2.0
+version: 2.2.1
 author: 用户
 platforms: [windows]
 metadata:
@@ -60,9 +60,9 @@ python tools/ws.py diff --prev <旧导出> --cur <新导出>    # 全量对照
 
 - 格式与报错：`docs/format-spec.md`、`docs/syntax.md`、`docs/diagnostics.md`
 - 坑：`docs/pitfalls.md`；上限：`docs/limits.md`；模式：`docs/patterns.md`
-- HUD 排版：`docs/ui-notes.md`；元素成本：`docs/element-costs.md`、`docs/element-audit.md`
+- HUD 排版：`docs/ui-notes.md`；元素成本：`docs/element-audit.md`
 - 设置项老 BUG：`docs/settings-map.md`；周边工具：`docs/ecosystem.md`；资料分级：`docs/sources.md`
-- 实测探针（导入验证过）：`tools/probes/`；改校验器后必须重跑 `ws.py check tools/probes/*.ow`
+- 实测探针（导入验证过）：`tools/probes/`；改校验器后必须重跑 `ws.py check tools/probes/*.ow tools/probes/calib/*.ow`
 
 ## 任务处理
 

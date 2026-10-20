@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v2.2.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.2.1**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -152,10 +152,10 @@ python tools/ws.py diff --prev <旧导出> --cur <新导出>    # 全量对照�
 ### 回归自检（改校验器或数据后必做）
 
 ```bash
-python tools/ws.py check tools/probes/*.ow
+python tools/ws.py check tools/probes/*.ow tools/probes/calib/*.ow
 ```
 
-对 6 个样本要求全部 0 error：3 个**实测导入通过**的探针 + 3 个真实模式样本。
+对 24 个样本要求全部 0 error：3 个实测导入通过的探针 + 3 个真实模式样本 + 18 个元素标定探针。
 
 ### 已验证的范围
 

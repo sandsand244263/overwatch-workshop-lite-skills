@@ -21,3 +21,5 @@ node_modules/
 
 # Project archive (local only, not for public repo)
 CLAUDE.md
+__pycache__/
+*.pyc
