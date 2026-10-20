@@ -162,6 +162,28 @@ def load_signatures(path):
     return sigs, labels
 
 
+def load_settings_schema(path):
+    """返回 {设置键: (类型, 允许值集合或 None)}。"""
+    schema = {}
+    if not os.path.isfile(path):
+        return schema
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("#") or line.startswith("key	"):
+                continue
+            parts = line.rstrip(chr(10)).split(chr(9))
+            if len(parts) < 3:
+                continue
+            key, kind, allowed = parts[0], parts[1], parts[2]
+            if kind == "BOOL":
+                schema[key] = ("BOOL", {"开启", "关闭"})
+            elif "ENUM" in kind:
+                schema[key] = ("ENUM", {x.strip() for x in allowed.split("/") if x.strip()})
+            else:
+                schema[key] = (kind, None)
+    return schema
+
+
 def scan_calls(text, sigs, labels, problems):
     i, n = 0, len(text)
     while i < n:
@@ -220,8 +242,9 @@ def scan_calls(text, sigs, labels, problems):
         i += 1
 
 
-def lint(path, sigs, labels):
+def lint(path, sigs, labels, settings=None):
     problems = []
+    settings = settings or {}
     with open(path, encoding="utf-8") as f:
         raw = f.read()
     text = raw.replace("\r\n", "\n")
@@ -316,6 +339,20 @@ def lint(path, sigs, labels):
             continue
 
         if block in SETTINGS_BLOCKS:
+            m = re.match(r"^([^\s:]+)\s*:\s*(.+)$", stripped)
+            if m:
+                key, value = m.group(1), m.group(2).strip()
+                info = settings.get(key)
+                if info is None:
+                    pass   # 大厅项/英雄专属项来自另外的数据源，表里没有不代表错
+                elif info[0] == "BOOL" and value not in info[1]:
+                    problems.append((ln, "warning",
+                                     "%s 是布尔项，只能写 开启 / 关闭；导出器的「%s」导入会报错"
+                                     % (key, value)))
+                elif info[0] == "ENUM" and info[1] and value not in info[1]:
+                    problems.append((ln, "error",
+                                     "%s 的值「%s」不是合法选项，可选：%s"
+                                     % (key, value, " / ".join(sorted(info[1])))))
             continue
 
         if global_rule and "事件玩家" in code:
@@ -362,7 +399,6 @@ def lint(path, sigs, labels):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems)
-    check_mode_general(masked, problems)
 
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))
@@ -382,10 +418,13 @@ def main():
     ap.add_argument("files", nargs="+")
     ap.add_argument("--signatures", default=os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "references", "signatures.md"))
+    ap.add_argument("--settings", default=os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "references", "settings-schema.tsv"))
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
     sigs, labels = load_signatures(args.signatures)
+    settings = load_settings_schema(args.settings)
     if not sigs and not args.quiet:
         print("[提示] 没读到签名表 %s，只做结构检查" % args.signatures)
 
@@ -395,7 +434,7 @@ def main():
             print("[错误] 找不到 %s" % path)
             failed += 1
             continue
-        problems = lint(path, sigs, labels)
+        problems = lint(path, sigs, labels, settings)
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:

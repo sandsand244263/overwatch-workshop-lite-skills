@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v1.5.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v1.6.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -78,6 +78,8 @@ workshop-lite/
 │   ├── golden.ow                  早期样本（设置块含非法键，仅作结构参考）
 │   ├── golden2.ow                 复杂模式真实样本（900 行，含子程序/数组/三元/跨行）
 │   ├── sources.md                 权威资料分级与下次更新的检查顺序
+│   ├── settings-schema.tsv        269 个设置项的权威表（键 → 类型 → 可写值）
+│   ├── settings-map.md            设置项老 BUG：导出器写 启用/禁用，导入器只认 开启/关闭
 │   ├── format-spec.md             格式规范：骨架、硬规则、报错对照（先读这个）
 │   ├── signatures.md              全部动作与值函数的参数签名（225 + 266 条）
 │   ├── syntax.md                  语法参考（结构、事件、变量、控制流、导入差异）
