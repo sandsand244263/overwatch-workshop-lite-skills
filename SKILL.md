@@ -1,8 +1,12 @@
 ---
-name: workshop-lite
-description: Use when the user asks about Overwatch Workshop, 守望先锋工坊, 创意工坊, OW 工坊, or `.ow` code, including 生成, 审查, 解释, 调试, 重构, and 校验 rules, events, actions, values, enums, syntax, patterns, and common pitfalls.
-version: 1.2.1
-allowed-tools: Read, Grep, Write, bash
+name: WorkshopLite
+description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
+version: 1.2.2
+author: 用户
+platforms: [windows]
+metadata:
+  hermes:
+    tags: [overwatch, workshop, ow-code]
 ---
 
 # Overwatch Workshop Lite
@@ -44,8 +48,8 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/syntax.md` - File structure, settings blocks, event types, variables, shorthand syntax, advanced variable patterns, control flow, and wait semantics.
 - `references/actions.md` - Action signatures, HUD/effect APIs, movement/state helpers, variable operations, gameplay control, projectiles, beams, and the complete action function list.
 - `references/values.md` - Value and condition functions, common constants, strings, colors, map workshop settings, player/hero data, and the complete value/function list.
-- `references/enums.md` - 英雄 52 名、地图 84 张、按钮名称、交流枚举、相对枚举、游戏模式、事件玩家/队伍过滤、扩展清单与元素成本、源数据勘误。
-- `references/strings.md` - 611 条内置 `字符串(...)` 预设词条（45 条带 `{0}`~`{2}` 占位符的格式模板 + 566 条固定词条）。
+- `references/enums.md` - 英雄 54 名、地图 85 张、按钮名称、交流枚举、相对枚举、游戏模式、事件玩家/队伍过滤、扩展清单与元素成本、源数据勘误，以及顶部的数据基线说明。
+- `references/strings.md` - 616 条内置 `字符串(...)` 预设词条（47 条带 `{0}`~`{2}` 占位符的格式模板 + 569 条固定词条）。
 - `references/patterns.md` - Code quality requirements, performance-sensitive patterns, third-person and hero-selection patterns, and common one-line techniques.
 - `references/ui-notes.md` - HUD / UI display notes, including multi-color HUD layout, slot sizing, sorting, and presentation-layer budgeting guidance.
 - `references/pitfalls.md` - Mandatory pitfall checklist for reviews and debugging.
@@ -91,3 +95,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - Preserve exact function names and special punctuation where required.
 - When a fix depends on a specific Workshop behavior, say which reference file you checked.
 - When making an element-budget recommendation, say whether the main savings come from values, conditions, actions, or rule structure.
+
+## Related Skills
+
+- None required — all references, agents, and assets are bundled with this skill.
