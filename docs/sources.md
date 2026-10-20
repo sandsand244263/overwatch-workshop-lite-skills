@@ -34,7 +34,7 @@
 
 1. 在游戏里复制一份含该结构的模式（变量就加变量，事件就加事件）
 2. 存成 `golden.ow` 覆盖旧的，或另存为 `golden-<主题>.ow`
-3. 跑 `python scripts/lint_ow.py references/golden*.ow`，必须全部 0 问题
+3. 跑 `python tools/ws.py check tools/probes/golden*.ow`，必须全部 0 问题
 4. 有问题就是校验器的规则错了，改校验器，不要改样本
 
 ## 四、资料可信度备忘

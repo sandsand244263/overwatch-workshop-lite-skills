@@ -42,11 +42,22 @@ CONTROL = ("While", "If", "Else If", "Else", "End", "For", "For 全局变量", "
 SETTINGS_BLOCKS = ("设置", "主程序", "大厅", "模式", "英雄", "地图工坊", "扩展")
 VAR_SECTIONS = ("全局:", "玩家:")
 
-# 「无」会被导入拒绝、必须写「全部禁用」的位置（来源：VS Code 插件的导入/导出修复清单）
-NO_TO_DISABLED_TEXT_FUNCS = {"创建地图文本", "创建HUD文本", "创建进度条地图文本", "创建进度条HUD文本"}
-NO_TO_DISABLED_TAIL_FUNCS = {"追踪全局变量频率", "追踪玩家变量频率", "持续追踪全局变量",
-                             "持续追踪玩家变量", "开始治疗调整", "设置不可见"}
-# 模式 > 综合 块里实测能导入的键（其余会报「综合 { 之后应有一个游戏模式设置」）
+# 实测验证过的「只能写 全部禁用，不能写 无」位置（来源：插件修复清单 + 用户实测导入）
+VERIFIED_NO_SLOTS = {
+    "创建地图文本": {"slots": {-2}},
+    "创建HUD文本": {"slots": {-2}},
+    "创建进度条地图文本": {"slots": {-2}},
+    "创建进度条HUD文本": {"slots": {-2}},
+    "追踪全局变量频率": {"slots": {-1}},
+    "追踪玩家变量频率": {"slots": {-1}},
+    "持续追踪全局变量": {"slots": {-1}},
+    "持续追踪玩家变量": {"slots": {-1}},
+    "开始治疗调整": {"slots": {-1}},
+    "设置不可见": {"slots": {-1}},
+}
+
+# 模式 > 综合 块里实测能导入的键（其余报「综合 { 之后应有一个游戏模式设置」）。
+# 数据里的设置分类（技能/武器/决斗先锋…）跟 .ow 的块结构不是一回事，推不出来，只能靠实测。
 GENERAL_KEYS = ("复生时间", "急救包刷新", "游戏模式开始", "英雄限制")
 
 
@@ -148,13 +159,19 @@ def strip_noise(line):
 
 
 def load_signatures(path):
-    sigs, labels = {}, {}
+    """返回 (sigs, labels, options)。
+
+    sigs[name]    = 参数个数
+    labels[name]  = ["参数名:类型", ...]
+    options[name][idx] = {"选项1", "选项2", ...}   # 只有下拉参数才有
+    """
+    sigs, labels, options = {}, {}, {}
     if not os.path.isfile(path):
-        return sigs, labels
+        return sigs, labels, options
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if "(" not in line or not line.endswith(")"):
+            if line.startswith("<!--") or "(" not in line or not line.endswith(")"):
                 continue
             name, rest = line.split("(", 1)
             name = name.strip()
@@ -163,33 +180,65 @@ def load_signatures(path):
             inner = rest[:-1].strip()
             args = split_args(inner) if inner else []
             sigs[name] = len(args)
-            labels[name] = args
-    return sigs, labels
+            labels[name] = [re.sub(r"\[[^\]]*\]$", "", a).strip() for a in args]
+            per_param = {}
+            for idx, arg in enumerate(args):
+                m = re.search(r"\[([^\]]*)\]\s*$", arg)
+                if m:
+                    opts = {x for x in m.group(1).split("|") if x and not x.startswith("…共")}
+                    if opts:
+                        per_param[idx] = opts
+            if per_param:
+                options[name] = per_param
+    return sigs, labels, options
+
+
+def load_full_options(path):
+    """从 data/dropdowns.tsv 读完整选项 {函数: {参数序号: {选项…}}}。"""
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            parts = line.rstrip("\n").split("	")
+            if len(parts) < 4 or parts[0] == "func":
+                continue
+            func, idx, _pname, opts = parts[0], parts[1], parts[2], parts[3]
+            if opts == "UNKNOWN":
+                continue
+            try:
+                i = int(idx)
+            except ValueError:
+                continue
+            out.setdefault(func, {})[i] = {x for x in opts.split("|") if x}
+    return out
 
 
 def load_settings_schema(path):
-    """返回 {设置键: (类型, 允许值集合或 None)}。"""
+    """返回 {设置键: (类型, 允许值集合或 None)}，来源 data/settings.tsv。"""
     schema = {}
     if not os.path.isfile(path):
         return schema
     with open(path, encoding="utf-8") as f:
         for line in f:
-            if line.startswith("#") or line.startswith("key	"):
+            if line.startswith("schema	") or not line.strip():
                 continue
-            parts = line.rstrip(chr(10)).split(chr(9))
-            if len(parts) < 3:
+            parts = line.rstrip("\n").split("	")
+            if len(parts) < 4:
                 continue
-            key, kind, allowed = parts[0], parts[1], parts[2]
+            _schema_name, key, kind, allowed = parts[0], parts[1], parts[2], parts[3]
+
             if kind == "BOOL":
                 schema[key] = ("BOOL", {"开启", "关闭"})
             elif "ENUM" in kind:
-                schema[key] = ("ENUM", {x.strip() for x in allowed.split("/") if x.strip()})
+                schema[key] = ("ENUM", {x.strip() for x in allowed.split("|") if x.strip()})
             else:
                 schema[key] = (kind, None)
     return schema
 
 
-def scan_calls(text, sigs, labels, problems):
+def scan_calls(text, sigs, labels, problems, options=None):
+    options = options or {}
     i, n = 0, len(text)
     while i < n:
         ch = text[i]
@@ -224,13 +273,10 @@ def scan_calls(text, sigs, labels, problems):
                 line = text[:start].count("\n") + 1
                 arg_list = split_args(inner) if inner.strip() else []
 
-                if name in NO_TO_DISABLED_TEXT_FUNCS and len(arg_list) >= 2 and arg_list[-2].strip() == "无":
-                    problems.append((line, "error",
-                                     "%s 的刷新槽要写 全部禁用，写 无 会导入失败" % name))
-                if name in NO_TO_DISABLED_TAIL_FUNCS and arg_list and arg_list[-1].strip() == "无":
-                    problems.append((line, "error",
-                                     "%s 的最后一个参数要写 全部禁用，写 无 会导入失败" % name))
-
+                for slot in (VERIFIED_NO_SLOTS.get(name) or {}).get("slots", ()):
+                    if len(arg_list) >= abs(slot) and arg_list[slot].strip() == "无":
+                        problems.append((line, "error",
+                                         "%s 这个位置要写 全部禁用，写 无 导入会失败" % name))
                 if sigs and name not in sigs:
                     problems.append((line, "error", "未知函数名：%s（签名表里没有）" % name))
                 elif sigs:
@@ -286,7 +332,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None):
+def lint(path, sigs, labels, settings=None, options=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -460,7 +506,7 @@ def lint(path, sigs, labels, settings=None):
         if name not in declared[section]:
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
-    scan_calls(masked, sigs, labels, problems)
+    scan_calls(masked, sigs, labels, problems, options)
     check_misc(masked, problems)
 
     if raw.count('"') % 2:
@@ -480,13 +526,13 @@ def main():
     ap = argparse.ArgumentParser(description="中文 .ow 格式校验")
     ap.add_argument("files", nargs="+")
     ap.add_argument("--signatures", default=os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "references", "signatures.md"))
+        os.path.dirname(os.path.abspath(__file__)), "..", "data", "signatures.md"))
     ap.add_argument("--settings", default=os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "references", "settings-schema.tsv"))
+        os.path.dirname(os.path.abspath(__file__)), "..", "data", "settings.tsv"))
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
-    sigs, labels = load_signatures(args.signatures)
+    sigs, labels, options = load_signatures(args.signatures)
     settings = load_settings_schema(args.settings)
     if not sigs and not args.quiet:
         print("[提示] 没读到签名表 %s，只做结构检查" % args.signatures)
@@ -497,7 +543,7 @@ def main():
             print("[错误] 找不到 %s" % path)
             failed += 1
             continue
-        problems = lint(path, sigs, labels, settings)
+        problems = lint(path, sigs, labels, settings, options)
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:

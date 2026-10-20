@@ -24,19 +24,19 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import lint_ow  # noqa: E402
+import core  # noqa: E402
 
 NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")
 
 
 def load_types(sig_path):
     """{函数名: [参数类型标签]}"""
-    _sigs, labels = lint_ow.load_signatures(sig_path)
+    _sigs, labels, _opts = core.load_signatures(sig_path)
     return labels
 
 
 def split_top_level_args(text):
-    return lint_ow.split_args(text)
+    return core.split_args(text)
 
 
 def obfuscatable(kind):
@@ -117,7 +117,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--factor", type=int, default=7, help="混淆系数，必须为奇数（默认 7）")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--signatures", default=os.path.join(HERE, "..", "references", "signatures.md"))
+    ap.add_argument("--signatures", default=os.path.join(HERE, "..", "data", "signatures.md"))
     args = ap.parse_args()
 
     if args.factor % 2 == 0:
@@ -130,7 +130,7 @@ def main():
     out_lines, total = [], 0
     for line in lines:
         stripped = line.strip()
-        if stripped in lint_ow.BLOCK_KEYWORDS or stripped.startswith("规则("):
+        if stripped in core.BLOCK_KEYWORDS or stripped.startswith("规则("):
             pending = "规则" if stripped.startswith("规则(") else stripped
             out_lines.append(line)
             continue

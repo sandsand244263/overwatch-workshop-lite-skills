@@ -26,11 +26,10 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import lint_ow  # noqa: E402
+import core  # noqa: E402
 import obfuscate_values  # noqa: E402
 
-TEXT_FUNCS = lint_ow.NO_TO_DISABLED_TEXT_FUNCS
-TAIL_FUNCS = lint_ow.NO_TO_DISABLED_TAIL_FUNCS
+NO_SLOTS = core.VERIFIED_NO_SLOTS
 CHOICES = {"numbers", "vars", "rules", "indexes", "local-indexes", "strings"}
 
 
@@ -86,7 +85,7 @@ def add_fake_rules(text, count=3, seed=20261020):
 
 
 def lint_errors(path, sigs, labels, settings):
-    return [p for p in lint_ow.lint(path, sigs, labels, settings) if p[1] == "error"]
+    return [p for p in core.lint(path, sigs, labels, settings) if p[1] == "error"]
 
 
 def main():
@@ -104,9 +103,9 @@ def main():
     if "strings" in picked:
         sys.exit("字符串混淆会改变比较语义，请用 VS Code 插件执行；本脚本不提供。")
 
-    refs = os.path.normpath(os.path.join(HERE, "..", "references"))
-    sigs, labels = lint_ow.load_signatures(os.path.join(refs, "signatures.md"))
-    settings = lint_ow.load_settings_schema(os.path.join(refs, "settings-schema.tsv"))
+    data = os.path.normpath(os.path.join(HERE, "..", "data"))
+    sigs, labels, _opts = core.load_signatures(os.path.join(data, "signatures.md"))
+    settings = core.load_settings_schema(os.path.join(data, "settings.tsv"))
 
     text = open(args.src, encoding="utf-8").read().replace("\r\n", "\n")
     if args.fix:
@@ -136,7 +135,7 @@ def main():
         lines, stack, pending, out = obf.split("\n"), [], None, []
         for line in lines:
             stripped = line.strip()
-            if stripped in lint_ow.BLOCK_KEYWORDS or stripped.startswith("规则("):
+            if stripped in core.BLOCK_KEYWORDS or stripped.startswith("规则("):
                 pending = "规则" if stripped.startswith("规则(") else stripped
                 out.append(line)
                 continue
@@ -176,6 +175,19 @@ def main():
     print("✓ 混淆版：%s（用了：%s）" % (obf_path, ", ".join(sorted(picked))))
     print("\n导入后看一眼诊断里的「总计元素数量」，混淆会增加额度消耗。")
     return 0
+
+
+def main_with_args(args):
+    """给 ws.py publish 子命令用：把 argparse 结果塞回去执行。"""
+    argv = [args.src, "--outdir", args.outdir, "--obf", args.obf]
+    if getattr(args, "fix", False):
+        argv.append("--fix")
+    old = sys.argv
+    sys.argv = ["publish.py"] + argv
+    try:
+        return main()
+    finally:
+        sys.argv = old
 
 
 if __name__ == "__main__":

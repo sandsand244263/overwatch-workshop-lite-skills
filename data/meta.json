@@ -1,0 +1,10 @@
+{
+  "build": "2.25.0.0.154461N",
+  "exported": "2026-10-20",
+  "actions": 225,
+  "values": 267,
+  "dropdowns": 45,
+  "heroes": 54,
+  "maps": 305,
+  "generator": "gen_data.py"
+}

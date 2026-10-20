@@ -1,6 +1,6 @@
 # 设置项：唯一值与那个老 BUG
 
-设置项的值**不是随便写的**，游戏数据里每个键都有固定类型和合法值。表在 `settings-schema.tsv`（269 个键，从游戏数据直接导出）。
+设置项的值**不是随便写的**，游戏数据里每个键都有固定类型和合法值。表在 `data/settings.tsv`（269 个键，从游戏数据直接导出）。
 
 ## 一、三类键，三套写法
 
@@ -34,4 +34,4 @@
 
 ## 五、表怎么来的（可复现）
 
-游戏数据里有完整的设置项定义（`STUGameRulesetSchema`：每条带类型、布尔真/假词、枚举选项）。OWLib 自带的 `list-game-ruleset-schemas` 崩了，所以我们在 `workshop-data-update` 技能里加了自己的导出命令 `list-settings-words`，输出再压成 `settings-schema.tsv`。数据更新后重跑即可。
+游戏数据里有完整的设置项定义（`STUGameRulesetSchema`：每条带类型、布尔真/假词、枚举选项）。OWLib 自带的 `list-game-ruleset-schemas` 崩了，所以我们在 `workshop-data-update` 技能里加了自己的导出命令 `list-settings-words`，输出再压成 `data/settings.tsv`。数据更新后重跑即可。
