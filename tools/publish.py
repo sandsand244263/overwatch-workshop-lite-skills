@@ -52,11 +52,16 @@ def random_name(rng):
 
 
 def rename_vars(text, seed=20261020):
+    """变量/子程序改随机名，声明与所有引用（含 全局.X / 事件玩家.X）同步替换。"""
     rng = random.Random(seed)
     names = re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M)
     mapping = {n: random_name(rng) for n in set(names)}
-    for old in sorted(mapping, key=len, reverse=True):
-        text = re.sub(r"(?<![\w.])%s(?![\w])" % re.escape(old), mapping[old], text)
+    for old, new_name in mapping.items():
+        # 带前缀的引用：全局.X / 事件玩家.X / 本地玩家.X / 玩家.X
+        text = re.sub(r"(全局|事件玩家|本地玩家|玩家|所有玩家)\.%s(?![\w])" % re.escape(old),
+                      lambda m: m.group(1) + "." + new_name, text)
+        # 裸名（变量声明行、修改全局变量 的目标位、子程序名）
+        text = re.sub(r"(?<![\w.])%s(?![\w])" % re.escape(old), new_name, text)
     return text, len(mapping)
 
 

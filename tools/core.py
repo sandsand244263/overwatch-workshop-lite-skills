@@ -58,7 +58,8 @@ VERIFIED_NO_SLOTS = {
 
 # 模式 > 综合 块里实测能导入的键（其余报「综合 { 之后应有一个游戏模式设置」）。
 # 数据里的设置分类（技能/武器/决斗先锋…）跟 .ow 的块结构不是一回事，推不出来，只能靠实测。
-GENERAL_KEYS = ("复生时间", "急救包刷新", "游戏模式开始", "英雄限制")
+GENERAL_KEYS = ("允许切换英雄", "复生时间", "急救包刷新", "游戏模式开始", "英雄限制",
+                "重装职责被动生命值加成", "随机英雄复生")
 
 
 def check_mode_general(text, problems):
@@ -318,6 +319,29 @@ def check_duplicate_blocks(text, problems):
                              % (kw, len(hits), "、".join(str(x) for x in lines))))
 
 
+MIN_ARGS = {"修改全局变量": 3, "修改玩家变量": 4, "设置全局变量": 2, "设置玩家变量": 3}
+
+
+def check_arg_count(text, problems):
+    """少数函数的参数不可省略，少给会报「之后应有一个选项」。"""
+    for name, need in MIN_ARGS.items():
+        for m in re.finditer(re.escape(name) + r"\(", text):
+            depth, j = 0, m.end() - 1
+            while j < len(text):
+                if text[j] == "(":
+                    depth += 1
+                elif text[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            args = [a for a in re.split(r"[，,]", text[m.end():j]) if a.strip()]
+            if len(args) < need:
+                line = text.count(chr(10), 0, m.start()) + 1
+                problems.append((line, "error",
+                                 "%s 至少要 %d 个参数，这里只有 %d 个" % (name, need, len(args))))
+
+
 def check_types(text, problems):
     """按参数类型校验（类型来自 data/signatures.md）。
 
@@ -550,6 +574,7 @@ def lint(path, sigs, labels, settings=None, options=None):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems, options)
+    check_arg_count(masked, problems)
     check_types(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
