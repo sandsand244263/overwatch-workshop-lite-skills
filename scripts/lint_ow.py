@@ -242,6 +242,36 @@ def scan_calls(text, sigs, labels, problems):
         i += 1
 
 
+def check_misc(text, problems):
+    """吸收自 workshop.codes linter 的其余规则。"""
+    # 1) 块结尾 } 后多余分号
+    for m in re.finditer(r"\}\s*;", text):
+        line = text.count(chr(10), 0, m.start()) + 1
+        problems.append((line, "error", "块结尾的 } 后面不能加分号"))
+
+    # 2) 子程序必须已声明
+    declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
+    for m in re.finditer(r"调用子程序\(\s*([A-Za-z_]\w*)\s*\)", text):
+        if m.group(1) not in declared:
+            line = text.count(chr(10), 0, m.start()) + 1
+            problems.append((line, "error", "调用子程序(%s) 找不到对应的子程序声明" % m.group(1)))
+
+    # 3) 地图 id 不能是 0（会导致导入失败）
+    for m in re.finditer(r"^\s*([^\s:][^\n:]*?)\s+0\s*$", text, re.M):
+        line = text.count(chr(10), 0, m.start()) + 1
+        problems.append((line, "error", "地图 id 不能是 0：%s" % m.group(1).strip()))
+
+    # 4) 变量名只差大小写
+    names = re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M)
+    groups = {}
+    for n in names:
+        groups.setdefault(n.lower(), set()).add(n)
+    for group in groups.values():
+        if len(group) > 1:
+            problems.append((0, "warning", "变量名只差大小写，工坊会当成同一个：%s"
+                             % " / ".join(sorted(group))))
+
+
 def lint(path, sigs, labels, settings=None):
     problems = []
     settings = settings or {}
@@ -402,6 +432,7 @@ def lint(path, sigs, labels, settings=None):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems)
+    check_misc(masked, problems)
 
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))

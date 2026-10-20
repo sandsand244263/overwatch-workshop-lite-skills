@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.6.2
+version: 1.7.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -69,6 +69,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/diagnostics.md` - Comment syntax rules and the required debugging workflow.
 - `references/element-costs.md` - Tested element-cost reference grouped by values, context values, conditions, actions, and rule structures.
 - `references/element-audit.md` - Practical audit rules for element-budget reviews and optimization order.
+- `scripts/check_all.py` - 发布前自检：对 `references/verified/*.ow` 与 `golden*.ow` 全部跑一遍，必须 0 error。
 - `scripts/lint_ow.py` - 中文 `.ow` 格式校验器：括号、分号、尾逗号、条件比较、变量名、未知函数、参数个数、占位符、全局规则误用事件玩家。交付前必跑，退出码 0 才算完成。
 
 ## Task Guidance
