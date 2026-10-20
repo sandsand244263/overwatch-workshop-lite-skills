@@ -18,39 +18,40 @@ CALL = re.compile(r"([\u4e00-\u9fffA-Za-z_][\u4e00-\u9fffA-Za-z0-9_]*)\(")
 STRING = re.compile(r'"[^"\n]*"')
 
 
-def value_cost(expr):
-    """一个表达式（不含外层减 1）的元素成本。"""
+def value_cost(expr, variables=None, depth=0):
+    """一个表达式（不含外层减 1）的元素成本。权重来自 12 个标定探针（见 docs/limits.md）。"""
     e = expr.strip()
+    variables = variables or set()
     if not e:
         return 0
-    cost = 0
-    strings = STRING.findall(e)
-    for s in strings:
-        cost += 2 + s.count("{")          # 字符串本身 2，每个插值 +1
-    stripped = STRING.sub("", e)
-    calls = CALL.findall(stripped)
-    cost += len(calls)                    # 每个函数/常量调用 1
-    cost += len(NUMBER.findall(stripped)) # 每个数字 1
-    if not calls and not strings and not NUMBER.search(stripped):
-        cost += 1                         # 裸常量（真/假/空/事件玩家…）
-    return cost
+    if re.fullmatch(r"-?\d+(\.\d+)?", e):
+        return 2                      # 数字 = 数值() + 字面量
+    if re.fullmatch(r'"[^"]*"', e):
+        return 5 + len(re.findall(r"\{\d\}", e))
+    m = re.match(r"^([\u4e00-\u9fff\w]+)\((.*)\)$", e)
+    if m:
+        name, inner = m.group(1), m.group(2)
+        if name == "自定义字符串":
+            return 5 + len(re.findall(r"\{\d\}", inner))
+        args = [a for a in split_args(inner) if a.strip()]
+        base = 2 if name == "数组" else 1
+        return base + sum(value_cost(a, variables, depth + 1) for a in args)
+    if re.match(r"^[^\s()]+\.[\w\u4e00-\u9fff]+$", e):
+        return 2
+    return 2 if depth >= 1 else 1     # 裸常量：嵌在值函数里时按 2 算（实测 E01）
 
 
-def statement_cost(line):
-    """一行动作或条件：语句 1 + 参数成本 - 顶层参数个数。"""
-    body = line.strip().rstrip(";")
-    if not body:
-        return 0
-    args = []
+def split_args(s):
+    out = []
     depth = 0
     cur = ""
     inside = False
-    for ch in body:
+    for ch in s:
         if ch == '"':
             inside = not inside
         if not inside:
-            if ch in "，," and depth == 0 and cur.strip():
-                args.append(cur)
+            if ch in "，," and depth == 0:
+                out.append(cur)
                 cur = ""
                 continue
             if ch == "(":
@@ -59,18 +60,25 @@ def statement_cost(line):
                 depth -= 1
         cur += ch
     if cur.strip():
-        args.append(cur)
-    total = 1
-    for a in args:
-        c = value_cost(a)
-        total += max(0, c - 1)            # 顶层参数少算 1
-    return total
+        out.append(cur)
+    return out
+
+
+def statement_cost(line, variables=None):
+    """一行动作或条件：本身 1 + 每个顶层参数 (成本-1)，最低 0。"""
+    body = line.strip().rstrip(";")
+    p = body.find("(")
+    if p < 0:
+        return 1
+    params = [a for a in split_args(body[p + 1:body.rfind(")")]) if a.strip()]
+    return 1 + sum(max(0, value_cost(a, variables) - 1) for a in params)
 
 
 def estimate(path, sigs=None, labels=None):
     text = open(path, encoding="utf-8").read()
     rules = len(re.findall(r"^\s*规则\(", text, re.M))
-    subs = len(re.findall(r"^\s*\d+\s*:\s*[A-Za-z_]\w*\s*$", text, re.M))
+    subs = 0
+    variables = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
     conds = acts = 0
     inner_cond = inner_act = 0
     stack, pending = [], None
@@ -90,13 +98,16 @@ def estimate(path, sigs=None, labels=None):
         block = stack[-1] if stack else None
         if not s or block in ("事件", "变量", "设置"):
             continue
+        if block == "子程序" and re.match(r"^\d+\s*:\s*[A-Za-z_]\w*$", s):
+            subs += 1
+            continue
         if block == "条件":
             conds += 1
-            inner_cond += statement_cost(s)
+            inner_cond += statement_cost(s, variables)
         elif block == "动作":
             acts += 1
-            inner_act += statement_cost(s)
-    total = rules + subs + conds + acts + inner_cond + inner_act
+            inner_act += statement_cost(s, variables)
+    total = rules + inner_cond + inner_act
     detail = {"规则": rules, "子程序": subs, "条件": conds, "动作": acts,
               "条件内部": inner_cond, "动作内部": inner_act}
     return total, detail

@@ -302,6 +302,30 @@ def scan_calls(text, sigs, labels, problems, options=None):
         i += 1
 
 
+def check_duplicate_blocks(text, problems):
+    """顶层的 设置 / 变量 / 子程序 块只能各出现一次，重复会报「未知的变量」这类错。"""
+    for kw in ("设置", "变量", "子程序"):
+        hits = [m.start() for m in re.finditer(r"^%s\s*$" % kw, text, re.M)]
+        if len(hits) > 1:
+            lines = [text.count(chr(10), 0, h) + 1 for h in hits[1:]]
+            problems.append((lines[0], "error",
+                             "顶层 `%s` 块出现了 %d 次，只能有一个（多余的从第 %s 行开始）"
+                             % (kw, len(hits), "、".join(str(x) for x in lines))))
+
+
+def check_bare_variables(text, problems):
+    """变量当值必须写 全局.X / 事件玩家.X，直接写变量名会被判「之后应有一个值」。"""
+    names = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
+    if not names:
+        return
+    for m in re.finditer(r"[,，]\s*([A-Za-z_]\w*)\s*(?=[,，)])", text):
+        if m.group(1) in names:
+            line = text.count(chr(10), 0, m.start()) + 1
+            problems.append((line, "error",
+                             "变量 %s 不能直接当值用，要写 全局.%s 或 事件玩家.%s"
+                             % (m.group(1), m.group(1), m.group(1))))
+
+
 def check_misc(text, problems):
     """吸收自 workshop.codes linter 的其余规则。"""
     # 1) 块结尾 } 后多余分号
@@ -507,7 +531,9 @@ def lint(path, sigs, labels, settings=None, options=None):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems, options)
+    check_bare_variables(masked, problems)
     check_misc(masked, problems)
+    check_duplicate_blocks(masked, problems)
 
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))
