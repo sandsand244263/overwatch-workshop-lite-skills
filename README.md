@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v1.2.3**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v1.3.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -65,7 +65,6 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 ---
 
 ## 文件结构
-
 ```
 workshop-lite/
 ├── SKILL.md                      技能入口，定义工作流和触发条件
@@ -75,17 +74,21 @@ workshop-lite/
 │   ├── workshop-lite-small.svg    小图标
 │   └── workshop-lite-large.svg    大 logo
 ├── references/
+│   ├── format-spec.md             格式规范：骨架、硬规则、报错对照（先读这个）
+│   ├── signatures.md              全部动作与值函数的参数签名（225 + 266 条）
 │   ├── syntax.md                  语法参考（结构、事件、变量、控制流、导入差异）
-│   ├── actions.md                 225 个动作函数签名
-│   ├── values.md                  264 个条件/值函数参考
-│   ├── strings.md                 611 条内置 `字符串(...)` 词条
-│   ├── enums.md                   英雄/地图/按钮/交流/模式/扩展枚举
+│   ├── actions.md                 动作函数详解与完整名称表（225 个）
+│   ├── values.md                  条件/值函数参考（264 个 + 常量）
+│   ├── strings.md                 616 条内置 `字符串(...)` 词条
+│   ├── enums.md                   英雄/地图/按钮/交流/模式/扩展枚举 + 数据基线
 │   ├── patterns.md                设计模式与代码质量要求
-│   ├── pitfalls.md                52 条必查避坑清单
+│   ├── pitfalls.md                55 条必查避坑清单
 │   ├── ui-notes.md                HUD/UI 排版说明
 │   ├── diagnostics.md             注释语法与调试工作流
 │   ├── element-costs.md           元素成本参考表
 │   └── element-audit.md           元素审查规则
+├── scripts/
+│   └── lint_ow.py                 格式校验器：交付前必跑，退出码 0 才算完成
 ├── .claude-plugin/
 │   └── marketplace.json           Claude Code 市场注册
 ├── README.md                      本文件
