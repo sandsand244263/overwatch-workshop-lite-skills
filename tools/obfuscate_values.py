@@ -78,7 +78,12 @@ def mask_strings(line):
 
 
 def rewrite_line(line, labels, factor):
-    """把一行里的数值参数改成 (n * F / F)。返回 (新行, 改动数)。"""
+    """把一行里的数值参数改成 (n * F / F)。返回 (新行, 改动数)。
+
+    含字符串的行直接跳过：掩码回写会错位，把字符串内容抹成空格。
+    """
+    if '"' in line:
+        return line, 0
     code = mask_strings(line)
     changed = 0
 
