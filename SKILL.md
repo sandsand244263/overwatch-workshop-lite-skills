@@ -53,6 +53,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/actions.md` - Action signatures, HUD/effect APIs, movement/state helpers, variable operations, gameplay control, projectiles, beams, and the complete action function list.
 - `references/values.md` - Value and condition functions, common constants, strings, colors, map workshop settings, player/hero data, and the complete value/function list.
 - `references/golden.ow` - 从游戏「复制脚本」导出的真实文件（155 行，简单模式），格式基准之一。
+- `references/golden3.ow` - 实测导入成功的最小可用模式（设置块 + 变量 + 6 条规则），设置块照它抄。
 - `references/golden2.ow` - 复杂模式样本（900 行，含散号变量、子程序块、数组、三元、跨行参数、纯字符串注释行），格式基准之二；lint 必须始终对它 0 error。
 - `references/sources.md` - 权威资料分级（游戏 > 官方补丁 > 数据导出 > 社区工具）与下次更新的检查顺序。
 - `references/format-spec.md` - 文件骨架、硬格式规则（分号/尾逗号/条件比较/可见参数/变量命名）、常见导入报错对照表。

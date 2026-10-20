@@ -41,6 +41,46 @@ CONTROL = ("While", "If", "Else If", "Else", "End", "For", "For 全局变量", "
            "如条件为“真”则中止", "如条件为“假”则中止")
 SETTINGS_BLOCKS = ("设置", "主程序", "大厅", "模式", "英雄", "地图工坊", "扩展")
 VAR_SECTIONS = ("全局:", "玩家:")
+# 模式 > 综合 块里实测能导入的键（其余会报「综合 { 之后应有一个游戏模式设置」）
+GENERAL_KEYS = ("复生时间", "急救包刷新", "游戏模式开始", "英雄限制")
+
+
+def check_mode_general(text, problems):
+    """检查 `模式 { ... 综合 { ... } }` 里的键是否在实测白名单内。"""
+    idx = text.find("模式")
+    while idx != -1:
+        brace = text.find("{", idx)
+        if brace == -1:
+            break
+        depth, j = 1, brace + 1
+        while j < len(text) and depth:
+            if text[j] == "{":
+                depth += 1
+            elif text[j] == "}":
+                depth -= 1
+            j += 1
+        block = text[brace:j]
+        start = block.find("综合")
+        while start != -1:
+            ob = block.find("{", start)
+            depth2, k = 1, ob + 1
+            while k < len(block) and depth2:
+                if block[k] == "{":
+                    depth2 += 1
+                elif block[k] == "}":
+                    depth2 -= 1
+                k += 1
+            inner = block[ob:k]
+            for m in re.finditer(r"^\s*([^\s:]+)\s*:", inner, re.M):
+                key = m.group(1)
+                if key not in GENERAL_KEYS:
+                    line = text.count(chr(10), 0, brace) + 1
+                    problems.append((line, "warning",
+                                     "综合 块里的键 %s 未在实测样本中出现；实测有效：%s"
+                                     % (key, " / ".join(GENERAL_KEYS))))
+            start = block.find("综合", k)
+        idx = text.find("模式", j)
+
 
 
 def split_args(text):
@@ -322,6 +362,7 @@ def lint(path, sigs, labels):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems)
+    check_mode_general(masked, problems)
 
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))
