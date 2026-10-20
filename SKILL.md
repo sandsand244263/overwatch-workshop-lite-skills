@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.2.2
+version: 1.2.3
 author: 用户
 platforms: [windows]
 metadata:
@@ -91,6 +91,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 
 ## Output Expectations
 
+- **Every generated or edited `.ow` must import in one paste.** Before returning code, self-check the things that actually break import: only names that exist in the references, Chinese curly quotes in quoted function names, no placeholder above `{2}`, variable and subroutine names ≤ 32 characters, and the correct refresh slot (`全部禁用` vs `无`).
 - Keep generated Workshop code idiomatic and consistent with the references.
 - Preserve exact function names and special punctuation where required.
 - When a fix depends on a specific Workshop behavior, say which reference file you checked.
