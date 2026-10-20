@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v2.1.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.1.1**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -58,49 +58,52 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 | 模式 | 说明 |
 |------|------|
 | **生成** | 根据需求生成完整的 `.ow` 规则，匹配你的命名和结构 |
-| **审查** | 检查结构、索引、循环、等待行为、元素预算，走完 52 条避坑清单 |
+| **审查** | 检查结构、索引、循环、等待行为、元素预算，走完 `docs/pitfalls.md` 的避坑清单 |
 | **解释** | 逐条规则解释代码在做什么 |
 | **调试** | 用 `记入查看器` 探针定位问题，不靠猜 |
 
 ---
 
 ## 文件结构
+
 ```
 workshop-lite/
-├── SKILL.md                      技能入口，定义工作流和触发条件
-├── agents/
-│   └── openai.yaml               Agent 界面配置（图标、颜色、默认提示词）
-├── assets/
-│   ├── workshop-lite-small.svg    小图标
-│   └── workshop-lite-large.svg    大 logo
-├── references/
-│   ├── golden3.ow                 **实测导入成功**的最小可用模式（设置块照它抄）
-│   ├── golden.ow                  早期样本（设置块含非法键，仅作结构参考）
-│   ├── golden2.ow                 复杂模式真实样本（900 行，含子程序/数组/三元/跨行）
-│   ├── sources.md                 权威资料分级与下次更新的检查顺序
-│   ├── ecosystem.md               周边工具分工（VS Code 插件/workshop.codes/overpy/OWLib）与混淆 5 项副作用
-│   ├── limits.md                  硬上限：元素 32768 / 规则 98KB / 变量与子程序各 128
-│   ├── settings-schema.tsv        269 个设置项的权威表（键 → 类型 → 可写值）
-│   ├── settings-map.md            设置项老 BUG：导出器写 启用/禁用，导入器只认 开启/关闭
-│   ├── format-spec.md             格式规范：骨架、硬规则、报错对照（先读这个）
-│   ├── signatures.md              全部动作与值函数的参数签名（225 + 266 条）
-│   ├── syntax.md                  语法参考（结构、事件、变量、控制流、导入差异）
-│   ├── actions.md                 动作函数详解与完整名称表（225 个）
-│   ├── values.md                  条件/值函数参考（264 个 + 常量）
-│   ├── strings.md                 616 条内置 `字符串(...)` 词条
-│   ├── enums.md                   英雄/地图/按钮/交流/模式/扩展枚举 + 数据基线
-│   ├── patterns.md                设计模式与代码质量要求
-│   ├── pitfalls.md                55 条必查避坑清单
-│   ├── ui-notes.md                HUD/UI 排版说明
-│   ├── diagnostics.md             注释语法与调试工作流
-│   ├── element-costs.md           元素成本参考表
-│   └── element-audit.md           元素审查规则
-├── scripts/
-│   └── lint_ow.py                 格式校验器：交付前必跑，退出码 0 才算完成
-├── .claude-plugin/
-│   └── marketplace.json           Claude Code 市场注册
-├── README.md                      本文件
-└── LICENSE                        MIT
+├── SKILL.md                    技能入口：目录分工、工作流、生成纪律、交付标准
+├── data/                       全部由脚本从游戏导出生成，文件头带 build 与日期，禁止手改
+│   ├── signatures.md             动作 225 + 值函数 267 的参数签名，下拉参数直接标可选值
+│   ├── defaults.tsv              每个参数的默认值（省略尾部参数时游戏实际填什么）
+│   ├── dropdowns.tsv             每个下拉参数的候选值（只作参考，非唯一合法值）
+│   ├── settings.tsv              设置项：分类 / 键 / 类型 / 可选值
+│   ├── enums.md                  英雄 54 / 地图基版与节日变体 / 下拉选项全集
+│   ├── strings.md                623 条内置 `字符串(...)` 词条
+│   └── meta.json                 数据基线：build、导出日期、各表条数
+├── docs/                       数据里没有的知识，手写
+│   ├── format-spec.md            格式规范：骨架、硬规则、报错对照（先读这个）
+│   ├── syntax.md                 语法参考（结构、事件、变量、控制流、导入差异）
+│   ├── pitfalls.md               必查避坑清单
+│   ├── patterns.md               设计模式与代码质量要求
+│   ├── diagnostics.md            注释语法与调试工作流
+│   ├── limits.md                 硬上限：元素 32768 / 规则 98KB / 变量与子程序各 128
+│   ├── element-costs.md          元素成本实测参考表
+│   ├── element-audit.md          元素超预算时的降级顺序
+│   ├── ui-notes.md               HUD/UI 排版说明
+│   ├── settings-map.md           设置项老 BUG：导出器写 启用/禁用，导入器只认 开启/关闭
+│   ├── ecosystem.md              周边工具分工（VS Code 插件 / workshop.codes / overpy / OWLib）
+│   └── sources.md                权威资料分级与更新检查顺序
+├── tools/
+│   ├── ws.py                     唯一入口：check / count / defaults / publish / gen / diff
+│   ├── core.py                   解析与校验引擎（读 data/，不含手抄名字表）
+│   ├── publish.py                出发布文件（默认源码版，按需混淆版）
+│   ├── obfuscate_values.py       数值混淆（等价改写）
+│   ├── element_count.py          元素数估算（数量级预警）
+│   ├── gen_data.py               从游戏导出重新生成 data/
+│   ├── data_diff.py              两个导出目录全量对照
+│   └── probes/                   实测导入通过的探针与真实样本（改校验器后必跑）
+├── agents/openai.yaml          Agent 界面配置
+├── assets/                     图标与 logo
+├── .claude-plugin/marketplace.json  Claude Code 市场注册
+├── README.md                   本文件
+└── LICENSE                     MIT
 ```
 
 ---
@@ -130,26 +133,38 @@ workshop-lite/
 ### 生成后自检（必做）
 
 ```bash
-python scripts/lint_ow.py 你的文件.ow
+python tools/ws.py check 你的文件.ow
 ```
 
-只认 0 error。它检查：括号配对、语句分号、尾逗号、条件比较、变量名英文、变量声明与引用一致、未知函数名、参数个数、事件块行数（1 或 3）、子程序是否声明、地图 id 是否为 0、占位符是否超过 `{2}`、**设置项的值是否合法**（按 `references/settings-schema.tsv` 判定）。
+只认 0 error。检查项：括号配对、语句分号、尾逗号、条件比较、变量名英文、变量声明与引用、未知函数名、参数个数（不超过）、事件块行数（1 / 3 / 子程序 2）、子程序是否声明、地图 id 是否为 0、占位符是否超过 `{2}`、变量与子程序索引与数量上限、设置项的值是否合法（按 `data/settings.tsv`）。
 
-### 回归自检（改校验器或参考文件后必做）
+### 其他命令
 
 ```bash
-python scripts/check_all.py
+python tools/ws.py count 你的文件.ow                    # 元素数估算（数量级预警）
+python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
+python tools/ws.py publish 模式.ow --outdir out          # 出源码版
+python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 额外出混淆版
+python tools/ws.py gen --src <游戏导出目录>              # 重新生成 data/
+python tools/ws.py diff --prev <旧导出> --cur <新导出>    # 全量对照，检测官方暗改
 ```
 
-对 6 个样本要求全部 0 error：3 个**实测导入通过**的探针（`references/verified/`）+ 3 个真实模式样本（`golden*.ow`）。
+### 回归自检（改校验器或数据后必做）
+
+```bash
+python tools/ws.py check tools/probes/*.ow
+```
+
+对 6 个样本要求全部 0 error：3 个**实测导入通过**的探针 + 3 个真实模式样本。
 
 ### 已验证的范围
 
 | 层 | 状态 |
 |---|---|
 | 格式（块结构、标点、变量两段、事件 1/3 行、子程序两行事件） | 实测导入通过 |
-| 名字与参数（动作/值函数/枚举/字符串） | 由游戏数据生成的签名表 + 校验器 |
-| 设置项的词（含导出器把布尔写成 `启用/禁用` 的老 BUG） | 269 键权威表 + 校验器 |
+| 名字与参数（动作/值函数/枚举/字符串） | 由游戏数据生成，校验器按表判 |
+| 设置项的词（含导出器把布尔写成 `启用/禁用` 的老 BUG） | 数据表 + 校验器 |
+| 元素数估算 | **数量级预警**，精确值以游戏「显示诊断结果 → 总计元素数量」为准 |
 | 运行时行为（HUD 是否刷新、击杀是否计分） | **未覆盖**，需实际开一局验证 |
 
 ### 人工验证 prompt
