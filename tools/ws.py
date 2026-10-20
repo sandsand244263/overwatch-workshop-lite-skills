@@ -52,6 +52,13 @@ def cmd_check(args):
     return 1 if failed else 0
 
 
+def cmd_check_all(args):
+    import glob
+    files = sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "*.ow"))) + \
+            sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow")))
+    return cmd_check(type("A", (), {"files": files})())
+
+
 def cmd_defaults(args):
     """查某函数每个参数的默认值（省略尾部参数时游戏用什么）。"""
     path = os.path.join(DATA, "defaults.tsv")
@@ -87,6 +94,9 @@ def main():
     p = sub.add_parser("check", help="校验 .ow")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
+
+    p = sub.add_parser("check-all", help="回归：probes 与 calib 全部样本")
+    p.set_defaults(func=cmd_check_all)
 
     p = sub.add_parser("defaults", help="查参数默认值")
     p.add_argument("funcs", nargs="+")
