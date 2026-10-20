@@ -237,6 +237,9 @@ def load_settings_schema(path):
     return schema
 
 
+FOR_PREFIX = re.compile(r"For\s+$")
+
+
 def scan_calls(text, sigs, labels, problems, options=None):
     options = options or {}
     i, n = 0, len(text)
@@ -277,6 +280,8 @@ def scan_calls(text, sigs, labels, problems, options=None):
                     if len(arg_list) >= abs(slot) and arg_list[slot].strip() == "无":
                         problems.append((line, "error",
                                          "%s 这个位置要写 全部禁用，写 无 导入会失败" % name))
+                if name in ("全局变量", "玩家变量") and "For" in text[max(0, start - 30):start]:
+                    continue
                 if sigs and name not in sigs:
                     problems.append((line, "error", "未知函数名：%s（签名表里没有）" % name))
                 elif sigs:
@@ -311,6 +316,33 @@ def check_duplicate_blocks(text, problems):
             problems.append((lines[0], "error",
                              "顶层 `%s` 块出现了 %d 次，只能有一个（多余的从第 %s 行开始）"
                              % (kw, len(hits), "、".join(str(x) for x in lines))))
+
+
+def check_types(text, problems):
+    """按参数类型校验（类型来自 data/signatures.md）。
+
+    覆盖两类高频错：For 控制变量必须先声明；变量当值要写 全局.X。
+    """
+    declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
+    if not declared:
+        return
+    # For 全局变量 / For 玩家变量：第一个参数必须是已声明的变量
+    for m in re.finditer(r"For\s+(全局变量|玩家变量)\(\s*([A-Za-z_]\w*)", text):
+        if m.group(2) not in declared:
+            line = text.count(chr(10), 0, m.start()) + 1
+            problems.append((line, "error",
+                             "For 循环的控制变量 %s 没有在变量块里声明" % m.group(2)))
+    # 变量当值：出现在值位置（逗号后）的裸变量名
+    for m in re.finditer(r"[，,]\s*([A-Za-z_]\w*)\s*(?=[，,)])", text):
+        name = m.group(1)
+        if name not in declared:
+            continue
+        before = text[max(0, m.start() - 40):m.start()]
+        if re.search(r"(设置|修改)(全局|玩家)变量\([^,，]*$", before):
+            continue                      # 变量目标位，合法
+        line = text.count(chr(10), 0, m.start()) + 1
+        problems.append((line, "error",
+                         "变量 %s 当值用要写 全局.%s 或 事件玩家.%s" % (name, name, name)))
 
 
 def check_misc(text, problems):
@@ -518,6 +550,7 @@ def lint(path, sigs, labels, settings=None, options=None):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems, options)
+    check_types(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
 
