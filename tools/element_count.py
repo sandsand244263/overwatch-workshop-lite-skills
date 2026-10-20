@@ -18,6 +18,9 @@ CALL = re.compile(r"([\u4e00-\u9fffA-Za-z_][\u4e00-\u9fffA-Za-z0-9_]*)\(")
 STRING = re.compile(r'"[^"\n]*"')
 
 
+COMPARE = re.compile(r"\s*(==|!=|>=|<=|>|<|&&|\|\|)\s*")
+
+
 def value_cost(expr, variables=None, depth=0):
     """一个表达式（不含外层减 1）的元素成本。权重来自 12 个标定探针（见 docs/limits.md）。"""
     e = expr.strip()
