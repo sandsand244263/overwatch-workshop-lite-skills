@@ -342,6 +342,33 @@ def check_arg_count(text, problems):
                                  "%s 至少要 %d 个参数，这里只有 %d 个" % (name, need, len(args))))
 
 
+def check_var_refs(text, problems):
+    """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。"""
+    vi = text.find("变量")
+    if vi < 0:
+        return
+    body = text[vi:]
+    gi = body.find("全局:")
+    pi = body.find("玩家:")
+    gl, pl = set(), set()
+    if gi >= 0:
+        seg = body[gi + 3: pi if pi > gi else len(body)]
+        gl = set(re.findall(r"\d+\s*:\s*(\w+)", seg))
+    if pi >= 0:
+        seg = body[pi + 3:]
+        pl = set(re.findall(r"\d+\s*:\s*(\w+)", seg))
+    if not gl and not pl:
+        return
+    for m in re.finditer(r"全局\.(\w+)", text):
+        if m.group(1) not in gl:
+            line = text.count(chr(10), 0, m.start()) + 1
+            problems.append((line, "error", "全局.%s 没有在变量块里声明" % m.group(1)))
+    for m in re.finditer(r"(?:事件玩家|本地玩家)\.(\w+)", text):
+        if m.group(1) not in pl:
+            line = text.count(chr(10), 0, m.start()) + 1
+            problems.append((line, "error", "%s.%s 没有声明为玩家变量" % (m.group(0).split(".")[0], m.group(1))))
+
+
 def check_types(text, problems):
     """按参数类型校验（类型来自 data/signatures.md）。
 
@@ -576,6 +603,7 @@ def lint(path, sigs, labels, settings=None, options=None):
     scan_calls(masked, sigs, labels, problems, options)
     check_arg_count(masked, problems)
     check_types(masked, problems)
+    check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
 
