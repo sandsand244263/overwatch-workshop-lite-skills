@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.3.0
+version: 1.4.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -44,13 +44,15 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 15. Lines starting with `#` inside the reference code blocks are annotations for humans, not Workshop syntax. Real `.ow` comments are `//`, `"注释"` (action/condition blocks only), or `/* */`.
 16. **Before returning any generated or edited `.ow`, run `python scripts/lint_ow.py <file>` and fix every error it reports.** Zero errors is the delivery bar — never hand unvalidated code to the user and let them discover import failures by pasting it into the game.
 17. Never invent argument counts or order: check `references/signatures.md` (225 actions + 266 value functions, generated from game data). Trailing arguments may be omitted, extra ones never.
-18. Structural rules that actually break import — semicolons, no trailing commas, comparisons in every condition line, `可见` taking players instead of `真/假`, no `===`, ASCII variable names — are spelled out in `references/format-spec.md`. Read it before writing a full file.
+18. `references/golden.ow` is a real file exported from the game with the copy-script button — **the only format authority**. When structure is in doubt, copy its shape, do not reason about it. The rules that break import: variables must be split into `全局:` / `玩家:` sections; every non-global event block must have exactly 3 lines (event; team; hero) while global events have 1; control flow is `While(...)/If(...)/Else If(...)/End;`; colors are `颜色(x)`; empty slots are `空`; no trailing commas; comparisons in every condition line; `可见` takes players, never `真/假`; no `===`; variable names ASCII and ≤32 chars. Full list in `references/format-spec.md`.
 
 ## Reference Map
 
 - `references/syntax.md` - File structure, settings blocks, event types, variables, shorthand syntax, advanced variable patterns, control flow, and wait semantics.
 - `references/actions.md` - Action signatures, HUD/effect APIs, movement/state helpers, variable operations, gameplay control, projectiles, beams, and the complete action function list.
 - `references/values.md` - Value and condition functions, common constants, strings, colors, map workshop settings, player/hero data, and the complete value/function list.
+- `references/golden.ow` - 从游戏「复制脚本」导出的真实文件（155 行），格式唯一基准；lint 必须始终对它 0 问题。
+- `references/sources.md` - 权威资料分级（游戏 > 官方补丁 > 数据导出 > 社区工具）与下次更新的检查顺序。
 - `references/format-spec.md` - 文件骨架、硬格式规则（分号/尾逗号/条件比较/可见参数/变量命名）、常见导入报错对照表。
 - `references/signatures.md` - 全部动作与值函数的参数签名（225 + 266 条），生成代码时核对参数个数与顺序。
 - `references/enums.md` - 英雄 54 名、地图 85 张、按钮名称、交流枚举、相对枚举、游戏模式、事件玩家/队伍过滤、扩展清单与元素成本、源数据勘误，以及顶部的数据基线说明。
