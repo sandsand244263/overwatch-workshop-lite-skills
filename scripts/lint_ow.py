@@ -387,6 +387,9 @@ def lint(path, sigs, labels, settings=None):
 
     for chunk in re.findall(r"事件\s*\{([^}]*)\}", text, re.S):
         count = len([x for x in chunk.split(";") if x.strip()])
+        first = chunk.strip().split(";")[0].strip()
+        if count == 2 and first == "子程序":
+            continue          # 子程序事件固定两行：子程序; 名字;
         if count not in (0, 1, 3):
             problems.append((0, "error",
                              "事件块只能是 1 行（全局事件）或 3 行（事件; 队伍; 英雄;），这里是 %d 行" % count))
