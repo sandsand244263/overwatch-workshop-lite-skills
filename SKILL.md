@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.8.0
+version: 1.9.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -58,6 +58,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/golden2.ow` - 复杂模式样本（900 行，含散号变量、子程序块、数组、三元、跨行参数、纯字符串注释行），格式基准之二；lint 必须始终对它 0 error。
 - `references/settings-schema.tsv` - 269 个设置项的权威表：键 → 类型 → 可写值（BOOL 恒为 开启/关闭，ENUM 为枚举原文）。校验器直接用它判值。
 - `references/settings-map.md` - 设置项的老 BUG 说明（导出器写 启用/禁用、导入器只认 开启/关闭）与判定方法。
+- `references/ecosystem.md` - 周边工具分工：VS Code 插件（补全/格式化/5 项混淆）、workshop.codes（英文校验/分享）、overpy（反编译）、OWLib（导数据），以及各自的使用顺序与副作用。
 - `references/sources.md` - 权威资料分级（游戏 > 官方补丁 > 数据导出 > 社区工具）与下次更新的检查顺序。
 - `references/format-spec.md` - 文件骨架、硬格式规则（分号/尾逗号/条件比较/可见参数/变量命名）、常见导入报错对照表。
 - `references/signatures.md` - 全部动作与值函数的参数签名（225 + 266 条），生成代码时核对参数个数与顺序。

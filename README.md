@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v1.8.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v1.9.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -78,6 +78,7 @@ workshop-lite/
 │   ├── golden.ow                  早期样本（设置块含非法键，仅作结构参考）
 │   ├── golden2.ow                 复杂模式真实样本（900 行，含子程序/数组/三元/跨行）
 │   ├── sources.md                 权威资料分级与下次更新的检查顺序
+│   ├── ecosystem.md               周边工具分工（VS Code 插件/workshop.codes/overpy/OWLib）与混淆 5 项副作用
 │   ├── limits.md                  硬上限：元素 32768 / 规则 98KB / 变量与子程序各 128
 │   ├── settings-schema.tsv        269 个设置项的权威表（键 → 类型 → 可写值）
 │   ├── settings-map.md            设置项老 BUG：导出器写 启用/禁用，导入器只认 开启/关闭
