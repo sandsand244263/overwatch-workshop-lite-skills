@@ -20,6 +20,7 @@
 - 回归命令改为同时扫 `tools/probes/*.ow` 与 `tools/probes/calib/*.ow`，共 24 个样本
 - 移除误提交的 `tools/__pycache__`，`.gitignore` 补 `__pycache__/`、`*.pyc`
 - 维护技能里重复的 `workshop_diff.py` 删除，统一走 `ws.py diff`
+- 「变量名当值」检查未保留：玩家变量的第 2 个参数本身就是变量名，正则无法区分目标与值，误报率高，改写规则见 `docs/pitfalls.md`
 
 ---
 
