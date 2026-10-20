@@ -284,6 +284,7 @@ def lint(path, sigs, labels, settings=None):
     paren_depth = 0
     var_section = None
     declared = {"全局": set(), "玩家": set()}
+    subroutines = set()
     global_rule = False
     in_comment = False
 
@@ -344,6 +345,11 @@ def lint(path, sigs, labels, settings=None):
         block = stack[-1] if stack else None
 
         if block == "子程序":
+            if re.match(r"^\d+\s*:\s*([A-Za-z_]\w*)", stripped):
+                sidx = int(stripped.split(":", 1)[0])
+                if sidx > 127:
+                    problems.append((ln, "error", "子程序索引最大 127，这里是 %d" % sidx))
+                subroutines.add(stripped.split(":", 1)[1].strip())
             if not re.match(r"^\d+\s*:", stripped):
                 problems.append((ln, "error", "子程序块里只能写 `索引: 子程序名`：%s" % stripped))
             else:
@@ -354,6 +360,9 @@ def lint(path, sigs, labels, settings=None):
 
         if block == "变量":
             if re.match(r"^\d+\s*:", stripped):
+                idx = int(stripped.split(":", 1)[0])
+                if idx > 127:
+                    problems.append((ln, "error", "变量索引最大 127，这里是 %d" % idx))
                 if var_section is None:
                     problems.append((ln, "error", "变量声明必须写在 `全局:` 或 `玩家:` 段内"))
                 else:
@@ -425,6 +434,12 @@ def lint(path, sigs, labels, settings=None):
                              "事件块只能是 1 行（全局事件）或 3 行（事件; 队伍; 英雄;），这里是 %d 行" % count))
 
     masked = strip_noise(text)
+    if len(subroutines) > 128:
+        problems.append((0, "error", "子程序最多 128 个，现在 %d 个" % len(subroutines)))
+    for section, names in declared.items():
+        if len(names) > 128:
+            problems.append((0, "error", "%s变量最多 128 个，现在 %d 个" % (section, len(names))))
+
     for m in VAR_REF.finditer(masked):
         owner, name = m.group(1), m.group(2)
         section = "全局" if owner == "全局" else "玩家"

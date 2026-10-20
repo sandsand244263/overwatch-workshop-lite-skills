@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.7.0
+version: 1.8.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -67,6 +67,7 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/ui-notes.md` - HUD / UI display notes, including multi-color HUD layout, slot sizing, sorting, and presentation-layer budgeting guidance.
 - `references/pitfalls.md` - Mandatory pitfall checklist for reviews and debugging.
 - `references/diagnostics.md` - Comment syntax rules and the required debugging workflow.
+- `references/limits.md` - 硬上限：元素 32768 / 单规则 98KB / 全局与玩家变量各 128 / 子程序 128；哪些能静态检查、元素数怎么估。
 - `references/element-costs.md` - Tested element-cost reference grouped by values, context values, conditions, actions, and rule structures.
 - `references/element-audit.md` - Practical audit rules for element-budget reviews and optimization order.
 - `scripts/check_all.py` - 发布前自检：对 `references/verified/*.ow` 与 `golden*.ow` 全部跑一遍，必须 0 error。
