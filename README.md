@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v1.4.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v1.4.1**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -74,7 +74,8 @@ workshop-lite/
 │   ├── workshop-lite-small.svg    小图标
 │   └── workshop-lite-large.svg    大 logo
 ├── references/
-│   ├── golden.ow                  游戏「复制脚本」导出的真实文件，格式唯一基准
+│   ├── golden.ow                  简单模式真实样本（155 行），格式基准一
+│   ├── golden2.ow                 复杂模式真实样本（900 行，含子程序/数组/三元/跨行）
 │   ├── sources.md                 权威资料分级与下次更新的检查顺序
 │   ├── format-spec.md             格式规范：骨架、硬规则、报错对照（先读这个）
 │   ├── signatures.md              全部动作与值函数的参数签名（225 + 266 条）

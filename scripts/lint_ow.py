@@ -250,6 +250,15 @@ def lint(path, sigs, labels):
             continue
         block = stack[-1] if stack else None
 
+        if block == "子程序":
+            if not re.match(r"^\d+\s*:", stripped):
+                problems.append((ln, "error", "子程序块里只能写 `索引: 子程序名`：%s" % stripped))
+            else:
+                name = stripped.split(":", 1)[1].strip()
+                if not IDENT.match(name):
+                    problems.append((ln, "error", "子程序名只能用英文字母/数字/下划线：%s" % name))
+            continue
+
         if block == "变量":
             if re.match(r"^\d+\s*:", stripped):
                 if var_section is None:
@@ -287,6 +296,9 @@ def lint(path, sigs, labels):
                 problems.append((ln, "error", "条件缺少比较运算（== != > < >= <=）"))
             continue
 
+        if stripped.startswith('"') and stripped.endswith('"'):   # 动作块里的纯字符串行 = 注释
+            continue
+
         if block in ("动作", "子程序"):
             if not stripped.endswith(";") and not stripped.endswith("{") and opens <= 0:
                 problems.append((ln, "error", "语句缺少分号"))
@@ -307,7 +319,7 @@ def lint(path, sigs, labels):
         owner, name = m.group(1), m.group(2)
         section = "全局" if owner == "全局" else "玩家"
         if name not in declared[section]:
-            problems.append((0, "error", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
+            problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems)
 
@@ -343,9 +355,11 @@ def main():
             failed += 1
             continue
         problems = lint(path, sigs, labels)
+        errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
-        if problems:
+        if errors:
             failed += 1
+        if problems:
             print("✗ %s：%d 个问题" % (name, len(problems)))
             for ln, level, msg in problems:
                 where = "第 %d 行" % ln if ln else "全文"
