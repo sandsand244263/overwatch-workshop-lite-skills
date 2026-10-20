@@ -67,6 +67,23 @@ def split_args(s):
     return out
 
 
+COMPARE_BONUS = 3   # While/If 的条件里出现比较运算符时固定 +3（实测 G02/G04）
+
+
+
+
+def block_cost(line, variables=None):
+    """While(...) / If(...) 这类块语句：1 + 条件成本（不打折），含比较再 +3。"""
+    body = line.strip().rstrip(";")
+    p1 = body.find("(")
+    if p1 < 0:
+        return 1
+    cond = body[p1 + 1:body.rfind(")")]
+    if re.search(r"==|!=|>=|<=|>|<", cond):
+        return 1 + COMPARE_BONUS + 1      # 比较式条件固定 5（实测 G02/G04）
+    return 1 + value_cost(cond, variables)
+
+
 def statement_cost(line, variables=None):
     """一行动作或条件：本身 1 + 每个顶层参数 (成本-1)，最低 0。"""
     body = line.strip().rstrip(";")
@@ -103,6 +120,11 @@ def estimate(path, sigs=None, labels=None):
             continue
         if block == "子程序" and re.match(r"^\d+\s*:\s*[A-Za-z_]\w*$", s):
             subs += 1
+            continue
+        if s in ("End;", "End"):
+            continue
+        if re.match(r"(While|If|Else If|For 全局变量|For 玩家变量)\(", s):
+            inner_act += block_cost(s, variables)
             continue
         if block == "条件":
             conds += 1
