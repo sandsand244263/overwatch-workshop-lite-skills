@@ -13,7 +13,8 @@
 | 3 | **workshop.codes**（linter 源码） | 真实导入错误规则：尾逗号、条件必须比较、事件参数、变量大小写、地图 id 0、英雄设置开关 | `app/javascript/src/lib/OWLanguageLinter.ts` |
 | 3 | **overpy**（反编译器 + 真实 .ow 样例） | 结构规则：事件 1 行或 3 行、变量两块、语句分号 | `src/decompiler/workshopToAst.ts`、`src/tests/decompiler/*.txt` |
 | 3 | **OSTW**（TextMate 语法） | 四块结构（settings / variables / subroutines / rule） | `tmlanguage-generator/src/ow/ow-grammar.ts` |
-| 3 | **xhanl/overwatch-workshop** | 中文元素名对照 | 元素改名时交叉核对 |
+| 3 | **xhanl/overwatch-workshop** | 中文元素名对照 + 中文语法高亮规则（`syntaxes/ow.tmLanguage.json`）+ 官方测试 `.ow` 文件 | 元素改名、语法高亮、缩进写法 |
+| — | **设置项（settings）没有任何工具覆盖** | 键和合法值没有数据源：DataTool 不导、workshop.codes 不查、VS Code 插件里也没有 | 只能整块照抄 `golden2.ow`，绝不手写 |
 
 优先级：**1 > 2 > 3**。冲突时以游戏实际行为为准，其余都只是旁证。
 
