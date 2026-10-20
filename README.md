@@ -6,7 +6,7 @@
 
 **注意：本 skill 仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适合。
 
-当前版本 **v2.0.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.1.0**，更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 

@@ -121,6 +121,26 @@ def render_dropdowns(ws, dd):
     return "\n".join(rows)
 
 
+def render_defaults(ws):
+    """每个参数的默认值：省略尾部参数时游戏实际用什么。"""
+    rows = ["func	param_index	param_name	default"]
+    for key in ("Actions", "Values"):
+        for entry in ws.get(key) or []:
+            name = (entry.get("DisplayName") or "").strip()
+            for idx, p in enumerate(entry.get("Parameters") or []):
+                dv = p.get("DefaultValue")
+                if isinstance(dv, dict):
+                    val = dv.get("DisplayName") or str(dv.get("Value") or "")
+                elif dv is not None:
+                    val = str(dv)
+                elif p.get("InferredType") == "Dropdown":
+                    val = "（下拉默认档）"
+                else:
+                    val = "（无）"
+                rows.append("%s	%d	%s	%s" % (name, idx, (p.get("Name") or "_").strip(), val))
+    return chr(10).join(rows)
+
+
 def render_settings(settings_path):
     rows = ["schema\tkey\ttype\tvalues"]
     if not os.path.exists(settings_path):
@@ -210,6 +230,7 @@ def main():
     write(os.path.join(args.out, "signatures.md"), render_signatures(ws, dd, build, stamp))
     write(os.path.join(args.out, "dropdowns.tsv"), render_dropdowns(ws, dd))
     write(os.path.join(args.out, "settings.tsv"), render_settings(args.settings_words))
+    write(os.path.join(args.out, "defaults.tsv"), render_defaults(ws))
     write(os.path.join(args.out, "enums.md"), render_enums(ws, heroes, maps, dd))
     write(os.path.join(args.out, "strings.md"), render_strings(ws))
 

@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.0.0
+version: 2.1.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -28,6 +28,7 @@ metadata:
 ```bash
 python tools/ws.py check 模式.ow                        # 校验，交付前必跑，必须 0 error
 python tools/ws.py count 模式.ow                        # 元素数估算（预警用）
+python tools/ws.py defaults 创建HUD文本                  # 查参数默认值（省略尾部参数时游戏用什么）
 python tools/ws.py publish 模式.ow --outdir out          # 出源码版
 python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 额外出混淆版
 python tools/ws.py gen --src <导出目录>                  # 重新生成 data/
@@ -36,7 +37,7 @@ python tools/ws.py diff --prev <旧导出> --cur <新导出>    # 全量对照
 
 ## 工作流
 
-1. **查数据不凭记忆**：参数个数与顺序看 `data/signatures.md`；设置项键与值看 `data/settings.tsv`；`字符串(...)` 只能用 `data/strings.md` 里的现成词条，自由文本一律 `自定义字符串`。
+1. **查数据不凭记忆**：参数个数与顺序看 `data/signatures.md`（`ws.py defaults 函数名` 能查每个参数省略时的默认值）；设置项键与值看 `data/settings.tsv`；`字符串(...)` 只能用 `data/strings.md` 里的现成词条，自由文本一律 `自定义字符串`。
 2. **格式照 `docs/format-spec.md`**：块标题独占一行、`{` 在下一行；变量分 `全局:` / `玩家:` 两段；事件块全局 1 行、其它 3 行、子程序 2 行；控制流 `While(...)/If(...)/Else If(...)/End;`。
 3. **写完必跑 `ws.py check`**，0 error 才交付；有 error 自己改，不交给用户试错。
 4. **设置块整块照抄** `tools/probes/golden3.ow`，键值不手改——导出器有老 BUG（布尔项导出 `启用/禁用`，导入只认 `开启/关闭`）。`综合` 块只有 `复生时间` / `急救包刷新` / `游戏模式开始` / `英雄限制` 四个键可用。

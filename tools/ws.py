@@ -4,6 +4,7 @@
 
   python tools/ws.py check  模式.ow [更多文件...]     校验
   python tools/ws.py count  模式.ow                   元素数估算
+  python tools/ws.py defaults 创建HUD文本              查参数默认值（省略时游戏用什么）
   python tools/ws.py publish 模式.ow --outdir out [--obf numbers,vars]
   python tools/ws.py gen --src 导出目录                 重新生成 data/
   python tools/ws.py diff --prev 旧导出 --cur 新导出     全量对照
@@ -51,6 +52,24 @@ def cmd_check(args):
     return 1 if failed else 0
 
 
+def cmd_defaults(args):
+    """查某函数每个参数的默认值（省略尾部参数时游戏用什么）。"""
+    path = os.path.join(DATA, "defaults.tsv")
+    if not os.path.isfile(path):
+        print("缺少 data/defaults.tsv，先跑 ws.py gen")
+        return 2
+    rows = [l.rstrip(chr(10)).split("	") for l in open(path, encoding="utf-8") if not l.startswith("func	")]
+    for name in args.funcs:
+        hit = [r for r in rows if r[0] == name]
+        if not hit:
+            print("%s：数据里没有这个函数" % name)
+            continue
+        print("%s：" % name)
+        for _f, idx, pname, val in hit:
+            print("   第 %d 个参数 %-10s 默认 %s" % (int(idx) + 1, pname, val))
+    return 0
+
+
 def cmd_count(args):
     sigs, labels, settings = load()
     from element_count import estimate, describe
@@ -68,6 +87,10 @@ def main():
     p = sub.add_parser("check", help="校验 .ow")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
+
+    p = sub.add_parser("defaults", help="查参数默认值")
+    p.add_argument("funcs", nargs="+")
+    p.set_defaults(func=cmd_defaults)
 
     p = sub.add_parser("count", help="元素数估算")
     p.add_argument("files", nargs="+")
