@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 1.9.0
+version: 1.10.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -45,6 +45,8 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 16. **Before returning any generated or edited `.ow`, run `python scripts/lint_ow.py <file>` and fix every error it reports.** Zero errors is the delivery bar — never hand unvalidated code to the user and let them discover import failures by pasting it into the game.
 17. Never invent argument counts or order: check `references/signatures.md` (225 actions + 266 value functions, generated from game data). Trailing arguments may be omitted, extra ones never.
 18. **Never hand-write the `设置` block.** No tool validates settings keys (DataTool does not export them, workshop.codes does not lint them, the VS Code extension has no settings data), so the only safe move is to copy the whole block from `references/golden2.ow` and change numbers. In `综合` only `复生时间` / `急救包刷新` / `游戏模式开始` / `英雄限制` are proven valid; anything else fails with 「`综合 {` 之后应有一个游戏模式设置」.
+19. **交付形态**：默认只给源码版 `.ow`。用户明确说要防复制/混淆时，才用 `scripts/publish.py --obf …` 额外出一份，并说清代价（占元素额度、影响可维护性、索引混淆拖性能）。
+20. **分工边界**：用户只负责两件事——把文件导入工坊、开一局看功能对不对。其余（语法、参数、设置项、元素预算估算、`无`→`全部禁用` 修复、混淆）都由你兜底，不要要求用户手工改代码或装插件。
 19. `references/golden.ow` is a real file exported from the game with the copy-script button — **the only format authority**. When structure is in doubt, copy its shape, do not reason about it. The rules that break import: variables must be split into `全局:` / `玩家:` sections; every non-global event block must have exactly 3 lines (event; team; hero) while global events have 1; control flow is `While(...)/If(...)/Else If(...)/End;`; colors are `颜色(x)`; empty slots are `空`; no trailing commas; comparisons in every condition line; `可见` takes players, never `真/假`; no `===`; variable names ASCII and ≤32 chars. Full list in `references/format-spec.md`.
 
 ## Reference Map
@@ -71,6 +73,8 @@ responsibilities, split it by edge or responsibility instead of stacking more ac
 - `references/limits.md` - 硬上限：元素 32768 / 单规则 98KB / 全局与玩家变量各 128 / 子程序 128；哪些能静态检查、元素数怎么估。
 - `references/element-costs.md` - Tested element-cost reference grouped by values, context values, conditions, actions, and rule structures.
 - `references/element-audit.md` - Practical audit rules for element-budget reviews and optimization order.
+- `scripts/publish.py` - 出发布文件。**默认只出源码版**；用户明确要混淆时才加 `--obf numbers,vars,rules,indexes,local-indexes`（颗粒度对齐 VS Code 插件，字符串混淆交给插件）。
+- `scripts/obfuscate_values.py` - 数值混淆（等价改写，插件没有的能力）。
 - `scripts/check_all.py` - 发布前自检：对 `references/verified/*.ow` 与 `golden*.ow` 全部跑一遍，必须 0 error。
 - `scripts/lint_ow.py` - 中文 `.ow` 格式校验器：括号、分号、尾逗号、条件比较、变量名、未知函数、参数个数、占位符、全局规则误用事件玩家。交付前必跑，退出码 0 才算完成。
 

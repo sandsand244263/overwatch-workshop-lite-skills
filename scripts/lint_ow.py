@@ -41,6 +41,11 @@ CONTROL = ("While", "If", "Else If", "Else", "End", "For", "For 全局变量", "
            "如条件为“真”则中止", "如条件为“假”则中止")
 SETTINGS_BLOCKS = ("设置", "主程序", "大厅", "模式", "英雄", "地图工坊", "扩展")
 VAR_SECTIONS = ("全局:", "玩家:")
+
+# 「无」会被导入拒绝、必须写「全部禁用」的位置（来源：VS Code 插件的导入/导出修复清单）
+NO_TO_DISABLED_TEXT_FUNCS = {"创建地图文本", "创建HUD文本", "创建进度条地图文本", "创建进度条HUD文本"}
+NO_TO_DISABLED_TAIL_FUNCS = {"追踪全局变量频率", "追踪玩家变量频率", "持续追踪全局变量",
+                             "持续追踪玩家变量", "开始治疗调整", "设置不可见"}
 # 模式 > 综合 块里实测能导入的键（其余会报「综合 { 之后应有一个游戏模式设置」）
 GENERAL_KEYS = ("复生时间", "急救包刷新", "游戏模式开始", "英雄限制")
 
@@ -217,11 +222,20 @@ def scan_calls(text, sigs, labels, problems):
                     j += 1
                 inner = text[i + 1:j - 1]
                 line = text[:start].count("\n") + 1
+                arg_list = split_args(inner) if inner.strip() else []
+
+                if name in NO_TO_DISABLED_TEXT_FUNCS and len(arg_list) >= 2 and arg_list[-2].strip() == "无":
+                    problems.append((line, "error",
+                                     "%s 的刷新槽要写 全部禁用，写 无 会导入失败" % name))
+                if name in NO_TO_DISABLED_TAIL_FUNCS and arg_list and arg_list[-1].strip() == "无":
+                    problems.append((line, "error",
+                                     "%s 的最后一个参数要写 全部禁用，写 无 会导入失败" % name))
+
                 if sigs and name not in sigs:
                     problems.append((line, "error", "未知函数名：%s（签名表里没有）" % name))
                 elif sigs:
                     total = sigs[name]
-                    got = len(split_args(inner)) if inner.strip() else 0
+                    got = len(arg_list)
                     if total == 0 and got:
                         problems.append((line, "error", "%s 不接受参数，实际给了 %d 个" % (name, got)))
                     elif got > total:
