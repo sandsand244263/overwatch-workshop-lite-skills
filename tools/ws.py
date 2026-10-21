@@ -183,12 +183,13 @@ def cmd_stats(a):
 
     heroes = load("hero-stats.tsv")
     abilities = load("ability-stats.tsv")
-    dmg = load("ability-damage.tsv") if os.path.isfile(os.path.join(DATA, "ability-damage.tsv")) else []
+    dmg = load("ability-values.tsv") if os.path.isfile(os.path.join(DATA, "ability-values.tsv")) else (load("ability-damage.tsv") if os.path.isfile(os.path.join(DATA, "ability-damage.tsv")) else [])
     kw = a.name
 
     hh = [r for r in heroes if r["hero"] == kw] or [r for r in heroes if kw in r["hero"]]
     aa = [r for r in abilities if r["hero"] == kw] or [r for r in abilities if kw in r["hero"] or kw in r["ability"]]
-    dd = [r for r in dmg if r["hero"] == kw] or [r for r in dmg if kw in r["hero"] or kw in r["ability"]]
+    dd = [r for r in dmg if r["hero"] == kw and r["ability"] != "英雄属性" and r["value"].strip()] or \
+         [r for r in dmg if (kw in r["hero"] or kw in r["ability"]) and r["ability"] != "英雄属性" and r["value"].strip()]
     if not hh and not aa:
         print("没有「%s」的数值。可查英雄：%s" % (kw, "、".join(sorted({r["hero"] for r in heroes}))))
         return 1
