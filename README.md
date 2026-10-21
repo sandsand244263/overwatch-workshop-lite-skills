@@ -62,13 +62,16 @@ workshop-lite/
 │   ├── signatures.md              225 动作 + 267 值函数的参数签名（含类型与下拉值）
 │   ├── settings.tsv               370 条设置项：schema / 键 / 类型 / 可选值
 │   ├── schema-keys.tsv            475 条：schema → 键名，设置项归属的权威来源
+│   ├── mode-pages.tsv             1243 行：55 个模式的分页与键顺序（页序/键序取自数据数组下标）
+│   ├── hero-pages.tsv             1918 行：54 个英雄的分页与键顺序
+│   ├── lobby-keys.tsv             大厅 12 键（数据侧无出处，来自实测样本）
 │   ├── mode-schemas.tsv           137 个模式 → 各自的 schema 列表
 │   ├── hero-schemas.tsv           135 个英雄 → 各自的 schema 列表
 │   ├── maps.tsv                   291 张地图 + GUID + 变体标记
 │   ├── events.tsv                 14 个事件 + 参数位
 │   ├── strings.md                 615 条内置 `字符串(...)` 词条
 │   ├── defaults.tsv               每个参数省略时的默认值
-│   ├── dropdowns.tsv              下拉参数的候选值
+│   ├── dropdowns.tsv              下拉参数在编辑器里的常用候选值（非唯一合法值）
 │   ├── enums.md                   英雄 / 地图 / 下拉选项全集
 │   ├── action-tags.tsv            484 个动作的功能分类
 │   ├── settings-blocks/           8 份实测导入成功的设置块模板
