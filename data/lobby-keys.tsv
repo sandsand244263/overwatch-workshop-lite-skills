@@ -1,13 +1,13 @@
-key	in_stu_schema	seen_in_samples
-地图轮换	否	deathmatch.ow, team.ow
-比赛结束后转换队伍	否	deathmatch.ow, team.ow
-观战者人数上限	否	deathmatch.ow, team.ow
-返回大厅	否	deathmatch.ow, team.ow
-队列中的玩家可以加入	否	deathmatch.ow, team.ow
-最低延迟（毫秒）	否	hall.ow
-比赛语音聊天	否	hall.ow
-玩家上限 队伍1	否	hall.ow, team.ow
-玩家上限 队伍2	否	hall.ow, team.ow
-玩家断线时暂停游戏	否	hall.ow
-自由混战人数上限	否	hall.ow
-队伍平衡	否	hall.ow
+key	default_value	in_stu_schema	seen_in_samples
+地图轮换	完成比赛后	否	deathmatch.ow, team.ow
+比赛结束后转换队伍	否	否	deathmatch.ow, team.ow
+观战者人数上限	6	否	deathmatch.ow, team.ow
+返回大厅	从不	否	deathmatch.ow, team.ow
+队列中的玩家可以加入	是	否	deathmatch.ow, team.ow
+最低延迟（毫秒）	100000000	否	hall.ow
+比赛语音聊天	启用	否	hall.ow
+玩家上限 队伍1	4	否	hall.ow, team.ow
+玩家上限 队伍2	4	否	hall.ow, team.ow
+玩家断线时暂停游戏	是	否	hall.ow
+自由混战人数上限	10	否	hall.ow
+队伍平衡	攻防轮换后	否	hall.ow

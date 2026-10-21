@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.23.0
+version: 2.24.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -47,7 +47,7 @@ python tools/ws.py check 模式.ow                        # 校验，交付前�
 python tools/ws.py count 模式.ow                        # 元素数估算
 python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
 python tools/ws.py modes                                # 列出全部模式
-python tools/ws.py settings --mode 死斗 --out 房间.ow    # 按模式生成设置块
+python tools/ws.py settings --mode 死斗 --lobby --hero 死神 --out 房间.ow   # 生成设置块
 python tools/ws.py publish 模式.ow --outdir out          # 源码版
 python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 加一份混淆版
 python tools/ws.py gen --src <导出目录>                  # 重新生成 data/

@@ -117,6 +117,8 @@ def main():
 
     p = sub.add_parser("settings", help="按模式生成设置块")
     p.add_argument("--mode", required=True)
+    p.add_argument("--hero", default=None, help="额外生成某个英雄的设置块")
+    p.add_argument("--lobby", action="store_true", help="额外生成大厅块")
     p.add_argument("--out", default=None)
     p.set_defaults(func=cmd_settings)
 
@@ -189,7 +191,7 @@ def _load_pages(name):
     return rows
 
 
-def build_settings_block(mode, hero=None):
+def build_settings_block(mode, hero=None, lobby=False):
     """按 game 数据里的页序 / 键序，生成「设置」块的文本。"""
     pages = _load_pages("mode-pages.tsv")
     vals = _load_settings_values()
@@ -204,7 +206,11 @@ def build_settings_block(mode, hero=None):
         known = sorted({r["owner"] for r in pages})
         raise SystemExit("没有这个模式：%s\n可用的有：%s" % (mode, "、".join(known[:20]) + (" …" if len(known) > 20 else "")))
 
-    lines = ["设置", "{", "\t模式", "\t{"]
+    lines = ["设置", "{"]
+    if lobby:
+        lines += build_lobby_block(vals)
+    hero_lines = build_hero_block(hero, vals) if hero else None
+    lines += ["\t模式", "\t{"]
     for page, rows in grouped.items():
         lines.append("\t\t%s" % page)
         lines.append("\t\t{")
@@ -217,12 +223,64 @@ def build_settings_block(mode, hero=None):
                 continue                                  # 没有合法值可填，宁可不写
             lines.append("\t\t\t%s: %s" % (key, meta["value"]))
         lines.append("\t\t}")
-    lines += ["\t}", "}", ""]
+    lines += ["\t}"]
+    if hero_lines:
+        lines += hero_lines
+    lines += ["}", ""]
     return "\n".join(lines)
 
 
+def _value_of(vals, schema, key):
+    meta = vals.get((schema, key))
+    if not meta:
+        for (sc, k), m in vals.items():
+            if k == key:
+                return m["value"]
+        return None
+    return meta["value"]
+
+
+def build_lobby_block(vals):
+    import csv
+    path = os.path.join(DATA, "lobby-keys.tsv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
+    lines = ["\t大厅", "\t{"]
+    for r in rows:
+        v = r.get("default_value") or _value_of(vals, "", r["key"])
+        if v:
+            lines.append("\t\t%s: %s" % (r["key"], v))
+    lines.append("\t}")
+    return lines
+
+
+def build_hero_block(hero, vals):
+    import csv
+    path = os.path.join(DATA, "hero-pages.tsv")
+    rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["owner"] == hero]
+    if not rows:
+        return None
+    grouped = {}
+    for r in rows:
+        grouped.setdefault(r["page"] or "(未命名)", []).append(r)
+    lines = ["\t英雄", "\t{"]
+    for page, rs in grouped.items():
+        lines.append("\t\t%s" % page)
+        lines.append("\t\t{")
+        for r in sorted(rs, key=lambda x: int(x["key_no"] or 0)):
+            key = r["key"]
+            if not key:
+                continue
+            v = _value_of(vals, page, key)
+            if v is None:
+                continue
+            lines.append("\t\t\t%s: %s" % (key, v))
+        lines.append("\t\t}")
+    lines.append("\t}")
+    return lines
+
+
 def cmd_settings(args):
-    text = build_settings_block(args.mode)
+    text = build_settings_block(args.mode, hero=args.hero, lobby=args.lobby)
     if args.out:
         open(args.out, "w", encoding="utf-8", newline="").write(text.replace("\n", "\r\n"))
         print("已写入 %s" % args.out)
