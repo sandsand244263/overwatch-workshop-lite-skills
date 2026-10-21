@@ -98,6 +98,39 @@ def build_strings(src_md, out):
 
 
 # ---------- maps ----------
+TAG_RULES = [
+    ("流程", ("If", "Else", "End", "While", "For", "中断", "中止", "等待", "调用子程序", "开始规则")),
+    ("HUD", ("HUD", "文本", "信息", "进度条", "准星", "字幕")),
+    ("特效", ("效果", "声音", "光束", "图标", "标记", "轮廓", "动画")),
+    ("移动", ("传送", "推力", "速度", "碰撞", "位置", "朝向", "跳跃", "重力", "飞行", "停止")),
+    ("状态", ("状态", "生命", "护盾", "无敌", "治疗", "伤害调整", "复活", "重生", "阵亡")),
+    ("变量", ("变量", "数组", "分数", "计分")),
+    ("伤害", ("伤害", "击杀", "助攻", "消灭")),
+    ("英雄", ("英雄", "技能", "终极技能", "弹夹", "装弹", "按钮", "武器")),
+]
+
+
+def tag_of(name):
+    tags = [t for t, kws in TAG_RULES if any(k in name for k in kws)]
+    return "|".join(tags) if tags else "其他"
+
+
+def build_action_tags(sig_md, out):
+    if not os.path.isfile(sig_md):
+        sys.exit("找不到 %s" % sig_md)
+    rows = []
+    for line in open(sig_md, encoding="utf-8"):
+        line = line.strip()
+        if "(" not in line or not line.endswith(")") or line.startswith("<!--"):
+            continue
+        name = line.split("(", 1)[0].strip()
+        if not name or " " in name:
+            continue
+        rows.append([name, tag_of(name)])
+    rows.sort()
+    write_tsv(out, ["func", "tags"], rows)
+
+
 def build_required_args(sig_md, out):
     """参数必填表：参数个数 N，末位为 _ 则 N-1，否则 N；手工覆盖优先。"""
     if not os.path.isfile(sig_md):
@@ -155,6 +188,10 @@ def main():
     p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "strings.md"))
     p.add_argument("--out", required=True)
 
+    p = sub.add_parser("action-tags")
+    p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
+    p.add_argument("--out", required=True)
+
     p = sub.add_parser("required-args")
     p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
     p.add_argument("--out", required=True)
@@ -168,6 +205,8 @@ def main():
         build_settings_tree(a.src, a.out)
     elif a.cmd == "events":
         build_events(a.src, a.out)
+    elif a.cmd == "action-tags":
+        build_action_tags(a.md, a.out)
     elif a.cmd == "required-args":
         build_required_args(a.md, a.out)
     elif a.cmd == "strings":
