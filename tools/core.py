@@ -400,6 +400,36 @@ def load_setting_ranges(path):
     return out
 
 
+def check_event_player_scope(text, problems):
+    """「持续 - 全局」这类规则里不能用 事件玩家（没有事件上下文）。
+
+    游戏报：「"事件玩家"值在"持续-全局"的规则中不被允许」。
+    """
+    lines = text.split("\n")
+    starts = [i for i, l in enumerate(lines) if l.strip().startswith("规则(")]
+    for n, start in enumerate(starts):
+        end = starts[n + 1] if n + 1 < len(starts) else len(lines)
+        chunk = lines[start:end]
+        joined = "\n".join(chunk)
+        # 找事件块里的第一行事件名
+        event_line = None
+        in_ev = False
+        for l in chunk:
+            t = l.strip()
+            if t == "事件":
+                in_ev = True
+                continue
+            if in_ev and t and t not in ("{", "}") and t.endswith(";"):
+                event_line = t[:-1].strip()
+                break
+        if event_line in ("持续 - 全局", "子程序"):
+            for off, l in enumerate(chunk):
+                if "事件玩家" in l:
+                    problems.append((start + off + 1, "error",
+                                     "「%s」规则里不能用 事件玩家（没有事件上下文）；"
+                                     "改用 玩家变量(玩家, …) / 本地玩家 / 所有玩家(所有队伍)" % event_line))
+
+
 def check_setting_range(text, ranges, problems):
     """设置块的数值不能超出范围（如 获胜得分 是 1-9）。"""
     if not ranges:
@@ -919,6 +949,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
+    check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
     check_duplicate_rule_names(text, problems)
