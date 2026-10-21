@@ -37,7 +37,8 @@ def cmd_check(args):
             print("[错误] 找不到 %s" % path)
             failed += 1
             continue
-        problems = core.lint(path, sigs, labels, settings)
+        problems = core.lint(path, sigs, labels, settings,
+                             event_params=core.load_event_params(os.path.join(DATA, "event-params.tsv")))
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:
@@ -57,7 +58,29 @@ def cmd_check_all(args):
     import glob
     files = sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "*.ow"))) + \
             sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow")))
-    return cmd_check(type("A", (), {"files": files})())
+    rc = cmd_check(type("A", (), {"files": files})())
+
+    # 反向用例：坏文件必须报出预期错误，没报出来就是校验器退化
+    neg_dir = os.path.join(ROOT, "tools", "probes", "negative")
+    manifest = os.path.join(neg_dir, "expect.tsv")
+    if os.path.isfile(manifest):
+        print("\n反向用例（应当报错）：")
+        import csv as _csv
+        bad_count = 0
+        for r in _csv.DictReader(open(manifest, encoding="utf-8"), delimiter="\t"):
+            path = os.path.join(neg_dir, r["file"])
+            sigs, labels, settings = load()
+            probs = core.lint(path, sigs, labels, settings,
+                              event_params=core.load_event_params(os.path.join(DATA, "event-params.tsv")))
+            errs = [p[2] for p in probs if p[1] == "error"]
+            hit = any(r["expect"] in e for e in errs)
+            print("%s %s：%s" % ("✓" if hit else "✗", r["file"],
+                                "已报出预期错误" if hit else "没报出「%s」（实际：%s）" % (r["expect"], errs[:2])))
+            if not hit:
+                bad_count += 1
+                rc = 1
+        print("反向用例通过 %d 个，失败 %d 个" % (len(list(_csv.DictReader(open(manifest, encoding="utf-8"), delimiter="\t"))) - bad_count, bad_count))
+    return rc
 
 
 def cmd_baseline(args):

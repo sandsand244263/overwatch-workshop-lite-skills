@@ -333,6 +333,70 @@ def scan_calls(text, sigs, labels, problems, options=None):
         i += 1
 
 
+def load_event_params(path):
+    """事件名 -> 需要的参数个数（data/event-params.tsv）。"""
+    import csv as _csv
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+        try:
+            out[r["event"]] = int(r["param_count"])
+        except (KeyError, ValueError):
+            continue
+    return out
+
+
+def check_event_params(text, event_params, problems):
+    """事件块里的参数个数校验。
+
+    .ow 里的写法是「事件名;」后面跟 N 行裸值（队伍 / 玩家筛选），
+    例如 玩家造成最后一击 要跟 双方; 全部;。少写会报「之后应有一个队伍」。
+    """
+    if not event_params:
+        return
+    lines = text.split("\n")
+    in_events = False
+    depth = 0
+    i = 0
+    while i < len(lines):
+        raw = lines[i].strip()
+        if raw == "事件":
+            in_events = True
+            depth = 0
+            i += 1
+            continue
+        if not in_events:
+            i += 1
+            continue
+        if raw.startswith("{"):
+            depth += 1
+        elif raw.startswith("}"):
+            depth -= 1
+            if depth <= 0:
+                in_events = False
+        elif depth == 1 and raw.endswith(";") and "(" not in raw:
+            name = raw[:-1].strip()
+            need = event_params.get(name)
+            if need is not None:
+                got = 0
+                j = i + 1
+                while j < len(lines):
+                    nxt = lines[j].strip()
+                    if not nxt or nxt.startswith("}") or nxt.startswith("{") or "(" in nxt:
+                        break
+                    if nxt.endswith(";"):
+                        got += 1
+                        j += 1
+                        continue
+                    break
+                if got < need:
+                    problems.append((i + 1, "error",
+                                     "事件「%s」需要 %d 个参数（队伍 / 玩家筛选），这里只有 %d 个"
+                                     % (name, need, got)))
+        i += 1
+
+
 def check_duplicate_blocks(text, problems):
     """顶层的 设置 / 变量 / 子程序 块只能各出现一次，重复会报「未知的变量」这类错。"""
     for kw in ("设置", "变量", "子程序"):
@@ -476,7 +540,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -651,6 +715,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None):
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems, options)
+    check_event_params(masked, event_params or {}, problems)
     check_arg_count(masked, problems)
     check_types(masked, problems)
     check_unassigned(masked, problems)

@@ -1,0 +1,15 @@
+event	param_count	param_types
+持续 - 全局	0	
+持续 - 每名玩家	2	Player|Team
+玩家参与消灭	2	Player|Team
+玩家造成最后一击	2	Player|Team
+玩家造成伤害	2	Player|Team
+玩家受到伤害	2	Player|Team
+玩家阵亡	2	Player|Team
+玩家造成治疗	2	Player|Team
+玩家受到治疗	2	Player|Team
+玩家加入比赛	2	Player|Team
+玩家离开比赛	2	Player|Team
+子程序	1	SubroutineEvent
+玩家造成击退	2	Player|Team
+玩家受到击退	2	Player|Team

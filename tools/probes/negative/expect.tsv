@@ -1,0 +1,2 @@
+file	expect
+event-missing-param.ow	事件「玩家造成最后一击」需要 2 个参数

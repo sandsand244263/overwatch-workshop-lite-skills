@@ -90,7 +90,9 @@ def add_fake_rules(text, count=3, seed=20261020):
 
 
 def lint_errors(path, sigs, labels, settings):
-    return [p for p in core.lint(path, sigs, labels, settings) if p[1] == "error"]
+    return [p for p in core.lint(path, sigs, labels, settings,
+                                  event_params=core.load_event_params(os.path.join(os.path.dirname(HERE), "data", "event-params.tsv")))
+            if p[1] == "error"]
 
 
 def main():
