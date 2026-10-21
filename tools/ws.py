@@ -132,7 +132,7 @@ def cmd_defaults(args):
 
 
 # 用 235 KB 真实模式反推：实测 16918 / 估 7668
-REAL_WORLD_FACTOR = 2.2
+REAL_WORLD_FACTOR = 2.12
 
 def cmd_count(args):
     sigs, labels, settings = load()
