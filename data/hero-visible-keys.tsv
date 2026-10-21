@@ -1,152 +1,1608 @@
-hero	key	evidence
-死神	暗影步冷却时间	界面 100%
-死神	幽灵形态冷却时间	界面 100%
-死神	终极技能充能速度（死亡绽放）	界面与 .ow 均为全角
-死神	终极技能自动充能速度 死亡绽放	界面显示全角括号，.ow 用空格
-死神	暗影步	界面 开启
-死神	战斗时终极技能充能速度 死亡绽放	界面显示全角括号，.ow 用空格（导出样本佐证）
-死神	终极技能（死亡绽放）	界面与 .ow 均为全角
-死神	快速近身攻击	界面 开启
-死神	被动生命值恢复	界面 启用
-死神	移动重力	界面 100%
-死神	幽灵形态	界面 开启
-死神	重生时终极技能充能完毕	界面 禁用 → .ow 写 关闭
-死神	职责被动	界面 开启
-死神	移动速度	界面 100%
-死神	主要攻击模式	界面 开启（武器页）
-伊拉锐	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-伊拉锐	生命值	golden2.ow 真实导出（导入通过）
-半藏	“岚”数量	golden2.ow 真实导出（导入通过）
-半藏	生命值	golden2.ow 真实导出（导入通过）
-卡西迪	伤害量	golden2.ow 真实导出（导入通过）
-卡西迪	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-卡西迪	生命值	golden2.ow 真实导出（导入通过）
-卢西奥	受到伤害量	golden2.ow 真实导出（导入通过）
-卢西奥	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-卢西奥	音波击退倍率	golden2.ow 真实导出（导入通过）
-回声	受到伤害量	golden2.ow 真实导出（导入通过）
-回声	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-回声	生命值	golden2.ow 真实导出（导入通过）
-回声	移动重力	golden2.ow 真实导出（导入通过）
-堡垒	垂直跳跃速度	golden2.ow 真实导出（导入通过）
-堡垒	生命值	golden2.ow 真实导出（导入通过）
-士兵：76	伤害量	golden2.ow 真实导出（导入通过）
-士兵：76	受到伤害量	golden2.ow 真实导出（导入通过）
-士兵：76	垂直跳跃速度	golden2.ow 真实导出（导入通过）
-士兵：76	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-士兵：76	弹道速度	golden2.ow 真实导出（导入通过）
-士兵：76	生命值	golden2.ow 真实导出（导入通过）
-士兵：76	移动速度	golden2.ow 真实导出（导入通过）
-士兵：76	移动重力	golden2.ow 真实导出（导入通过）
-士兵：76	终极技能持续时间	golden2.ow 真实导出（导入通过）
-天使	可用武器	golden2.ow 真实导出（导入通过）
-天使	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-天使	弹道速度	golden2.ow 真实导出（导入通过）
-安燃	怒炎冲冷却时间	golden2.ow 真实导出（导入通过）
-安燃	战斗时终极技能充能速度 朱羽焚	golden2.ow 真实导出（导入通过）
-安燃	无需装弹	golden2.ow 真实导出（导入通过）
-安燃	熠闪舞冷却时间	golden2.ow 真实导出（导入通过）
-安燃	生命值	golden2.ow 真实导出（导入通过）
-巴蒂斯特	伤害量	golden2.ow 真实导出（导入通过）
-巴蒂斯特	治疗量	golden2.ow 真实导出（导入通过）
-巴蒂斯特	生命值	golden2.ow 真实导出（导入通过）
-布丽吉塔	生命值	golden2.ow 真实导出（导入通过）
-弗蕾娅	弹道速度	golden2.ow 真实导出（导入通过）
-弗蕾娅	战斗时终极技能充能速度 流星索	golden2.ow 真实导出（导入通过）
-弗蕾娅	生命值	golden2.ow 真实导出（导入通过）
-托比昂	伤害量	golden2.ow 真实导出（导入通过）
-托比昂	可用武器	golden2.ow 真实导出（导入通过）
-托比昂	热力过载持续时间	golden2.ow 真实导出（导入通过）
-托比昂	生命值	golden2.ow 真实导出（导入通过）
-托比昂	终极技能持续时间	golden2.ow 真实导出（导入通过）
-托比昂	部署炮台冷却时间	golden2.ow 真实导出（导入通过）
-探奇	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-探奇	战斗时终极技能充能速度 地壳震击	golden2.ow 真实导出（导入通过）
-探奇	生命值	golden2.ow 真实导出（导入通过）
-探奇	终极技能充能速度（地壳震击）	golden2.ow 真实导出（导入通过）
-探奇	终极技能持续时间	golden2.ow 真实导出（导入通过）
-探奇	钻地持续时间倍率	golden2.ow 真实导出（导入通过）
-斩仇	受到伤害量	golden2.ow 真实导出（导入通过）
-斩仇	战斗时终极技能充能速度 斩地巨剑	golden2.ow 真实导出（导入通过）
-斩仇	招架姿态恢复倍率	golden2.ow 真实导出（导入通过）
-斩仇	生命值	golden2.ow 真实导出（导入通过）
-斩仇	终极技能充能速度（斩地巨剑）	golden2.ow 真实导出（导入通过）
-斩仇	终极技能自动充能速度 斩地巨剑	golden2.ow 真实导出（导入通过）
-无漾	生命值	golden2.ow 真实导出（导入通过）
-无漾	飞流步冷却时间	golden2.ow 真实导出（导入通过）
-无漾	飞流步持续时间倍率	golden2.ow 真实导出（导入通过）
-末日铁拳	伤害量	golden2.ow 真实导出（导入通过）
-末日铁拳	受到伤害量	golden2.ow 真实导出（导入通过）
-末日铁拳	垂直跳跃速度	golden2.ow 真实导出（导入通过）
-末日铁拳	弹道速度	golden2.ow 真实导出（导入通过）
-末日铁拳	悍猛格挡充能速度	golden2.ow 真实导出（导入通过）
-末日铁拳	战斗时终极技能充能速度 毁天灭地	golden2.ow 真实导出（导入通过）
-末日铁拳	生命值	golden2.ow 真实导出（导入通过）
-末日铁拳	移动速度	golden2.ow 真实导出（导入通过）
-末日铁拳	移动重力	golden2.ow 真实导出（导入通过）
-朱诺	治疗量	golden2.ow 真实导出（导入通过）
-朱诺	滑翔推进持续时间倍率	golden2.ow 真实导出（导入通过）
-朱诺	生命值	golden2.ow 真实导出（导入通过）
-查莉娅	伤害量	golden2.ow 真实导出（导入通过）
-查莉娅	投射屏障冷却时间	golden2.ow 真实导出（导入通过）
-查莉娅	生命值	golden2.ow 真实导出（导入通过）
-查莉娅	移动速度	golden2.ow 真实导出（导入通过）
-查莉娅	粒子屏障冷却时间	golden2.ow 真实导出（导入通过）
-死神	受到伤害量	golden2.ow 真实导出（导入通过）
-死神	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-死神	治疗量	golden2.ow 真实导出（导入通过）
-死神	生命值	golden2.ow 真实导出（导入通过）
-法老之鹰	悬浮背包充能速度	golden2.ow 真实导出（导入通过）
-法老之鹰	悬浮背包最长时间	golden2.ow 真实导出（导入通过）
-法老之鹰	生命值	golden2.ow 真实导出（导入通过）
-温斯顿	伤害量	golden2.ow 真实导出（导入通过）
-温斯顿	原始暴怒近身攻击击退倍率	golden2.ow 真实导出（导入通过）
-温斯顿	喷射背包击退倍率	golden2.ow 真实导出（导入通过）
-温斯顿	生命值	golden2.ow 真实导出（导入通过）
-源氏	生命值	golden2.ow 真实导出（导入通过）
-源氏	终极技能持续时间	golden2.ow 真实导出（导入通过）
-狂鼠	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-狂鼠	弹道速度	golden2.ow 真实导出（导入通过）
-狂鼠	投射物重力	golden2.ow 真实导出（导入通过）
-狂鼠	生命值	golden2.ow 真实导出（导入通过）
-猎空	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-猎空	弹道速度	golden2.ow 真实导出（导入通过）
-猎空	战斗时终极技能充能速度 脉冲炸弹	golden2.ow 真实导出（导入通过）
-猎空	生命值	golden2.ow 真实导出（导入通过）
-瑞稀	伤害量	golden2.ow 真实导出（导入通过）
-瑞稀	替魂纸人冷却时间	golden2.ow 真实导出（导入通过）
-瑞稀	替魂纸人持续时间倍率	golden2.ow 真实导出（导入通过）
-瑞稀	治疗量	golden2.ow 真实导出（导入通过）
-瑞稀	生命值	golden2.ow 真实导出（导入通过）
-禅雅塔	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-禅雅塔	生命值	golden2.ow 真实导出（导入通过）
-索杰恩	充能速度 充能射击	golden2.ow 真实导出（导入通过）
-索杰恩	生命值	golden2.ow 真实导出（导入通过）
-索杰恩	终极技能持续时间	golden2.ow 真实导出（导入通过）
-美	冰霜枪冰冻敌人的时长	golden2.ow 真实导出（导入通过）
-美	冰霜枪冰冻敌人的速度	golden2.ow 真实导出（导入通过）
-美	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-美	战斗时终极技能充能速度 暴雪	golden2.ow 真实导出（导入通过）
-美	暴雪冰冻敌人的速度	golden2.ow 真实导出（导入通过）
-美	生命值	golden2.ow 真实导出（导入通过）
-艾什	伤害量	golden2.ow 真实导出（导入通过）
-艾什	延时雷管引爆时间	golden2.ow 真实导出（导入通过）
-艾什	生命值	golden2.ow 真实导出（导入通过）
-艾什	终极技能持续时间	golden2.ow 真实导出（导入通过）
-莱因哈特	战斗时终极技能充能速度 裂地猛击	golden2.ow 真实导出（导入通过）
-莱因哈特	生命值	golden2.ow 真实导出（导入通过）
-莱因哈特	移动速度	golden2.ow 真实导出（导入通过）
-血律	焕生无人机持续时间倍率	golden2.ow 真实导出（导入通过）
-血律	生命值	golden2.ow 真实导出（导入通过）
-血律	迅影疾行持续时间倍率	golden2.ow 真实导出（导入通过）
-西格玛	受到伤害量	golden2.ow 真实导出（导入通过）
-西格玛	实验屏障充能速度	golden2.ow 真实导出（导入通过）
-西格玛	弹道速度	golden2.ow 真实导出（导入通过）
-路霸	呼吸器充能速度	golden2.ow 真实导出（导入通过）
-路霸	呼吸器最长时间	golden2.ow 真实导出（导入通过）
-路霸	生命值	golden2.ow 真实导出（导入通过）
-黑影	弹夹容量倍率	golden2.ow 真实导出（导入通过）
-黑影	生命值	golden2.ow 真实导出（导入通过）
-黑影	职责被动	golden2.ow 真实导出（导入通过）
-黑影	被动生命值恢复	golden2.ow 真实导出（导入通过）
-黑影	赛博空间	golden2.ow 真实导出（导入通过）
+hero	key	page	visibility	evidence
+死神	幽灵形态	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	幽灵形态冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	暗影步	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	暗影步冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	终极技能（死亡绽放）	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	终极技能充能速度（死亡绽放）	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	战斗时终极技能充能速度 死亡绽放	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	终极技能自动充能速度 死亡绽放	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+死神	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死神	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死神	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死神	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死神	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+死神	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+死神	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+猎空	闪现	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	闪现冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	闪回	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	闪回冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	终极技能（脉冲炸弹）	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	终极技能充能速度（脉冲炸弹）	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	战斗时终极技能充能速度 脉冲炸弹	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	终极技能自动充能速度 脉冲炸弹	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+猎空	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+猎空	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+猎空	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+猎空	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+猎空	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+猎空	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+猎空	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+天使	守护天使	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	守护天使冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	重生	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	重生冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	终极技能（女武神）	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	终极技能充能速度（女武神）	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	战斗时终极技能充能速度 女武神	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	终极技能自动充能速度 女武神	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+天使	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+天使	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+天使	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+天使	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+天使	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+天使	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+天使	可用武器	武器	visible	hero-page-re 逆向 + golden2 实证
+天使	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+天使	天使降临	技能	visible	hero-page-re 逆向 + golden2 实证
+天使	同情愈疗	技能	visible	hero-page-re 逆向 + golden2 实证
+天使		技能	visible	hero-page-re 逆向 + golden2 实证
+天使	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	音	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	音冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	岚	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	岚冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	终极技能（竜）	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	终极技能充能速度（竜）	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	战斗时终极技能充能速度 竜	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	终极技能自动充能速度 竜	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+半藏	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+半藏	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+半藏	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+半藏	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+半藏	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+半藏	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+半藏	跃	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	“跃”冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	“跃”距离设置	技能	visible	hero-page-re 逆向 + golden2 实证
+半藏	“岚”数量	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	部署炮台	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	部署炮台冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	热力过载	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	热力过载冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	终极技能（熔火核心）	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	终极技能充能速度（熔火核心）	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	战斗时终极技能充能速度 熔火核心	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	终极技能自动充能速度 熔火核心	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+托比昂	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+托比昂	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+托比昂	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+托比昂	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+托比昂	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+托比昂	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+托比昂	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+托比昂	可用武器	武器	visible	hero-page-re 逆向 + golden2 实证
+托比昂	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+托比昂	热力过载持续时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	冲锋	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	冲锋冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	烈焰打击	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	烈焰打击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	终极技能（裂地猛击）	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	终极技能充能速度（裂地猛击）	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	战斗时终极技能充能速度 裂地猛击	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	终极技能自动充能速度 裂地猛击	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+莱因哈特		技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	冲锋击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+莱因哈特	火箭重锤击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	推进背包	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	推进背包冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	震荡冲击	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	震荡冲击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	终极技能（火箭弹幕）	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	终极技能充能速度（火箭弹幕）	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	战斗时终极技能充能速度 火箭弹幕	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	终极技能自动充能速度 火箭弹幕	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包无限燃料	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包额外燃料倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	悬浮背包垂直速度	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	推进背包加速	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	推进背包燃料补充倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	震荡冲击击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰		技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+法老之鹰	火箭发射器击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	喷射背包	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	喷射背包冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	屏障发射器	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	屏障发射器冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	终极技能（原始暴怒）	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	终极技能充能速度（原始暴怒）	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	战斗时终极技能充能速度 原始暴怒	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	终极技能自动充能速度 原始暴怒	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+温斯顿	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	喷射背包加速	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	原始暴怒近身攻击击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+温斯顿	喷射背包击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	抓钩	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	抓钩冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	剧毒诡雷	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	剧毒诡雷冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	终极技能（红外侦测）	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	终极技能充能速度（红外侦测）	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	战斗时终极技能充能速度 红外侦测	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	终极技能自动充能速度 红外侦测	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+黑百合	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑百合	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑百合	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑百合	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+黑百合	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+黑百合	禁止自动射击	武器	visible	hero-page-re 逆向 + golden2 实证
+黑百合	禁止开镜狙击	武器	visible	hero-page-re 逆向 + golden2 实证
+堡垒	切换模式	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	切换模式冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒		技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	终极技能（火炮模式）	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	终极技能充能速度（火炮模式）	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	战斗时终极技能充能速度 火炮模式	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	终极技能自动充能速度 火炮模式	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+堡垒	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+堡垒	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+堡垒		技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	A-36战术榴弹冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	A-36战术榴弹击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+堡垒	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+堡垒	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+堡垒	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	哨戒炮	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	哨戒炮冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	传送面板	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	传送面板冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	终极技能（光子屏障）	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	终极技能充能速度（光子屏障）	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	战斗时终极技能充能速度 光子屏障	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	终极技能自动充能速度 光子屏障	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+秩序之光	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+秩序之光	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	谐	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	谐冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	乱	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	乱冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	终极技能（圣）	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	终极技能充能速度（圣）	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	战斗时终极技能充能速度 圣	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	终极技能自动充能速度 圣	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+禅雅塔	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+禅雅塔	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+源氏	影	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	影冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	闪	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	闪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	终极技能（斩）	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	终极技能充能速度（斩）	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	战斗时终极技能充能速度 斩	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	终极技能自动充能速度 斩	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+源氏	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+源氏	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+源氏	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+源氏	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+源氏	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+源氏	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+源氏	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+源氏	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+源氏	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+源氏	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+路霸	链钩	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	链钩冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	呼吸器	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	呼吸器冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	终极技能（鸡飞狗跳）	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	终极技能充能速度（鸡飞狗跳）	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	战斗时终极技能充能速度 鸡飞狗跳	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	终极技能自动充能速度 鸡飞狗跳	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+路霸	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+路霸	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+路霸	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+路霸	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+路霸	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+路霸	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+路霸	鸡飞狗跳击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸		技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+路霸	废品压缩器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	战术翻滚	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	战术翻滚冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	闪光弹	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	闪光弹冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	终极技能（神射手）	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	终极技能充能速度（神射手）	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	战斗时终极技能充能速度 神射手	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	终极技能自动充能速度 神射手	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+卡西迪	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+卡西迪	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	震荡地雷	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	震荡地雷冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	捕兽夹	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	捕兽夹冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	终极技能（炸弹轮胎）	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	终极技能充能速度（炸弹轮胎）	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	战斗时终极技能充能速度 炸弹轮胎	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	终极技能自动充能速度 炸弹轮胎	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+狂鼠	震荡地雷击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+狂鼠	榴弹发射器击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	粒子屏障	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	粒子屏障冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	投射屏障	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	投射屏障冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	终极技能（重力喷涌）	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	终极技能充能速度（重力喷涌）	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	战斗时终极技能充能速度 重力喷涌	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	终极技能自动充能速度 重力喷涌	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+查莉娅	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+查莉娅	粒子炮辅助攻击击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	疾跑	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	疾跑冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	生物力场	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	生物力场冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	终极技能（战术目镜）	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	终极技能充能速度（战术目镜）	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	战斗时终极技能充能速度 战术目镜	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	终极技能自动充能速度 战术目镜	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+士兵：76	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+士兵：76	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+士兵：76		技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+士兵：76	螺旋飞弹击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	切歌	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	切歌冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	强音	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	强音冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	终极技能（音障）	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	终极技能充能速度（音障）	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	战斗时终极技能充能速度 音障	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	终极技能自动充能速度 音障	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+卢西奥		技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+卢西奥	音波击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	推进器	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	推进器冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	微型飞弹	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	微型飞弹冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	终极技能（自毁）	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	终极技能充能速度（自毁）	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	战斗时终极技能充能速度 自毁	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	终极技能自动充能速度 自毁	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Va	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Va	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Va	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+D.Va	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+D.Va	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+D.Va		技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	推进器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	自毁击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	呼叫机甲击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
+美	急冻	技能	visible	hero-page-re 逆向 + golden2 实证
+美	急冻冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+美	冰墙	技能	visible	hero-page-re 逆向 + golden2 实证
+美	冰墙冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+美	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+美	终极技能（暴雪）	技能	visible	hero-page-re 逆向 + golden2 实证
+美	终极技能充能速度（暴雪）	技能	visible	hero-page-re 逆向 + golden2 实证
+美	战斗时终极技能充能速度 暴雪	技能	visible	hero-page-re 逆向 + golden2 实证
+美	终极技能自动充能速度 暴雪	技能	visible	hero-page-re 逆向 + golden2 实证
+美	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+美	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+美	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+美	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+美	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+美	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+美	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+美	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+美	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+美	暴雪冰冻敌人的速度	技能	visible	hero-page-re 逆向 + golden2 实证
+美	暴雪冰冻最小值	技能	visible	hero-page-re 逆向 + golden2 实证
+美	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+美	冰霜枪冰冻敌人的速度	武器	visible	hero-page-re 逆向 + golden2 实证
+美	冰霜枪冰冻最小值	武器	visible	hero-page-re 逆向 + golden2 实证
+美	冰霜枪冰冻敌人的时长	武器	visible	hero-page-re 逆向 + golden2 实证
+美	冰冻叠加	武器	visible	hero-page-re 逆向 + golden2 实证
+黑影	赛博空间	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	赛博空间冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	位移传动	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	位移传动冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	终极技能（电磁脉冲）	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	终极技能充能速度（电磁脉冲）	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	战斗时终极技能充能速度 电磁脉冲	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	终极技能自动充能速度 电磁脉冲	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑影	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑影	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+黑影	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+黑影	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+黑影	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+黑影	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+黑影		技能	visible	hero-page-re 逆向 + golden2 实证
+黑影	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	裂地重拳	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	裂地重拳冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	悍猛格挡	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	悍猛格挡冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	终极技能（毁天灭地）	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	终极技能充能速度（毁天灭地）	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	战斗时终极技能充能速度 毁天灭地	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	终极技能自动充能速度 毁天灭地	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+末日铁拳		技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	火箭重拳击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	毁天灭地击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	悍猛格挡充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+末日铁拳	弹药恢复时间速率	武器	visible	hero-page-re 逆向 + golden2 实证
+安娜	麻醉镖	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	麻醉镖冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	生物手雷	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	生物手雷冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	终极技能（纳米激素）	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	终极技能充能速度（纳米激素）	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	战斗时终极技能充能速度 纳米激素	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	终极技能自动充能速度 纳米激素	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+安娜	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安娜	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安娜	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安娜	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安娜	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+安娜	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+安娜	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+安娜	禁止自动射击	武器	visible	hero-page-re 逆向 + golden2 实证
+安娜	禁止开镜狙击	武器	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	强固防御	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	强固防御冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	标枪旋击	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	标枪旋击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	终极技能（撼地猛刺）	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	终极技能充能速度（撼地猛刺）	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	战斗时终极技能充能速度 撼地猛刺	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	终极技能自动充能速度 撼地猛刺	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+奥丽莎		技能	visible	hero-page-re 逆向 + golden2 实证
+奥丽莎	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	流星飞锤	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	流星飞锤冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	恢复包	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	恢复包冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	终极技能（集结号令）	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	终极技能充能速度（集结号令）	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	战斗时终极技能充能速度 集结号令	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	终极技能自动充能速度 集结号令	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+布丽吉塔		技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	能量盾击	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	能量盾击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	能量盾击击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	流星飞锤击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
+布丽吉塔	屏障护盾充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	消散	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	消散冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化之球	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化之球冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	终极技能（聚合射线）	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	终极技能充能速度（聚合射线）	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	战斗时终极技能充能速度 聚合射线	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	终极技能自动充能速度 聚合射线	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化之球伤害最大值	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化之球治疗最大值	技能	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化能量恢复速度	武器	visible	hero-page-re 逆向 + golden2 实证
+莫伊拉	生化能量上限	武器	visible	hero-page-re 逆向 + golden2 实证
+破坏球	动力铁球	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	动力铁球冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	感应护盾	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	感应护盾冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	终极技能（地雷禁区）	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	终极技能充能速度（地雷禁区）	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	战斗时终极技能充能速度 地雷禁区	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	终极技能自动充能速度 地雷禁区	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+破坏球	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+破坏球	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+破坏球	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+破坏球	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+破坏球	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+破坏球		技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	工程抓钩击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球		技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	地雷禁区击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
+破坏球	动力铁球始终激活	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	机动滑铲	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	机动滑铲冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	干扰弹	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	干扰弹冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	终极技能（机体超频）	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	终极技能充能速度（机体超频）	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	战斗时终极技能充能速度 机体超频	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	终极技能自动充能速度 机体超频	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+索杰恩	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+索杰恩	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+索杰恩		技能	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+索杰恩	充能速度 %1$s	武器	visible	hero-page-re 逆向 + golden2 实证
+艾什	短筒猎枪	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	短筒猎枪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	延时雷管	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	延时雷管冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	终极技能（召唤鲍勃）	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	终极技能充能速度（召唤鲍勃）	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	战斗时终极技能充能速度 召唤鲍勃	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	终极技能自动充能速度 召唤鲍勃	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+艾什	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+艾什	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+艾什	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+艾什	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+艾什	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+艾什	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+艾什	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+艾什	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+艾什	“毒蛇”无法进行普通攻击	武器	visible	hero-page-re 逆向 + golden2 实证
+艾什	禁止开镜狙击	武器	visible	hero-page-re 逆向 + golden2 实证
+艾什	延时雷管引爆时间	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	双筒猎枪击退距离（自身）	技能	visible	hero-page-re 逆向 + golden2 实证
+艾什	双筒猎枪击退距离（敌方）	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	飞行	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	飞行冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	聚焦光线	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	聚焦光线冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	终极技能（人格复制）	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	终极技能充能速度（人格复制）	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	战斗时终极技能充能速度 人格复制	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	终极技能自动充能速度 人格复制	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+回声	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+回声	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+回声	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+回声	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+回声	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+回声	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+回声		技能	visible	hero-page-re 逆向 + golden2 实证
+回声	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+回声	滑翔	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	愈合冲击	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	愈合冲击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	维生力场	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	维生力场冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	终极技能（增幅矩阵）	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	终极技能充能速度（增幅矩阵）	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	战斗时终极技能充能速度 增幅矩阵	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	终极技能自动充能速度 增幅矩阵	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+巴蒂斯特	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+雾子	瞬	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	瞬冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	铃	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	铃冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	终极技能（狐）	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	终极技能充能速度（狐）	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	战斗时终极技能充能速度 狐	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	终极技能自动充能速度 狐	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+雾子	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+雾子	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+雾子	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+雾子	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+雾子	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+雾子	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+雾子	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+雾子	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+雾子	“瞬”距离倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	命令怒吼	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	命令怒吼冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	血斩	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	血斩冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	终极技能（轰翻天）	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	终极技能充能速度（轰翻天）	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	战斗时终极技能充能速度 轰翻天	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	终极技能自动充能速度 轰翻天	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+渣客女王		技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	锯齿利刃击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+渣客女王	锯齿利刃自动召回延迟	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	动能俘获	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	动能俘获冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	质量吸附	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	质量吸附冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	终极技能（引力乱流）	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	终极技能充能速度（引力乱流）	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	战斗时终极技能充能速度 引力乱流	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	终极技能自动充能速度 引力乱流	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西格玛	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西格玛	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西格玛	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+西格玛	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+西格玛	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+西格玛		技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+西格玛	质量吸附击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	天罚形态	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	天罚形态冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	吞噬漩涡	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	吞噬漩涡冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	终极技能（诛）	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	终极技能充能速度（诛）	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	战斗时终极技能充能速度 诛	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	终极技能自动充能速度 诛	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+拉玛刹	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+拉玛刹	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+拉玛刹		技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+拉玛刹	铁臂（天罚形态）	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	花瓣平台	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	花瓣平台冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	生命之握	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	生命之握冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	终极技能（生命之树）	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	终极技能充能速度（生命之树）	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	战斗时终极技能充能速度 生命之树	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	终极技能自动充能速度 生命之树	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+生命之梭	可用武器	武器	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	花瓣平台生命值	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	生命之握和愈疗灵花射程	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	回春疾行	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	回春疾行冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	回春疾行治疗量	技能	visible	hero-page-re 逆向 + golden2 实证
+生命之梭	生命之树生命值	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	蛮力冲撞	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	蛮力冲撞冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	心脏过载	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	心脏过载冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	终极技能（笼中斗）	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	终极技能充能速度（笼中斗）	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	战斗时终极技能充能速度 笼中斗	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	终极技能自动充能速度 笼中斗	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+毛加	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+毛加	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+毛加	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+毛加	心脏过载治疗量	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	蛮力冲撞击退	技能	visible	hero-page-re 逆向 + golden2 实证
+毛加	燃火链式机枪	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	弹夹容量倍率	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	无需装弹	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	爆烈链式机枪	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	燃火链式机枪点燃速度	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	燃火链式机枪点燃伤害	武器	visible	hero-page-re 逆向 + golden2 实证
+毛加	燃火链式机枪点燃持续时间	武器	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	烈日冲击	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	烈日冲击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	治疗光塔	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	治疗光塔冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	终极技能（桎梏灼日）	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	终极技能充能速度（桎梏灼日）	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	战斗时终极技能充能速度 桎梏灼日	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	终极技能自动充能速度 桎梏灼日	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+伊拉锐	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	太阳能充能速度	武器	visible	hero-page-re 逆向 + golden2 实证
+伊拉锐	太阳能上限	武器	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	疾冲	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	疾冲冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	上升气流	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	上升气流冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	终极技能（流星索）	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	终极技能充能速度（流星索）	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	战斗时终极技能充能速度 流星索	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	终极技能自动充能速度 流星索	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+弗蕾娅		技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	疾冲距离	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	上升气流高度	技能	visible	hero-page-re 逆向 + golden2 实证
+弗蕾娅	瞄准射击持续时间	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	钻地	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	钻地冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇		技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	终极技能（地壳震击）	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	终极技能充能速度（地壳震击）	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	战斗时终极技能充能速度 地壳震击	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	终极技能自动充能速度 地壳震击	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	终极技能持续时间	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+探奇	终极技能持续时间无限	技能	visible(条件：仅持续时间类终极技能) 	hero-page-re 逆向 + golden2 实证
+探奇	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+探奇	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+探奇	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+探奇	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+探奇	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+探奇	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+探奇	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+探奇		技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+探奇	钻地持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	狂跃	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	狂跃冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺墙	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺墙冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	终极技能（千针雨）	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	终极技能充能速度（千针雨）	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	战斗时终极技能充能速度 千针雨	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	终极技能自动充能速度 千针雨	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+骇灾	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+骇灾	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+骇灾	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+骇灾	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+骇灾	狂跃距离	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺墙生命值	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺墙击退	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺护体资源消耗	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺护体资源恢复	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾	尖刺护体移动速度惩罚	技能	visible	hero-page-re 逆向 + golden2 实证
+骇灾		技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	滑翔推进	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	滑翔推进冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	超能环域	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	超能环域冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	终极技能（轨道射线）	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	终极技能充能速度（轨道射线）	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	战斗时终极技能充能速度 轨道射线	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	终极技能自动充能速度 轨道射线	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+朱诺	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+朱诺	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+朱诺	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+朱诺	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+朱诺	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+朱诺		技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺	滑翔推进持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+朱诺		技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	飞流步	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	飞流步冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	翻江浪	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	翻江浪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	终极技能（惊涛破）	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	终极技能充能速度（惊涛破）	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	战斗时终极技能充能速度 惊涛破	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	终极技能自动充能速度 惊涛破	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+无漾	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+无漾	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+无漾	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+无漾	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+无漾	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+无漾	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+无漾	飞流步持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	翻江浪击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+无漾	养神泉	武器	visible	hero-page-re 逆向 + golden2 实证
+无漾	养神泉充能速度	武器	visible	hero-page-re 逆向 + golden2 实证
+无漾	养神泉消耗速度	武器	visible	hero-page-re 逆向 + golden2 实证
+无漾	玄武杖水珠最大控制时间	武器	visible	hero-page-re 逆向 + golden2 实证
+无漾	玄武杖水珠转向速度	武器	visible	hero-page-re 逆向 + golden2 实证
+斩仇	旋风疾步	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	旋风疾步冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	飞空斩击	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	飞空斩击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	终极技能（斩地巨剑）	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	终极技能充能速度（斩地巨剑）	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	战斗时终极技能充能速度 斩地巨剑	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	终极技能自动充能速度 斩地巨剑	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+斩仇	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+斩仇	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+斩仇	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+斩仇	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+斩仇	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+斩仇		技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	旋风疾步距离	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	飞空斩击距离	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	招架姿态恢复倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+斩仇	锋锐剑气	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	音速斥力场	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	音速斥力场冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	爆能水晶	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	爆能水晶冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	终极技能（全景牢笼）	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	终极技能充能速度（全景牢笼）	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	战斗时终极技能充能速度 全景牢笼	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	终极技能自动充能速度 全景牢笼	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+金驭	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+金驭	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+金驭	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+金驭	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+金驭	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+金驭	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+金驭		技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	音速斥力场击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	终极技能屏障生命值倍率（全景牢笼）	技能	visible	hero-page-re 逆向 + golden2 实证
+金驭	护盾重构治疗量倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	锚点无人机	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	锚点无人机冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	震地手雷	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	震地手雷冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	终极技能（开路先锋）	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	终极技能充能速度（开路先锋）	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	战斗时终极技能充能速度 开路先锋	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	终极技能自动充能速度 开路先锋	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西拉	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西拉	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+西拉	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+西拉	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+西拉	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+西拉	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+西拉		技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+西拉	震地手雷击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	虹吸冲击枪	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	虹吸冲击枪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	赛博手雷	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	赛博手雷冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	终极技能（覆盖协议）	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	终极技能充能速度（覆盖协议）	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	战斗时终极技能充能速度 覆盖协议	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	终极技能自动充能速度 覆盖协议	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+埃姆雷	虹吸冲击枪持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	虹吸冲击枪热量倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	赛博手雷击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	覆盖协议击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	禁止不开镜射击	武器	visible	hero-page-re 逆向 + golden2 实证
+埃姆雷	禁止开镜狙击	武器	visible	hero-page-re 逆向 + golden2 实证
+安燃	怒炎冲	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	怒炎冲冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	熠闪舞	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	熠闪舞冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	终极技能（朱羽焚）	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	终极技能充能速度（朱羽焚）	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	战斗时终极技能充能速度 朱羽焚	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	终极技能自动充能速度 朱羽焚	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+安燃	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安燃	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安燃	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+安燃	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+安燃	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+安燃	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+安燃	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+安燃	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	替魂纸人	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	替魂纸人冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	缚魂锁链	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	缚魂锁链冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	终极技能（护魂结界）	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	终极技能充能速度（护魂结界）	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	战斗时终极技能充能速度 护魂结界	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	终极技能自动充能速度 护魂结界	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+瑞稀		技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+瑞稀	替魂纸人持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	救生索	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	救生索冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	呼噜噜	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	呼噜噜冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	终极技能（猫猫劫）	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	终极技能充能速度（猫猫劫）	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	战斗时终极技能充能速度 猫猫劫	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	终极技能自动充能速度 猫猫劫	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+飞天猫	生物猫爪弹射程	武器	visible	hero-page-re 逆向 + golden2 实证
+飞天猫		技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	咻咻飞无限燃料	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+飞天猫	咻咻飞最大时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	机动闪避	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	机动闪避冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	终极技能（杀戮狂宴）	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	终极技能充能速度（杀戮狂宴）	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	战斗时终极技能充能速度 杀戮狂宴	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	终极技能自动充能速度 杀戮狂宴	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死怨	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死怨	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+死怨	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+死怨	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+死怨	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+死怨	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+死怨	机动闪避距离倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨		技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙无限持续时间	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙速度倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+死怨	纵情狂飙击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	助推器	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	助推器冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	聚变连发枪	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	聚变连发枪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	终极技能（无极斩）	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	终极技能充能速度（无极斩）	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	战斗时终极技能充能速度 无极斩	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	终极技能自动充能速度 无极斩	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	重生时终极技能充能完毕	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	职责被动	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	生命值	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	受到伤害量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	受到治疗量	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	移动速度	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	弹道速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	仅爆头有效	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	移动重力	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	投射物重力	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	垂直跳跃速度	战斗设置	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	被动生命值恢复	战斗设置	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
+D.Mon		技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	助推器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	突进刺击击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	呼叫机甲击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
+D.Mon	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
