@@ -115,6 +115,14 @@ def main():
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
 
+    p = sub.add_parser("settings", help="按模式生成设置块")
+    p.add_argument("--mode", required=True)
+    p.add_argument("--out", default=None)
+    p.set_defaults(func=cmd_settings)
+
+    p = sub.add_parser("modes", help="列出全部模式")
+    p.set_defaults(func=cmd_modes)
+
     p = sub.add_parser("baseline", help="比较数据基线与游戏版本")
     p.add_argument("--game-dir", default=None)
     p.set_defaults(func=cmd_baseline)
@@ -150,6 +158,90 @@ def main():
     args = ap.parse_args()
     return args.func(args)
 
+# ---------------- settings: 按模式生成设置块 ----------------
+VALUE_WORD_MAP = {"启用": "开启", "禁用": "关闭", "是": "开启", "否": "关闭"}
+
+
+def _load_settings_values():
+    """settings.tsv -> {(schema, key): 第一个合法值}"""
+    import csv
+    path = os.path.join(DATA, "settings.tsv")
+    out = {}
+    with open(path, encoding="utf-8") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            raw = (row.get("values") or "").strip()
+            if not raw:
+                continue
+            opts = [x.strip() for x in raw.split("|") if x.strip()]
+            concrete = [x for x in opts if not x.startswith("默认")] or opts
+            first = concrete[0]
+            if "~" in first:                              # 范围 1~5000 / 0.1~5 → 取下界
+                first = first.split("~")[0].strip()
+            first = VALUE_WORD_MAP.get(first, first)
+            out[(row.get("schema", ""), row.get("key", ""))] = {"value": first, "raw": raw, "kind": row.get("type", "")}
+    return out
+
+
+def _load_pages(name):
+    import csv
+    path = os.path.join(DATA, name)
+    rows = list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
+    return rows
+
+
+def build_settings_block(mode, hero=None):
+    """按 game 数据里的页序 / 键序，生成「设置」块的文本。"""
+    pages = _load_pages("mode-pages.tsv")
+    vals = _load_settings_values()
+    grouped = {}
+    for r in pages:
+        if r["owner"] != mode:
+            continue
+        page = r["page"] or "(未命名)"
+        grouped.setdefault(page, []).append(r)
+
+    if not grouped:
+        known = sorted({r["owner"] for r in pages})
+        raise SystemExit("没有这个模式：%s\n可用的有：%s" % (mode, "、".join(known[:20]) + (" …" if len(known) > 20 else "")))
+
+    lines = ["设置", "{", "\t模式", "\t{"]
+    for page, rows in grouped.items():
+        lines.append("\t\t%s" % page)
+        lines.append("\t\t{")
+        for r in sorted(rows, key=lambda x: int(x["key_no"] or 0)):
+            key = r["key"]
+            if not key:
+                continue
+            meta = vals.get((r["schema_guid"], key)) or vals.get((page, key))
+            if not meta:
+                continue                                  # 没有合法值可填，宁可不写
+            lines.append("\t\t\t%s: %s" % (key, meta["value"]))
+        lines.append("\t\t}")
+    lines += ["\t}", "}", ""]
+    return "\n".join(lines)
+
+
+def cmd_settings(args):
+    text = build_settings_block(args.mode)
+    if args.out:
+        open(args.out, "w", encoding="utf-8", newline="").write(text.replace("\n", "\r\n"))
+        print("已写入 %s" % args.out)
+    else:
+        print(text)
+    return 0
+
+
+def cmd_modes(args):
+    pages = _load_pages("mode-pages.tsv")
+    cnt = {}
+    for r in pages:
+        cnt[r["owner"]] = cnt.get(r["owner"], 0) + 1
+    for name, n in sorted(cnt.items(), key=lambda x: -x[1]):
+        print("%-16s %4d 条" % (name, n))
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

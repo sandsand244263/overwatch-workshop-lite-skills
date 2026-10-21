@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.22.0
+version: 2.23.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -46,6 +46,8 @@ metadata:
 python tools/ws.py check 模式.ow                        # 校验，交付前必跑，必须 0 error
 python tools/ws.py count 模式.ow                        # 元素数估算
 python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
+python tools/ws.py modes                                # 列出全部模式
+python tools/ws.py settings --mode 死斗 --out 房间.ow    # 按模式生成设置块
 python tools/ws.py publish 模式.ow --outdir out          # 源码版
 python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 加一份混淆版
 python tools/ws.py gen --src <导出目录>                  # 重新生成 data/
@@ -57,7 +59,7 @@ python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量�
 1. **查表不凭记忆**：参数与顺序查 `data/signatures.md`；设置键查 `data/settings.tsv`；`字符串(...)` 只用 `data/strings.md` 的现成词条，自由文本一律 `自定义字符串`。
 2. **先抄骨架**：HUD、周期、计分、条件等待、数组、快照六类在 `docs/patterns.md` 末尾「可套用模板」。
 3. **格式照 `docs/format-spec.md`**：块标题独占一行、`{` 另起一行；变量分 `全局:` / `玩家:` 两段；事件块全局 1 行、其它 3 行、子程序 2 行；控制流 `While(...)/If(...)/Else If(...)/End;`。
-4. **设置块整块复制**：模板在 `data/settings-blocks/`（大厅 / 死斗 / 团队 / 占领 / 护送 / 推进 / 赏金猎手 / 英雄级），只改模式名与地图。布尔项只能写 `开启` / `关闭`。
+4. **设置块**：优先 `ws.py settings --mode <模式>` 按数据里的页序与键序自动生成（55 个模式全覆盖），再按需改值；`data/settings-blocks/` 的 8 份模板作为对照参考。布尔项只能写 `开启` / `关闭`。
 5. **默认只交付源码版**。要防复制才出混淆版，并说明代价：占元素、影响可维护性、索引混淆拖性能、字符串混淆改变比较语义。
 6. **元素超预算**：`ws.py count` 预警 → 按 `docs/cost-patterns.md` 的顺序降级 → 报数时说明是估算。
 7. **改数据前先 `ws.py diff`**：无差异才动别的。
