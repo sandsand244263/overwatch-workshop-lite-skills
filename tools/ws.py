@@ -310,33 +310,26 @@ def build_lobby_block(vals):
 
 
 def build_hero_block(hero, vals):
+    """英雄级设置块。实测结构：英雄 { 综合 { <英雄名> { 键 } } }"""
     import csv
     path = os.path.join(DATA, "hero-pages.tsv")
     rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["owner"] == hero]
     if not rows:
         return None
-    grouped = {}
-    for r in rows:
-        grouped.setdefault(r["page"] or "(未命名)", []).append(r)
-    lines = ["\t英雄", "\t{"]
-    for page, rs in grouped.items():
-        lines.append("\t\t%s" % page)
-        lines.append("\t\t{")
-        for r in sorted(rs, key=lambda x: x["key"]):
-            key = r["key"]
-            if not key:
-                continue
-            v = _value_of(vals, page, key)
-            if v is None:
-                continue
-            lines.append("\t\t\t%s: %s" % (key, v))
-        lines.append("\t\t}")
-    lines.append("\t}")
-    return lines
-
-
-# ---------------- 版本检查（缓存 + 静默失败） ----------------
-REPO = "sandsand244263/overwatch-workshop-lite-skills"
+    body, seen = [], set()
+    for r in sorted(rows, key=lambda x: x["key"]):
+        key = r["key"]
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        v = _value_of(vals, r["page"], key) or _value_of(vals, "", key)
+        if v is None:
+            continue
+        body.append("\t\t\t\t%s: %s" % (key, v))
+    if not body:
+        return None
+    return (["\t英雄", "\t{", "\t\t综合", "\t\t{", "\t\t\t%s" % hero, "\t\t\t{"]
+            + body + ["\t\t\t}", "\t\t}", "\t}"])
 
 
 def _skill_version():
