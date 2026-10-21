@@ -317,26 +317,36 @@ def _load_hero_safe():
     return {r["key"] for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t")}
 
 
+PERCENT_HINTS = ("冷却时间", "充能速度", "倍率", "持续时间", "最长时间", "生命值", "伤害量",
+                  "治疗量", "移动速度", "重力", "弹道速度", "垂直跳跃", "复活时间", "复生时间")
+BOOL_SUFFIX_EXCEPTIONS = ("无限", "充能完毕")
+
+
+def _guess_value(key):
+    """按键名猜默认值：百分比类写 100%，其余写 开启（实测这两类都被接受）。"""
+    if key.endswith(BOOL_SUFFIX_EXCEPTIONS):
+        return "开启"
+    if any(h in key for h in PERCENT_HINTS):
+        return "100%"
+    return "开启"
+
+
 def build_hero_block(hero, vals):
-    """英雄级设置块。实测结构：英雄 { 综合 { <英雄名> { 键 } } }"""
+    """英雄级设置块。键名来自 data/hero-setting-names.tsv（逆向 261 条真实导出验证）。"""
     import csv
-    path = os.path.join(DATA, "hero-pages.tsv")
-    rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["owner"] == hero]
+    path = os.path.join(DATA, "hero-setting-names.tsv")
+    if not os.path.isfile(path):
+        return None
+    rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["英雄"] == hero]
     if not rows:
         return None
-    safe = _load_hero_safe()
     body, seen = [], set()
-    for r in sorted(rows, key=lambda x: x["key"]):
-        key = r["key"]
+    for r in sorted(rows, key=lambda x: x["键名"]):
+        key = r["键名"]
         if not key or key in seen:
             continue
         seen.add(key)
-        if safe is not None and key not in safe:
-            continue          # 只写实测可用的通用键；技能模板键需英雄技能名，暂不生成
-        v = _value_of(vals, r["page"], key) or _value_of(vals, "", key)
-        if v is None:
-            continue
-        body.append("\t\t\t\t%s: %s" % (key, v))
+        body.append("\t\t\t\t%s: %s" % (key, _guess_value(key)))
     if not body:
         return None
     return (["\t英雄", "\t{", "\t\t综合", "\t\t{", "\t\t\t%s" % hero, "\t\t\t{"]
