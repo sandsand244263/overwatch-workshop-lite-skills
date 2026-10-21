@@ -309,6 +309,14 @@ def build_lobby_block(vals):
     return lines
 
 
+def _load_hero_safe():
+    import csv
+    path = os.path.join(DATA, "hero-safe-keys.tsv")
+    if not os.path.isfile(path):
+        return None
+    return {r["key"] for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t")}
+
+
 def build_hero_block(hero, vals):
     """英雄级设置块。实测结构：英雄 { 综合 { <英雄名> { 键 } } }"""
     import csv
@@ -316,12 +324,15 @@ def build_hero_block(hero, vals):
     rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["owner"] == hero]
     if not rows:
         return None
+    safe = _load_hero_safe()
     body, seen = [], set()
     for r in sorted(rows, key=lambda x: x["key"]):
         key = r["key"]
         if not key or key in seen:
             continue
         seen.add(key)
+        if safe is not None and key not in safe:
+            continue          # 只写实测可用的通用键；技能模板键需英雄技能名，暂不生成
         v = _value_of(vals, r["page"], key) or _value_of(vals, "", key)
         if v is None:
             continue
