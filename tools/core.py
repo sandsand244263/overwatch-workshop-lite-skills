@@ -376,6 +376,69 @@ def _top_level_args(s):
     return out
 
 
+def load_event_param_words(path):
+    """事件参数的已知取值（data/event-param-words.tsv）。"""
+    import csv as _csv
+    out = set()
+    if os.path.isfile(path):
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            if r.get("word"):
+                out.add(r["word"].strip())
+    return out
+
+
+def load_element_kinds(path):
+    """元素名 -> 动作 / 值 / 事件 / 扩展。"""
+    import csv as _csv
+    out = {}
+    if os.path.isfile(path):
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            if r.get("name"):
+                out[r["name"]] = r["kind"]
+    return out
+
+
+def check_element_kind(text, kinds, problems):
+    """动作块里不能放值函数；条件块里不能放动作。
+
+    典型错误：把「比赛结束()」当动作写（它是值，表示"比赛是否已结束"）。
+    游戏报「"比赛结束()"之后应有一个赋值运算符」。
+    """
+    if not kinds:
+        return
+    lines = text.split("\n")
+    block = None
+    depth = 0
+    for idx, raw in enumerate(lines):
+        s = raw.strip()
+        if s in ("动作", "条件", "事件"):
+            block = s
+            depth = 0
+            continue
+        if s.startswith("{"):
+            depth += 1
+            continue
+        if s.startswith("}"):
+            depth -= 1
+            if depth <= 0:
+                block = None
+            continue
+        if not s or s.startswith("//"):
+            continue
+        if block == "动作" and depth == 1 and s.endswith(";"):
+            m = re.match(r"^([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s)
+            if m and kinds.get(m.group(1)) == "值":
+                problems.append((idx + 1, "error",
+                                 "「%s」是值函数（返回一个值），不能单独当动作写；"
+                                 "要判断它请写进条件/If" % m.group(1)))
+        elif block == "条件" and depth == 1:
+            for m in re.finditer(r"([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s):
+                if kinds.get(m.group(1)) == "动作":
+                    problems.append((idx + 1, "error",
+                                     "「%s」是动作，不能写在条件里" % m.group(1)))
+                    break
+
+
 def check_string_interp(text, problems):
     """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配。"""
     for m in re.finditer(r"(自定义字符串|字符串)\(([^;\n]*)", text):
@@ -438,7 +501,7 @@ def check_bare_functions(text, sigs, problems, bare_ok=None):
                              "「%s」是函数，必须写成 %s(...)；只写名字游戏会报「之后应有 (」" % (name, name)))
 
 
-def check_event_params(text, event_params, problems):
+def check_event_params(text, event_params, problems, event_param_words=None):
     """事件块里的参数个数校验。
 
     .ow 里的写法是「事件名;」后面跟 N 行裸值（队伍 / 玩家筛选），
@@ -481,6 +544,24 @@ def check_event_params(text, event_params, problems):
                         j += 1
                         continue
                     break
+                # 取值合法性（只警告，因为合法值表可能不全）
+                j2 = i + 1
+                seen_vals = []
+                while j2 < len(lines) and len(seen_vals) < need:
+                    v = lines[j2].strip()
+                    if not v or v.startswith("}") or "(" in v:
+                        break
+                    if v.endswith(";"):
+                        seen_vals.append(v[:-1].strip())
+                        j2 += 1
+                        continue
+                    break
+                if event_param_words:
+                    for v in seen_vals:
+                        if v not in event_param_words:
+                            problems.append((j2, "warning",
+                                             "事件参数「%s」不在已知取值里（已知：%s）"
+                                             % (v, " / ".join(sorted(event_param_words)))))
                 if got < need:
                     problems.append((i + 1, "error",
                                      "事件「%s」需要 %d 个参数（队伍 / 玩家筛选），这里只有 %d 个"
@@ -631,7 +712,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -806,8 +887,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     scan_calls(masked, sigs, labels, problems, options)
-    check_event_params(masked, event_params or {}, problems)
+    check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
+    check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
     check_duplicate_rule_names(text, problems)
     check_arg_count(masked, problems)
