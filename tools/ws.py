@@ -317,6 +317,37 @@ def cmd_scaffold(a):
     return 0
 
 
+def cmd_calib(a):
+    """元素估算标定回归：全部实测样本必须精确命中。"""
+    import csv as _csv
+    import glob as _glob
+    calib_dir = os.path.join(ROOT, "tools", "probes", "calib")
+    files = {os.path.basename(p).split("_")[0]: p for p in _glob.glob(os.path.join(calib_dir, "*.ow"))}
+    from element_count import estimate
+    total = bad = 0
+    for manifest in ("measurements.csv", "measurements-k.csv"):
+        path = os.path.join(calib_dir, manifest)
+        if not os.path.isfile(path):
+            continue
+        print("== %s ==" % manifest)
+        for r in _csv.DictReader(open(path, encoding="utf-8-sig")):
+            key = (r["probe"] or "").strip()
+            if not key:
+                continue
+            f = files.get(key)
+            if not f:
+                print("  ? %s 找不到探针文件" % key)
+                continue
+            est = estimate(f)[0]
+            real = int(r["元素数"])
+            total += 1
+            if est != real:
+                bad += 1
+                print("  ✗ %-4s 实测 %d 估算 %d（差 %+d）" % (key, real, est, est - real))
+    print("\n标定样本 %d 个，偏差 %d 个" % (total, bad))
+    return 0 if bad == 0 else 1
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ws", description="WorkshopLite 工具入口")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -372,6 +403,9 @@ def main():
     p = sub.add_parser("defaults", help="查参数默认值")
     p.add_argument("funcs", nargs="+")
     p.set_defaults(func=cmd_defaults)
+
+    p = sub.add_parser("calib", help="元素估算标定回归（全部实测样本）")
+    p.set_defaults(func=cmd_calib)
 
     p = sub.add_parser("count", help="元素数估算")
     p.add_argument("files", nargs="+")
