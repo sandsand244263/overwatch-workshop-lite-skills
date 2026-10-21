@@ -4,3 +4,4 @@ bare-function.ow	「所有玩家」是函数
 value-as-action.ow	是值函数
 setting-out-of-range.ow	超出范围
 event-player-in-global.ow	不能用 事件玩家
+missing-var-block.ow	没有「变量」块

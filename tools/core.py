@@ -662,6 +662,24 @@ def check_arg_count(text, problems):
                                  "%s 至少要 %d 个参数，这里只有 %d 个" % (name, need, len(args))))
 
 
+def check_missing_var_block(text, problems):
+    """用了 全局.X / 玩家.X，但整个文件没有 变量 块。"""
+    if re.search(r"^\s*变量\s*$", text, re.M):
+        return
+    m = re.search(r"(全局|事件玩家|本地玩家|玩家)\.[A-Za-z_]\w*", text)
+    if not m:
+        m = re.search(r"(?:设置|修改)(?:全局|玩家)变量\(\s*(?:[^,，]+[,，]\s*)?([A-Za-z_]\w*)", text)
+        if m:
+            line = text.count("\n", 0, m.start()) + 1
+            problems.append((line, "error",
+                             "文件里没有「变量」块，但用到了变量 %s" % m.group(1)))
+            return
+    if m:
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "文件里没有「变量」块，但用到了 %s.%s" % (m.group(1), m.group(0).split(".")[1])))
+
+
 def check_var_refs(text, problems):
     """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。"""
     vi = text.find("变量")
@@ -733,9 +751,11 @@ def check_types(text, problems):
         name = m.group(1)
         if name not in declared:
             continue
-        before = text[max(0, m.start() - 40):m.start()]
+        before = text[max(0, m.start() - 60):m.start()]
         if re.search(r"(设置|修改)(全局|玩家)变量\([^,，]*$", before):
             continue                      # 变量目标位，合法
+        if re.search(r"For\s+(全局变量|玩家变量)\([^,，]*$", before):
+            continue                      # For 的控制变量，本来就是裸写
         line = text.count(chr(10), 0, m.start()) + 1
         problems.append((line, "error",
                          "变量 %s 当值用要写 全局.%s 或 事件玩家.%s" % (name, name, name)))
@@ -957,6 +977,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_types(masked, problems)
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
+    check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
