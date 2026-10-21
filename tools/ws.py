@@ -206,7 +206,9 @@ def cmd_stats(a):
             if r["ability"] != cur:
                 cur = r["ability"]
                 print("  [%s]" % cur)
-            print("    %-24s %s %s" % (r["field"], r["value"], r["unit"]))
+            val = "不适用（哨兵值 -0.5）" if r["value"].strip() == "-0.5" else r["value"]
+            unit = "" if r["value"].strip() == "-0.5" else r["unit"]
+            print("    %-24s %s %s" % (r["field"], val, unit))
         print()
     if aa:
         hero = aa[0]["hero"]
