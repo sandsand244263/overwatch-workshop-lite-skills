@@ -42,7 +42,8 @@ def cmd_check(args):
                              bare_ok=core.load_bare_ok(os.path.join(DATA, "bare-ok.tsv")),
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
                              event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
-                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")))
+                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
+                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")))
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:
@@ -79,7 +80,8 @@ def cmd_check_all(args):
                              bare_ok=core.load_bare_ok(os.path.join(DATA, "bare-ok.tsv")),
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
                              event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
-                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")))
+                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
+                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")))
             errs = [p[2] for p in probs if p[1] == "error"]
             hit = any(r["expect"] in e for e in errs)
             print("%s %s：%s" % ("✓" if hit else "✗", r["file"],
@@ -129,12 +131,18 @@ def cmd_defaults(args):
     return 0
 
 
+# 用 235 KB 真实模式反推：实测 16918 / 估 7668
+REAL_WORLD_FACTOR = 2.2
+
 def cmd_count(args):
     sigs, labels, settings = load()
     from element_count import estimate, describe
     for path in args.files:
         est, detail = estimate(path, sigs, labels)
-        print("%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail)))
+        line = "%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail))
+        if est >= 1500:                      # 大文件：模型已知低估，给校准值
+            line += "\n   └ 按真实模式校准约 %d 个（系数 2.2；32,768 上限请按此值判断）" % int(est * REAL_WORLD_FACTOR)
+        print(line)
         print("  上限 32768。估算仅供预警，最终以游戏「显示诊断结果 → 总计元素数量」为准。")
     return 0
 

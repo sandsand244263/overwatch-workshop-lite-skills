@@ -685,6 +685,39 @@ def check_arg_count(text, problems):
                                  "%s 至少要 %d 个参数，这里只有 %d 个" % (name, need, len(args))))
 
 
+def load_map_names(path):
+    """地图名集合（取 maps.tsv 第一列）。"""
+    names = set()
+    if not os.path.isfile(path):
+        return names
+    with open(path, encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                continue
+            col = line.split("\t")[0].strip()
+            if col and col.lower() != "unknown":
+                names.add(col)
+    return names
+
+
+def check_map_names(text, problems, map_names):
+    """地图(名) / 启用地图 { 名 GUID } 里的地图必须存在于当前版本地图表。
+
+    游戏更新会删改地图，旧模式里的地图名会失效；游戏只报
+    「"地图("之后应有一个地图名称」，指不到根本原因。
+    """
+    if not map_names:
+        return
+    for m in re.finditer(r"地图\(\s*([^()\s,;]+)\s*\)", text):
+        name = m.group(1)
+        if name in map_names or re.fullmatch(r"[\d.]+", name):
+            continue
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "地图「%s」不在当前版本地图表里（可能已改名或移除）；"
+                         "游戏会报「\"地图(\"之后应有一个地图名称」。用 ws.py maps 查有效名" % name))
+
+
 def check_missing_var_block(text, problems):
     """用了 全局.X / 玩家.X，但整个文件没有 变量 块。"""
     if re.search(r"^\s*变量\s*$", text, re.M):
@@ -905,7 +938,7 @@ def merge_continuations(text, max_lines=60):
     return "\n".join(out)
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -1094,6 +1127,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_types(masked, problems)
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
+    check_map_names(text, problems, map_names)
     check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
