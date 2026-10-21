@@ -197,7 +197,8 @@ def cmd_stats(a):
     if hh:
         print("=== %s 英雄属性 ===" % hh[0]["hero"])
         for r in hh:
-            print("  %-8s %s %s" % (r["field"], r["value"], r["unit"]))
+            mark = "（推定）" if "推定" in r.get("evidence", "") else ""
+            print("  %-8s %s %s%s" % (r["field"], r["value"], r["unit"], mark))
         print()
     if dd:
         print("=== %s 技能数值（技能面板行）===" % dd[0]["hero"])
@@ -206,8 +207,19 @@ def cmd_stats(a):
             if r["ability"] != cur:
                 cur = r["ability"]
                 print("  [%s]" % cur)
-            val = "不适用（哨兵值 -0.5）" if r["value"].strip() == "-0.5" else r["value"]
-            unit = "" if r["value"].strip() == "-0.5" else r["unit"]
+            raw = r["value"].strip()
+            unit = r["unit"]
+            if raw == "-0.5":
+                val, unit = "不适用（哨兵值 -0.5）", ""
+            else:
+                val = raw
+                try:
+                    fv = float(raw)
+                    ratio_field = any(k in r["field"] for k in ("加成", "减免", "抗性", "倍率", "转化比例", "惩罚"))
+                    if "%" in unit and abs(fv) <= 1 and fv != 0 and ratio_field:
+                        val = "%s（= %g%%）" % (raw, fv * 100)
+                except ValueError:
+                    pass
             print("    %-24s %s %s" % (r["field"], val, unit))
         print()
     if aa:
@@ -220,6 +232,16 @@ def cmd_stats(a):
                 print("  [%s]" % cur)
             print("    %-26s %s %s" % (r["field"], r["value"], r["unit"]))
         print()
+    gp = os.path.join(DATA, "global-passives.tsv")
+    if os.path.isfile(gp):
+        import csv as _csv
+        seen = []
+        for r in _csv.DictReader(open(gp, encoding="utf-8"), delimiter="\t"):
+            if r["value"].strip() and r["field"] not in seen:
+                seen.append(r["field"])
+                print("全局被动：%s %s%s（所有英雄）" % (r["field"], r["value"], r["unit"]))
+        if seen:
+            print()
     print("数据来源：客户端 STU 数据（health/cooldown/magazine 等）；伤害类字段覆盖不全，见 docs/hero-stats.md")
     return 0
 
