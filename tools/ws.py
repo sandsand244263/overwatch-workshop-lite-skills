@@ -120,6 +120,8 @@ def main():
     p.add_argument("--mode", required=True)
     p.add_argument("--hero", default=None, help="额外生成某个英雄的设置块")
     p.add_argument("--lobby", action="store_true", help="额外生成大厅块")
+    p.add_argument("--all", action="store_true", help="（默认已是全量，此参数保留兼容）")
+    p.add_argument("--safe", action="store_true", help="只写实测导入通过过的键")
     p.add_argument("--out", default=None)
     p.set_defaults(func=cmd_settings)
 
@@ -174,7 +176,18 @@ VALUE_WORD_MAP = {"启用": "开启", "禁用": "关闭", "是": "开启", "否"
 
 # 实测：这些键在游戏数据里有，但写进 .ow 的对应模式块会被判定为非法（"之后应有一个游戏模式设置"）
 # 加进来之前必须实机导入验证过，不要凭感觉加。
+# 实测（2026-10-21，三次导入失败）：这两个键在死斗模式的 .ow 块里被拒，
+# 报错「第N行的"开启"之后应有一个游戏模式设置」。数据里有、页面里也有，但 .ow 不收。
 NOT_WRITABLE = {"威能充能速度", "追赶等级时造成消灭威能加值"}
+
+
+def _load_verified():
+    """实测导入过的键（data/verified-keys.tsv）；文件不存在时返回 None 表示不过滤。"""
+    import csv
+    path = os.path.join(DATA, "verified-keys.tsv")
+    if not os.path.isfile(path):
+        return None
+    return {r["key"] for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t")}
 
 
 def _load_settings_values():
@@ -190,12 +203,33 @@ def _load_settings_values():
                     out[(row.get("schema", ""), row.get("key", ""))] = {"value": "开启", "raw": "BOOL", "kind": "BOOL"}
                 continue
             opts = [x.strip() for x in raw.split("|") if x.strip()]
-            concrete = [x for x in opts if not x.startswith("默认")] or opts
-            first = concrete[0]
-            if "~" in first:                              # 范围 1~5000 / 0.1~5 → 取下界
+            default = None
+            concrete = []
+            for o in opts:
+                if o.startswith("默认"):
+                    default = o[2:].strip()
+                else:
+                    concrete.append(o)
+            first = (concrete or ["0"])[0]
+            if "~" in first:
                 first = first.split("~")[0].strip()
-            first = VALUE_WORD_MAP.get(first, first)
-            out[(row.get("schema", ""), row.get("key", ""))] = {"value": first, "raw": raw, "kind": row.get("type", "")}
+            kind = (row.get("type") or "").upper()
+
+            # FLOAT：.ow 里用百分比表示（1.0 → 100%，0.15 → 15%）
+            def as_pct(x):
+                try:
+                    v = float(x)
+                except ValueError:
+                    return None
+                pct = v * 100
+                return ("%d%%" % round(pct)) if abs(pct - round(pct)) < 0.01 else ("%.1f%%" % pct)
+
+            if kind == "FLOAT":
+                shown = as_pct(default if default is not None else first) or first
+            else:
+                shown = VALUE_WORD_MAP.get(first, first)
+            out[(row.get("schema", ""), row.get("key", ""))] = {
+                "value": shown, "raw": raw, "kind": kind, "default": default}
     return out
 
 
@@ -206,43 +240,50 @@ def _load_pages(name):
     return rows
 
 
-def build_settings_block(mode, hero=None, lobby=False):
-    """按 game 数据里的页序 / 键序，生成「设置」块的文本。"""
+def build_settings_block(mode, hero=None, lobby=False, allow_all=True):
+    """生成「设置」块。
+
+    实测结论（2026-10-21，实机导入成功）：
+    - 模式下面**只需要一个块**装完所有键；不要 综合 / 英雄 子块
+    - 块归属自由：只要键属于该模式的 schema 并集即可
+    - FLOAT 用百分比表示（1.0 → 100%）
+    """
     pages = _load_pages("mode-pages.tsv")
     vals = _load_settings_values()
-    grouped = {}
-    for r in pages:
-        if r["owner"] != mode:
-            continue
-        page = r["page"] or "(未命名)"
-        grouped.setdefault(page, []).append(r)
-
-    if not grouped:
+    rows = [r for r in pages if r["owner"] == mode]
+    if not rows:
         known = sorted({r["owner"] for r in pages})
         raise SystemExit("没有这个模式：%s\n可用的有：%s" % (mode, "、".join(known[:20]) + (" …" if len(known) > 20 else "")))
+
+    allow = None if allow_all else _load_verified()
+    seen, body = set(), []
+    for r in sorted(rows, key=lambda x: x["key"]):
+        key = r["key"]
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        if allow is not None and key not in allow:
+            continue
+        meta = vals.get((r["schema_guid"], key)) or vals.get((mode, key)) or vals.get((r["page"], key))
+        if not meta:
+            continue
+        body.append("\t\t\t%s: %s" % (key, meta["value"]))
+    if not body:
+        raise SystemExit("模式 %s 没有可写的键" % mode)
 
     lines = ["设置", "{"]
     if lobby:
         lines += build_lobby_block(vals)
-    hero_lines = build_hero_block(hero, vals) if hero else None
-    lines += ["\t模式", "\t{"]
-    for page, rows in grouped.items():
-        lines.append("\t\t%s" % page)
-        lines.append("\t\t{")
-        for r in sorted(rows, key=lambda x: x["key"]):      # .ow 块内键序 = Unicode 码位升序
-            key = r["key"]
-            if not key:
-                continue
-            meta = vals.get((r["schema_guid"], key)) or vals.get((page, key))
-            if not meta:
-                continue                                  # 没有合法值可填，宁可不写
-            lines.append("\t\t\t%s: %s" % (key, meta["value"]))
-        lines.append("\t\t}")
-    lines += ["\t}"]
-    if hero_lines:
-        lines += hero_lines
+    lines += ["\t模式", "\t{", "\t\t%s" % mode, "\t\t{"]
+    lines += body
+    lines += ["\t\t}", "\t}"]
+    if hero:
+        hb = build_hero_block(hero, vals)
+        if hb:
+            lines += hb
     lines += ["}", ""]
     return "\n".join(lines)
+
 
 
 def _value_of(vals, schema, key):
@@ -352,7 +393,14 @@ def check_update(quiet=True, force=False):
         except OSError:
             pass
     cur, latest = _skill_version(), info.get("latest")
-    if cur and latest and cur != latest:
+
+    def vt(v):
+        try:
+            return tuple(int(x) for x in str(v).lstrip("v").split("."))
+        except ValueError:
+            return (0,)
+
+    if cur and latest and vt(latest) > vt(cur):      # 只有线上更新才提示
         return (cur, latest)
     return None
 
@@ -399,7 +447,7 @@ def cmd_explain(args):
 
 
 def cmd_settings(args):
-    text = build_settings_block(args.mode, hero=args.hero, lobby=args.lobby)
+    text = build_settings_block(args.mode, hero=args.hero, lobby=args.lobby, allow_all=not args.safe)
     if args.out:
         open(args.out, "w", encoding="utf-8", newline="").write(text.replace("\n", "\r\n"))
         print("已写入 %s" % args.out)
