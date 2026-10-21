@@ -59,6 +59,26 @@ def cmd_check_all(args):
     return cmd_check(type("A", (), {"files": files})())
 
 
+def cmd_baseline(args):
+    """比较 data/meta.json 的 build 与游戏当前 build。"""
+    import json
+    meta_path = os.path.join(DATA, "meta.json")
+    data_build = None
+    if os.path.isfile(meta_path):
+        data_build = json.load(open(meta_path, encoding="utf-8")).get("build")
+    game_dir = args.game_dir or os.environ.get("OW_GAME_DIR") or "E:/Overwatch"
+    game_build = core.parse_build_info(os.path.join(game_dir, ".build.info"))
+    print("数据基线：%s" % (data_build or "未知"))
+    print("游戏版本：%s" % (game_build or "读不到（%s/.build.info）" % game_dir))
+    if not game_build:
+        return 0
+    if data_build and game_build != data_build:
+        print("→ 版本不一致，建议更新数据（见 workshop-data-update 技能步骤 0）")
+        return 1
+    print("→ 一致")
+    return 0
+
+
 def cmd_defaults(args):
     """查某函数每个参数的默认值（省略尾部参数时游戏用什么）。"""
     path = os.path.join(DATA, "defaults.tsv")
@@ -94,6 +114,10 @@ def main():
     p = sub.add_parser("check", help="校验 .ow")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
+
+    p = sub.add_parser("baseline", help="比较数据基线与游戏版本")
+    p.add_argument("--game-dir", default=None)
+    p.set_defaults(func=cmd_baseline)
 
     p = sub.add_parser("check-all", help="回归：probes 与 calib 全部样本")
     p.set_defaults(func=cmd_check_all)

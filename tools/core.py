@@ -215,6 +215,15 @@ def load_full_options(path):
     return out
 
 
+def parse_build_info(path):
+    """从 .build.info 读出形如 2.25.0.1.154504N 的版本串；读不到返回 None。"""
+    if not os.path.isfile(path):
+        return None
+    raw = open(path, "rb").read()
+    cands = re.findall(rb"(\d+(?:\.\d+){2,5}N)", raw)
+    return max((c.decode() for c in cands), key=len) if cands else None
+
+
 def load_required_args(path):
     """{函数: 最少参数}；只用于 warning，避免误报。"""
     out = {}

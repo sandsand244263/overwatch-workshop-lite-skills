@@ -130,6 +130,11 @@ def main():
             print("   第 %s 行：%s" % (ln or "?", msg))
         return 1
     print("✓ 源码版：%s" % clean_path)
+    try:
+        from element_count import estimate
+        _est_clean = estimate(clean_path)[0]
+    except Exception:
+        _est_clean = None
 
     if not picked:
         print("\n未指定 --obf，不出混淆版。")
@@ -178,6 +183,16 @@ def main():
             print("   第 %s 行：%s" % (ln or "?", msg))
         return 1
     print("✓ 混淆版：%s（用了：%s）" % (obf_path, ", ".join(sorted(picked))))
+    try:
+        from element_count import estimate
+        _est_obf = estimate(obf_path)[0]
+        if _est_clean:
+            print("元素估算：源码版 %d / 混淆版 %d" % (_est_clean, _est_obf))
+            print("  注：混淆后代码的元素估算误差较大（实测 88→154），以游戏诊断为准")
+            if _est_obf > 30000:
+                print("⚠ 接近 32768 上限，建议减少混淆项")
+    except Exception:
+        pass
     print("\n导入后看一眼诊断里的「总计元素数量」，混淆会增加额度消耗。")
     return 0
 
