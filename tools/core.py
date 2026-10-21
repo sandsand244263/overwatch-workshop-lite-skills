@@ -215,6 +215,22 @@ def load_full_options(path):
     return out
 
 
+def load_required_args(path):
+    """{函数: 最少参数}；只用于 warning，避免误报。"""
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    for line in open(path, encoding="utf-8"):
+        parts = line.rstrip(chr(10)).split(chr(9))
+        if len(parts) < 2 or parts[0] == "func":
+            continue
+        try:
+            out[parts[0]] = int(parts[1])
+        except ValueError:
+            continue
+    return out
+
+
 def load_settings_schema(path):
     """返回 {设置键: (类型, 允许值集合或 None)}，来源 data/settings.tsv。"""
     schema = {}
@@ -451,7 +467,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None, options=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:

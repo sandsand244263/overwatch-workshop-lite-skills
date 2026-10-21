@@ -98,6 +98,31 @@ def build_strings(src_md, out):
 
 
 # ---------- maps ----------
+def build_required_args(sig_md, out):
+    """参数必填表：参数个数 N，末位为 _ 则 N-1，否则 N；手工覆盖优先。"""
+    if not os.path.isfile(sig_md):
+        sys.exit("找不到 %s" % sig_md)
+    manual = {"修改全局变量": 3, "修改玩家变量": 4, "设置全局变量": 2, "设置玩家变量": 3}
+    rows = []
+    for line in open(sig_md, encoding="utf-8"):
+        line = line.strip()
+        if "(" not in line or not line.endswith(")") or line.startswith("<!--"):
+            continue
+        name, rest = line.split("(", 1)
+        name = name.strip()
+        if not name or " " in name:
+            continue
+        inner = rest[:-1].strip()
+        args = [a for a in re.split(r"[，,](?![^\[\]]*\])", inner)] if inner else []
+        n = len(args)
+        min_args = manual.get(name, n - 1 if args and args[-1].strip().startswith("_") else n)
+        if min_args <= 0:
+            continue
+        rows.append([name, min_args])
+    rows.sort()
+    write_tsv(out, ["func", "min_args"], rows)
+
+
 def build_maps(src, out):
     data = load_json(os.path.join(src, "maps.json"))
     vals = list(data.values()) if isinstance(data, dict) else data
@@ -130,6 +155,10 @@ def main():
     p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "strings.md"))
     p.add_argument("--out", required=True)
 
+    p = sub.add_parser("required-args")
+    p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
+    p.add_argument("--out", required=True)
+
     p = sub.add_parser("maps")
     p.add_argument("--src", required=True)
     p.add_argument("--out", required=True)
@@ -139,6 +168,8 @@ def main():
         build_settings_tree(a.src, a.out)
     elif a.cmd == "events":
         build_events(a.src, a.out)
+    elif a.cmd == "required-args":
+        build_required_args(a.md, a.out)
     elif a.cmd == "strings":
         build_strings(a.md, a.out)
     else:
