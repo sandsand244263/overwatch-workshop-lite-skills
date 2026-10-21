@@ -191,13 +191,28 @@ def cmd_stats(a):
     dd = [r for r in dmg if r["hero"] == kw and r["ability"] != "英雄属性" and r["value"].strip()] or \
          [r for r in dmg if (kw in r["hero"] or kw in r["ability"]) and r["ability"] != "英雄属性" and r["value"].strip()]
     if not hh and not aa:
+        # 退化为全局搜索：技能名 / 字段名
+        hits = [r for r in dmg if kw in r["ability"] or kw in r["field"]]
+        if hits:
+            print("=== 含「%s」的数值（%d 条）===" % (kw, len(hits)))
+            cur = None
+            for r in sorted(hits, key=lambda x: (x["hero"], x["ability"]))[: a.limit]:
+                key = "%s / %s" % (r["hero"], r["ability"])
+                if key != cur:
+                    cur = key
+                    print("  [%s]" % key)
+                print("    %-22s %s %s" % (r["field"], r["value"], r["unit"]))
+            if len(hits) > a.limit:
+                print("  … 还有 %d 条，用 --limit 调大" % (len(hits) - a.limit))
+            return 0
         print("没有「%s」的数值。可查英雄：%s" % (kw, "、".join(sorted({r["hero"] for r in heroes}))))
         return 1
 
     if hh:
         print("=== %s 英雄属性 ===" % hh[0]["hero"])
         for r in hh:
-            mark = "（推定）" if "推定" in r.get("evidence", "") else ""
+            ev = r.get("evidence", "")
+            mark = "（推定）" if ("推定" in ev and "面板校准" not in ev) else ""
             print("  %-8s %s %s%s" % (r["field"], r["value"], r["unit"], mark))
         print()
     if dd:
@@ -309,7 +324,8 @@ def main():
     p.set_defaults(func=cmd_scaffold)
 
     p = sub.add_parser("stats", help="查英雄/技能数值（生命值/冷却/弹匣）")
-    p.add_argument("name", help="英雄名，如 半藏")
+    p.add_argument("name", help="英雄名、技能名或字段名，如 半藏 / 岚 / 屏障生命值")
+    p.add_argument("--limit", type=int, default=40)
     p.set_defaults(func=cmd_stats)
 
     p = sub.add_parser("update-check", help="查技能是否有新版本")
