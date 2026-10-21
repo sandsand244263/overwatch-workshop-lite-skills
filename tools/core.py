@@ -347,6 +347,97 @@ def load_event_params(path):
     return out
 
 
+def load_bare_ok(path):
+    """可以裸写的记号（0 参数函数、下拉/枚举选项、常量）。"""
+    import csv as _csv
+    out = set()
+    if os.path.isfile(path):
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            if r.get("token"):
+                out.add(r["token"].strip())
+    return out
+
+
+def _top_level_args(s):
+    """按深度 0 的逗号切分参数。"""
+    out, depth, cur = [], 0, ""
+    for ch in s:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        if ch == "," and depth == 0:
+            out.append(cur)
+            cur = ""
+            continue
+        cur += ch
+    if cur.strip():
+        out.append(cur)
+    return out
+
+
+def check_string_interp(text, problems):
+    """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配。"""
+    for m in re.finditer(r"(自定义字符串|字符串)\(([^;\n]*)", text):
+        fn, body = m.group(1), m.group(2)
+        args = _top_level_args(body)
+        if not args:
+            continue
+        tmpl = args[0]
+        idx = [int(x) for x in re.findall(r"\{(\d)\}", tmpl)]
+        if not idx:
+            continue
+        need = max(idx) + 1
+        have = len(args) - 1
+        if have < need:
+            line = text.count("\n", 0, m.start()) + 1
+            problems.append((line, "warning",
+                             "%s 的模板里有 {%d}，但只给了 %d 个值（需要 %d 个）" % (fn, max(idx), have, need)))
+
+
+def check_duplicate_rule_names(text, problems):
+    """同名规则会互相覆盖/难以排查。"""
+    seen = {}
+    for m in re.finditer(r'规则\(\s*"([^"]+)"\s*\)', text):
+        name = m.group(1)
+        line = text.count("\n", 0, m.start()) + 1
+        if name in seen:
+            problems.append((line, "warning", "规则名「%s」重复（首次出现在第 %d 行）" % (name, seen[name])))
+        else:
+            seen[name] = line
+
+
+def check_bare_functions(text, sigs, problems, bare_ok=None):
+    """函数名写成裸名字（没有括号）。
+
+    典型：大字体信息(所有玩家, …) 应为 大字体信息(所有玩家(所有队伍), …)。
+    游戏报「"所有玩家"之后应有"("」。
+    """
+    if not sigs:
+        return
+    def _n(params):
+        if isinstance(params, int):
+            return params
+        try:
+            return len(params)
+        except TypeError:
+            return 0
+    needs_arg = {name for name, params in sigs.items() if _n(params) >= 1}
+    allowed = (bare_ok or set()) | {name for name, params in sigs.items() if _n(params) == 0}
+    for m in re.finditer(r"(?<![\w.\u4e00-\u9fa5])([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)(?!\s*\()", text):
+        name = m.group(1)
+        line_start = text.rfind("\n", 0, m.start()) + 1
+        line_end = text.find("\n", m.start())
+        line_text = text[line_start: line_end if line_end >= 0 else len(text)]
+        # 只检查处在表达式里的行（块标题行没有括号/逗号，跳过）
+        if "(" not in line_text and "," not in line_text:
+            continue
+        if name in needs_arg and name not in allowed:
+            line = text.count("\n", 0, m.start()) + 1
+            problems.append((line, "error",
+                             "「%s」是函数，必须写成 %s(...)；只写名字游戏会报「之后应有 (」" % (name, name)))
+
+
 def check_event_params(text, event_params, problems):
     """事件块里的参数个数校验。
 
@@ -540,7 +631,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -716,6 +807,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
 
     scan_calls(masked, sigs, labels, problems, options)
     check_event_params(masked, event_params or {}, problems)
+    check_bare_functions(masked, sigs, problems, bare_ok)
+    check_string_interp(text, problems)
+    check_duplicate_rule_names(text, problems)
     check_arg_count(masked, problems)
     check_types(masked, problems)
     check_unassigned(masked, problems)
