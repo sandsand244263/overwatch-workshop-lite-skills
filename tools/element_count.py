@@ -71,6 +71,7 @@ def split_args(s):
 
 COMPARE_BONUS = 3
 IF_CALL_BONUS = 5      # 实测 K6：If(余数(1,3) == 0)
+COND_COST = 3           # 实测 E4：条件块里一条 `1 == 1;` 记 3
 IF_LITERAL_BONUS = 2   # 实测 K5：If(1 == 1)
 FOR_BONUS = 3          # 实测 K11：For 全局变量(i,1,5,1)
 ELSEIF_BONUS = 1       # 实测 K12：Else If 分支
@@ -145,7 +146,8 @@ def estimate(path, sigs=None, labels=None):
             continue
         if block == "条件":
             conds += 1
-            inner_cond += statement_cost(s, variables)
+            # 条件里的数字字面量比动作里贵 2（实测 E4：`1 == 1` 记 3，`真 == 真` 记 1）
+            inner_cond += statement_cost(s, variables) + 1 * len(re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", s))
         elif block == "动作":
             acts += 1
             cost = statement_cost(s, variables)

@@ -700,6 +700,25 @@ def load_map_names(path):
     return names
 
 
+HUD_ACTIONS = {
+    "创建HUD文本", "创建HUD图标", "创建HUD进度条", "大字体信息", "小字体信息",
+    "创建地图文本", "创建地图图标", "创建地图进度条", "设置HUD文本", "设置HUD图标",
+    "创建效果", "播放效果", "创建光束效果", "创建图标效果", "创建进度条HUD文本",
+}
+
+
+def check_local_values(text, problems):
+    """全局变量不能存局部值（本地玩家相关），游戏报「局部值只能用于视觉效果或HUD动作」。"""
+    for m in re.finditer(r"(?:设置|修改)(?:全局)变量\(([^;\n]*)\)", text):
+        body = m.group(1)
+        if "本地玩家" not in body:
+            continue
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "全局变量不能存局部值（含「本地玩家」）；游戏会报"
+                         "「局部值只能用于视觉效果或HUD动作」，改用玩家变量或 事件玩家"))
+
+
 def check_map_names(text, problems, map_names):
     """地图(名) / 启用地图 { 名 GUID } 里的地图必须存在于当前版本地图表。
 
@@ -1127,6 +1146,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_types(masked, problems)
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
+    check_local_values(text, problems)
     check_map_names(text, problems, map_names)
     check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)
