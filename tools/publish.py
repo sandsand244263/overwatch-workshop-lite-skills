@@ -30,7 +30,7 @@ import core  # noqa: E402
 import obfuscate_values  # noqa: E402
 
 NO_SLOTS = core.VERIFIED_NO_SLOTS
-CHOICES = {"numbers", "vars", "rules", "indexes", "local-indexes", "strings"}
+CHOICES = {"numbers", "vars", "rules", "indexes", "local-indexes", "strings", "all"}
 
 
 def fix_no_to_disabled(text):
@@ -105,9 +105,15 @@ def main():
     unknown = picked - CHOICES
     if unknown:
         sys.exit("不认识的混淆项：%s（可选：%s）" % (", ".join(sorted(unknown)), ", ".join(sorted(CHOICES))))
+    if "all" in picked:
+        picked |= {"numbers", "vars", "rules", "indexes", "local-indexes"}
+        picked.discard("all")
+
     if "strings" in picked:
         sys.exit("字符串混淆会改变比较语义，请用 VS Code 插件执行；本脚本不提供。")
 
+    import time
+    _T0 = time.time()
     data = os.path.normpath(os.path.join(HERE, "..", "data"))
     sigs, labels, _opts = core.load_signatures(os.path.join(data, "signatures.md"))
     settings = core.load_settings_schema(os.path.join(data, "settings.tsv"))
@@ -194,7 +200,17 @@ def main():
     except Exception:
         pass
     print("\n导入后看一眼诊断里的「总计元素数量」，混淆会增加额度消耗。")
+    _summarize(_T0, clean_path, obf_path, picked)
     return 0
+
+
+def _summarize(t0, clean, obf, picked):
+    import time as _t
+    dt = _t.time() - t0
+    print("\n完成，用时 %.2f 秒" % dt)
+    print("  源码版：%s" % clean)
+    if obf:
+        print("  混淆版：%s（%s）" % (obf, ", ".join(sorted(picked)) or "无"))
 
 
 def main_with_args(args):
