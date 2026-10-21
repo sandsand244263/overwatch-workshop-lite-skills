@@ -41,7 +41,8 @@ def cmd_check(args):
                              event_params=core.load_event_params(os.path.join(DATA, "event-params.tsv")),
                              bare_ok=core.load_bare_ok(os.path.join(DATA, "bare-ok.tsv")),
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
-                             event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")))
+                             event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
+                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")))
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:
@@ -77,7 +78,8 @@ def cmd_check_all(args):
                               event_params=core.load_event_params(os.path.join(DATA, "event-params.tsv")),
                              bare_ok=core.load_bare_ok(os.path.join(DATA, "bare-ok.tsv")),
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
-                             event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")))
+                             event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
+                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")))
             errs = [p[2] for p in probs if p[1] == "error"]
             hit = any(r["expect"] in e for e in errs)
             print("%s %s：%s" % ("✓" if hit else "✗", r["file"],
@@ -294,7 +296,7 @@ SCAFFOLD_SETTINGS = [
     "设置", "{",
     "\t模式", "\t{", "\t\t死斗", "\t\t{",
     "\t\t\t启用地图", "\t\t\t{", "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}",
-    "\t\t\t随机英雄复生: 开启", "\t\t\t获胜得分: 1",
+    "\t\t\t随机英雄复生: 开启", "\t\t\t获胜得分: 20",
     "\t\t}", "\t}", "}",
 ]
 

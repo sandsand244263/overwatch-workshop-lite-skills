@@ -387,6 +387,35 @@ def load_event_param_words(path):
     return out
 
 
+def load_setting_ranges(path):
+    """设置键 -> (min, max)。同名键取最宽区间。"""
+    import csv as _csv
+    out = {}
+    if os.path.isfile(path):
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            try:
+                out[r["key"]] = (float(r["min"]), float(r["max"]))
+            except (KeyError, ValueError):
+                continue
+    return out
+
+
+def check_setting_range(text, ranges, problems):
+    """设置块的数值不能超出范围（如 获胜得分 是 1-9）。"""
+    if not ranges:
+        return
+    for idx, line in enumerate(text.split("\n"), 1):
+        m = re.match(r"^\s*([^:：{}\t][^:：]*?)\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
+        if not m:
+            continue
+        key, val = m.group(1).strip(), float(m.group(2))
+        if key in ranges:
+            lo, hi = ranges[key]
+            if val < lo or val > hi:
+                problems.append((idx, "error",
+                                 "%s 的值 %s 超出范围（%g~%g）" % (key, m.group(2), lo, hi)))
+
+
 def load_element_kinds(path):
     """元素名 -> 动作 / 值 / 事件 / 扩展。"""
     import csv as _csv
@@ -712,7 +741,7 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -889,6 +918,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     scan_calls(masked, sigs, labels, problems, options)
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
+    check_setting_range(text, setting_ranges or {}, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
     check_duplicate_rule_names(text, problems)
