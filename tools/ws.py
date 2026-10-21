@@ -322,8 +322,13 @@ PERCENT_HINTS = ("冷却时间", "充能速度", "倍率", "持续时间", "最�
 BOOL_SUFFIX_EXCEPTIONS = ("无限", "充能完毕")
 
 
+BOOL_OFF_DEFAULT = ("被动生命值恢复",)
+
+
 def _guess_value(key):
-    """按键名猜默认值：百分比类写 100%，其余写 开启（实测这两类都被接受）。"""
+    """按键名猜默认值：百分比类写 100%，布尔类写 开启（这两类实测都被接受）。"""
+    if key in BOOL_OFF_DEFAULT:
+        return "关闭"
     if key.endswith(BOOL_SUFFIX_EXCEPTIONS):
         return "开启"
     if any(h in key for h in PERCENT_HINTS):
@@ -331,24 +336,30 @@ def _guess_value(key):
     return "开启"
 
 
-def build_hero_block(hero, vals):
-    """英雄级设置块。键名来自 data/hero-setting-names.tsv（逆向 261 条真实导出验证）。"""
+def _load_visible_keys(hero):
+    """data/hero-visible-keys.tsv：游戏页实际显示的键（截图/导出为证）。"""
     import csv
-    path = os.path.join(DATA, "hero-setting-names.tsv")
+    path = os.path.join(DATA, "hero-visible-keys.tsv")
     if not os.path.isfile(path):
         return None
-    rows = [r for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["英雄"] == hero]
-    if not rows:
+    rows = [r["key"] for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["hero"] == hero]
+    return rows or None
+
+
+def build_hero_block(hero, vals):
+    """英雄级设置块。
+
+    键名优先用「游戏页实际显示的键」(data/hero-visible-keys.tsv)；
+    该英雄还没建立可见键集时返回 None —— 宁可不出，也不瞎拼。
+    """
+    keys = _load_visible_keys(hero)
+    if not keys:
+        import sys
+        print("  跳过英雄 %s：还没有可见键集（data/hero-visible-keys.tsv）" % hero, file=sys.stderr)
         return None
-    body, seen = [], set()
-    for r in sorted(rows, key=lambda x: x["键名"]):
-        key = r["键名"]
-        if not key or key in seen:
-            continue
-        seen.add(key)
+    body = []
+    for key in sorted(set(keys)):
         body.append("\t\t\t\t%s: %s" % (key, _guess_value(key)))
-    if not body:
-        return None
     return (["\t英雄", "\t{", "\t\t综合", "\t\t{", "\t\t\t%s" % hero, "\t\t\t{"]
             + body + ["\t\t\t}", "\t\t}", "\t}"])
 
