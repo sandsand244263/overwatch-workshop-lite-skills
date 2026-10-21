@@ -134,6 +134,10 @@ def split_args(text):
 
 
 def strip_noise(line):
+    # 先去掉同行内的 /* ... */ 块注释（插件会往动作里插 @SKIP_OBFUSCATE_STRING 标记）
+    line = re.sub(r"/\*.*?\*/", "", line)
+    if "/*" in line and "*/" not in line:
+        line = line.split("/*")[0]
     out, in_str, escaped = [], False, False
     i = 0
     while i < len(line):
@@ -422,7 +426,7 @@ def check_event_player_scope(text, problems):
             if in_ev and t and t not in ("{", "}") and t.endswith(";"):
                 event_line = t[:-1].strip()
                 break
-        if event_line in ("持续 - 全局", "子程序"):
+        if event_line == "持续 - 全局":
             for off, l in enumerate(chunk):
                 if "事件玩家" in l:
                     problems.append((start + off + 1, "error",
@@ -499,9 +503,28 @@ def check_element_kind(text, kinds, problems):
 
 
 def check_string_interp(text, problems):
-    """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配。"""
-    for m in re.finditer(r"(自定义字符串|字符串)\(([^;\n]*)", text):
-        fn, body = m.group(1), m.group(2)
+    """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配（按括号配对取实参）。"""
+    for m in re.finditer(r"(自定义字符串|字符串)\(", text):
+        fn = m.group(1)
+        i = m.end()
+        depth, in_str, escaped = 1, False, False
+        while i < len(text) and depth > 0:
+            ch = text[i]
+            if in_str:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == '"':
+                    in_str = False
+            elif ch == '"':
+                in_str = True
+            elif ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            i += 1
+        body = text[m.end():i - 1]
         args = _top_level_args(body)
         if not args:
             continue
@@ -791,12 +814,104 @@ def check_misc(text, problems):
                              % " / ".join(sorted(group))))
 
 
+def strip_comments(text):
+    """去掉 // 行注释与 /* */ 块注释、纯字符串注释行，保留行号与列位置感。
+
+    真实代码里常见：
+      /* @SKIP_OBFUSCATE_STRING */      ← 插件注释
+      "普通模式"                         ← 字符串注释（写在条件/动作上方）
+    """
+    # 块注释（可跨行）→ 等长空白
+    def blank(m):
+        return re.sub(r"[^\n]", " ", m.group(0))
+    text = re.sub(r"/\*.*?\*/", blank, text, flags=re.S)
+    out = []
+    for line in text.split("\n"):
+        idx = line.find("//")
+        if idx >= 0:
+            line = line[:idx]
+        if re.fullmatch(r'\s*"[^"]*"\s*', line):
+            line = ""                      # 纯字符串注释行
+        out.append(line)
+    return "\n".join(out)
+
+
+def _ends_in_string(line, in_str=False):
+    """扫描一行，返回行末是否仍在字符串内（处理 \\ 转义）。"""
+    i, escaped = 0, False
+    while i < len(line):
+        ch = line[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        i += 1
+    return in_str
+
+
+def join_multiline_strings(text):
+    """把跨行的字符串字面量接回一行（.ow 允许字符串内直接换行）。"""
+    lines = text.split("\n")
+    out, in_str = [], False
+    for line in lines:
+        if out and in_str:
+            out[-1] += " " + line.strip()   # 字符串续行，拼到上一行
+            out.append("")                  # 原行留空，保持行号
+            in_str = _ends_in_string(line, True)
+            continue
+        out.append(line)
+        in_str = _ends_in_string(line, False)
+    return "\n".join(out)
+
+
+def merge_continuations(text, max_lines=60):
+    """把跨行语句合并到起始行（括号未闭合时继续拼接），后续行留空以保持行号。
+
+    只合并、不改写原文。超过 max_lines 仍未闭合时**放弃合并并还原**——
+    宁可让这一处退回逐行检查，也不能把后面整个文件吞进一条语句。
+    """
+    lines = text.split("\n")
+    out = []
+    buf, depth, start, group = None, 0, -1, []
+    for line in lines:
+        code = strip_noise(line)
+        if buf is not None:
+            group.append(line)
+            buf += " " + line.strip()
+            depth += code.count("(") - code.count(")")
+            out.append("")
+            if depth <= 0 and code.strip().endswith(";"):
+                out[start] = buf
+                buf, depth, start, group = None, 0, -1, []
+            elif len(group) > max_lines:
+                for k, orig in enumerate(group[:max_lines + 1]):
+                    if start + k < len(out):
+                        out[start + k] = orig
+                buf, depth, start, group = None, 0, -1, []
+            continue
+        d = code.count("(") - code.count(")")
+        if d > 0 and not code.strip().endswith(";"):
+            buf, depth, start, group = line.strip(), d, len(out), [line]
+            out.append("")
+        else:
+            out.append(line)
+    if buf is not None and start >= 0:
+        out[start] = buf
+    return "\n".join(out)
+
+
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
         raw = f.read()
     text = raw.replace("\r\n", "\n")
+    text = merge_continuations(join_multiline_strings(text))
     lines = text.split("\n")
 
     stack, pending = [], None
@@ -810,6 +925,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     for ln, line in enumerate(lines, 1):
         code = strip_noise(line)
         stripped = code.strip()
+        if stripped in ('""', ''):
+            continue                      # 字符串注释行 / 空行
 
         if in_comment:
             if "*/" in line:
