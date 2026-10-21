@@ -41,7 +41,9 @@ def value_cost(expr, variables=None, depth=0):
         return base + sum(value_cost(a, variables, depth + 1) for a in args)
     if re.match(r"^[^\s()]+\.[\w\u4e00-\u9fff]+$", e):
         return 2
-    return 2 if depth >= 1 else 1     # 裸常量：嵌在值函数里时按 2 算（实测 E01）
+    if depth >= 1 and e in SET_CONSTANTS:
+        return 2                       # 集合类常量嵌在函数里 +1（实测 E01）
+    return 1                           # 其余常量（含颜色/球体/可见）恒为 1（实测 H05-H07）
 
 
 def split_args(s):
@@ -67,7 +69,9 @@ def split_args(s):
     return out
 
 
-COMPARE_BONUS = 3   # While/If 的条件里出现比较运算符时固定 +3（实测 G02/G04）
+COMPARE_BONUS = 3
+# 只有"集合类"常量嵌在函数里才 +2；标量常量（白色/球体/可见…）仍算 1
+SET_CONSTANTS = {"所有队伍", "所有玩家", "全部队伍", "所有英雄", "全部英雄", "全部", "双方", "队伍1", "队伍2"}   # While/If 的条件里出现比较运算符时固定 +3（实测 G02/G04）
 
 
 
