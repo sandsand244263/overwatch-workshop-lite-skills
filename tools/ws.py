@@ -210,6 +210,31 @@ def cmd_stats(a):
     return 0
 
 
+SCAFFOLD_SETTINGS = [
+    "设置", "{",
+    "\t模式", "\t{", "\t\t死斗", "\t\t{",
+    "\t\t\t启用地图", "\t\t\t{", "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}",
+    "\t\t\t随机英雄复生: 开启", "\t\t\t获胜得分: 1",
+    "\t\t}", "\t}", "}",
+]
+
+
+def cmd_scaffold(a):
+    """生成最小测试骨架：死斗 + 随机英雄复生 + 地图工坊室内 + 空规则。"""
+    lines = list(SCAFFOLD_SETTINGS) + ["", "变量", "{", "\t全局:", "\t\t0: g", "}", ""]
+    lines += ['规则("%s")' % a.rule, "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
+              "\t动作", "\t{",
+              '\t\t记入查看器("[%s] 开始");' % a.rule,
+              "\t}", "}", ""]
+    text = "\r\n".join(lines) + "\r\n"
+    if a.out:
+        open(a.out, "w", encoding="utf-8", newline="").write(text)
+        print("已写入 %s（%d 行）" % (a.out, text.count("\n")))
+    else:
+        print(text)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ws", description="WorkshopLite 工具入口")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -241,6 +266,11 @@ def main():
     p.add_argument("--search", default=None, help="按关键词搜索说明")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_doc)
+
+    p = sub.add_parser("scaffold", help="生成最小测试骨架（死斗+随机复生+地图工坊室内）")
+    p.add_argument("--rule", default="测试", help="规则名")
+    p.add_argument("--out", default=None, help="输出文件，不给则打印")
+    p.set_defaults(func=cmd_scaffold)
 
     p = sub.add_parser("stats", help="查英雄/技能数值（生命值/冷却/弹匣）")
     p.add_argument("name", help="英雄名，如 半藏")
