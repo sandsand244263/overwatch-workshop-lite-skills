@@ -91,3 +91,36 @@
 2. 也别把"出现"当成"改过"——结构项会无条件列出
 3. 写模板时，数值项只写要改的；结构项按真实样本照抄
 4. 判断依据优先看**真实样本**，其次看界面默认值
+
+## 层级从哪来（2026-10 实测结论）
+
+把设置项的原始 STU 记录逐字段解出来后确认：**数据里没有父级/分组/页面字段**，界面层级是客户端界面 + `.ow` 语法硬编码的。
+
+- `m_category`（Modes/Combat/WeaponAmmo/HeroSpecific/HeroCommon）**不划层级**：同一 schema 内取值一致，跨 schema 又重复，是遗留标签
+- `m_37D4F9CD`（0~16，有负值）取值不单调，**不能当排序/分页**
+- 全量类型名表检索 `MENU|_PAGE|OPTION|FRONTEND|LAYOUT` → **0 命中**，没有任何界面布局资源
+
+**但层级可以从"引用关系"推出来**，共三处：
+
+| 引用 | 含义 | 数据文件 |
+|---|---|---|
+| `STUGameMode.m_gameRulesetSchemas[]` | 模式 → schema 列表 | `data/mode-schemas.tsv` |
+| `STUHero.m_gameRulesetSchemas[]` | 英雄 → schema 列表 | `data/hero-schemas.tsv` |
+| `STUGameRulesetSchemaEntry.m_3E783677` | 键 ID（ruleset 取值外键） | `data/schema-keys.tsv` |
+
+### 一个反直觉但重要的事实
+
+**块归属是自由的。** `重装职责被动生命值加成` 在 `deathmatch.ow` 写在 `综合`、在 `team.ow` 写在 `死斗`，**两份都能导入**。
+
+导入器是按"该模式的全部 schema 并集"解析键名的，不按块名。所以真正要保证的不是"键写在哪一块"，而是 **"这个键属于该模式/英雄的 schema 并集"**。
+
+### 由此得到的硬规则
+
+1. `模式 > 死斗` 一类块的可用键 = 该模式 schema 列表里所有键的并集
+2. `英雄 > 死神` 一类块同理，用英雄的 schema 并集
+3. `大厅` 的键（`地图轮换` / `观战者人数上限` / `返回大厅` / `最低延迟（毫秒）`…）**在 125 个 schema 里一个都查不到** → 只能硬编码词表（见 `data/settings-blocks/hall.ow` 的 8 个键）
+4. 块内的键顺序在数据里无承载，导入无所谓，**不要声称与官方样本逐行一致**
+
+### 纠正一个旧数字
+
+`ruleset_schemas.json` 实际是 **125 schema / 547 条目**（曾按 374 记录，那是旧版导出的口径）。
