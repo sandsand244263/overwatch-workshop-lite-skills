@@ -116,4 +116,13 @@ def main_with_args(args):
 
 
 if __name__ == "__main__":
-    sys.exit(main_with_args(type("A", (), {"prev": sys.argv[1], "cur": sys.argv[2]})()))
+    if len(sys.argv) >= 3 and not sys.argv[1].startswith("-"):
+        _prev, _cur = sys.argv[1], sys.argv[2]
+    else:
+        import argparse
+        _ap = argparse.ArgumentParser(description="两版导出目录全量对照")
+        _ap.add_argument("--prev", required=True)
+        _ap.add_argument("--cur", required=True)
+        _ns = _ap.parse_args()
+        _prev, _cur = _ns.prev, _ns.cur
+    sys.exit(main_with_args(type("A", (), {"prev": _prev, "cur": _cur})()))

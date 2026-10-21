@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """派生数据生成器：从已有导出产出 data/ 下的增强表。
@@ -196,11 +197,16 @@ def main():
     p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
     p.add_argument("--out", required=True)
 
+    p = sub.add_parser("all", help="依次生成全部派生表")
+    p.add_argument("--src", default=None)
+
     p = sub.add_parser("maps")
     p.add_argument("--src", required=True)
     p.add_argument("--out", required=True)
 
     a = ap.parse_args()
+    if a.cmd == "all":
+        return run_all(a)
     if a.cmd == "settings-tree":
         build_settings_tree(a.src, a.out)
     elif a.cmd == "events":
@@ -218,3 +224,12 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+def run_all(args):
+    """依次生成全部派生表（顺序有依赖：settings-tree 先行）。"""
+    import sys as _sys
+    for name in ("settings-tree", "events", "strings", "action-tags", "required-args", "maps"):
+        _sys.argv = [_sys.argv[0], name] + (["--src", args.src] if getattr(args, "src", None) else [])
+        main()
+    return 0
+
