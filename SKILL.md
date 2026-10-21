@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.39.0
+version: 2.40.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -85,6 +85,35 @@ python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量�
 - `自定义字符串` 单条最多 `{0}{1}{2}`，再多要嵌套。
 - 刷新槽等位置只能写 `全部禁用`，不能写 `无`。
 - 动作/条件的行尾必须有分号；块结尾 `}` 后面不加分号。
+
+## 查官方说明（写之前先查，别猜）
+
+导出数据里带**官方说明文字**：516 个元素（97% 有说明）、831 个参数（96% 有说明）。
+
+```bash
+python tools/ws.py doc 创建HUD文本        # 元素说明 + 每个参数的说明/默认值/范围/可选值
+python tools/ws.py doc --search 数组       # 按关键词搜说明
+```
+
+输出示例（真实内容）：
+
+```
+=== [动作] 创建HUD文本 ===
+在指定玩家屏幕上的指定位置创建一条HUD文本。此文本会持续至消除为止…
+如果已创建了太多的文本元素，此动作可能会失败。
+
+参数：
+  1. 可见（默认 所有玩家，Player）
+       下列玩家将会看到这条HUD文本。
+  5. 坐标（Dropdown）
+       文本在屏幕上出现的位置。
+       可选：左边、顶部、右边
+```
+
+**用途**：判断某个动作能不能做到你想要的效果、某参数该填什么、某个选项是什么意思。
+**局限**：官方说明写的是"这个动作干什么"，**不写运行时行为**（数组下标从 1 开始、HUD 同 ID 覆盖、`等待` 会阻塞整条规则）。后者见 `docs/pitfalls.md`。
+
+数据表：`data/element-docs.tsv`、`data/param-docs.tsv`、`data/dropdown-options.tsv`（由 `tools/extract_docs.py` 从导出重新生成）。
 
 ## 参考索引
 

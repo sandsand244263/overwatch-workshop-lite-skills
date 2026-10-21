@@ -108,6 +108,69 @@ def cmd_count(args):
     return 0
 
 
+def cmd_doc(a):
+    """查官方说明：元素说明 + 参数说明 + 下拉选项说明。"""
+    import csv
+
+    def load(name):
+        path = os.path.join(DATA, name)
+        if not os.path.isfile(path):
+            sys.exit("缺少 %s，先跑 python tools/extract_docs.py --export <导出目录>" % path)
+        return list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
+
+    docs = load("element-docs.tsv")
+    params = load("param-docs.tsv")
+    options = load("dropdown-options.tsv")
+
+    if a.search:
+        kw = a.search
+        hits = [d for d in docs if kw in d["name"] or kw in d["description"]]
+        if not hits:
+            print("没有匹配「%s」的元素" % kw)
+            return 1
+        for d in hits[: a.limit]:
+            print("[%s] %s" % (d["kind"], d["name"]))
+            if d["description"]:
+                print("     %s" % d["description"])
+        if len(hits) > a.limit:
+            print("\n… 还有 %d 条，用 --limit 调大" % (len(hits) - a.limit))
+        return 0
+
+    name = a.name
+    hit = [d for d in docs if d["name"] == name]
+    if not hit:
+        cands = sorted({d["name"] for d in docs if name in d["name"]})[:10]
+        print("没有元素叫「%s」%s" % (name, "，相近的有：" + "、".join(cands) if cands else ""))
+        return 1
+
+    for d in hit:
+        print("=== [%s] %s ===" % (d["kind"], d["name"]))
+        print(d["description"] or "（无官方说明）")
+        ps = [p for p in params if p["element"] == d["name"] and p["kind"] == d["kind"]]
+        if ps:
+            print("\n参数：")
+        for p in ps:
+            flags = []
+            if p["default"]:
+                flags.append("默认 %s" % p["default"])
+            if p["input_type"]:
+                flags.append(p["input_type"])
+            if p["min"] not in ("", "0.0") or p["max"] not in ("", "0.0"):
+                flags.append("范围 %s~%s" % (p["min"], p["max"]))
+            print("  %d. %s（%s）" % (int(p["index"]) + 1, p["name"], "，".join(flags)))
+            if p["description"]:
+                print("       %s" % p["description"])
+            if p["options"]:
+                opts = p["options"].split("|")
+                shown = "、".join(opts[:12]) + ("…" if len(opts) > 12 else "")
+                print("       可选：%s" % shown)
+                described = [o for o in options if o["dropdown"] == p["dropdown"] and o["description"]]
+                for o in described[:4]:
+                    print("         - %s：%s" % (o["option"], o["description"]))
+        print()
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ws", description="WorkshopLite 工具入口")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -133,6 +196,12 @@ def main():
     p.add_argument("keyword")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_explain)
+
+    p = sub.add_parser("doc", help="查官方说明（元素/参数/下拉选项）")
+    p.add_argument("name", nargs="?", default=None, help="元素名，如 创建HUD文本")
+    p.add_argument("--search", default=None, help="按关键词搜索说明")
+    p.add_argument("--limit", type=int, default=20)
+    p.set_defaults(func=cmd_doc)
 
     p = sub.add_parser("update-check", help="查技能是否有新版本")
     p.set_defaults(func=cmd_update_check)
