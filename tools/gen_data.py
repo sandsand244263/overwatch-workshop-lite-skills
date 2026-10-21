@@ -215,7 +215,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", required=True, help="导出目录")
     ap.add_argument("--out", required=True, help="data 输出目录")
-    ap.add_argument("--settings-words", default="C:/owdump/settings_words.txt")
+    ap.add_argument("--settings-words", default=None,
+                    help="设置项词表；默认取 --src 目录下的 settings_words.txt")
     args = ap.parse_args()
 
     ws = json.load(open(os.path.join(args.src, "workshop_zhCN.json"), encoding="utf-8"))
@@ -223,13 +224,14 @@ def main():
     maps = json.load(open(os.path.join(args.src, "maps.json"), encoding="utf-8"))
     dd = dropdown_map(ws)
 
-    build = load_build(args.src, args.settings_words)
+    sw = args.settings_words or os.path.join(args.src, "settings_words.txt")
+    build = load_build(args.src, sw)
     stamp = "build %s | 导出 %s | gen_data.py" % (build, datetime.date.today().isoformat())
     print("数据基线：%s" % stamp)
 
     write(os.path.join(args.out, "signatures.md"), render_signatures(ws, dd, build, stamp))
     write(os.path.join(args.out, "dropdowns.tsv"), render_dropdowns(ws, dd))
-    write(os.path.join(args.out, "settings.tsv"), render_settings(args.settings_words))
+    write(os.path.join(args.out, "settings.tsv"), render_settings(sw))
     write(os.path.join(args.out, "defaults.tsv"), render_defaults(ws))
     write(os.path.join(args.out, "enums.md"), render_enums(ws, heroes, maps, dd))
     write(os.path.join(args.out, "strings.md"), render_strings(ws))

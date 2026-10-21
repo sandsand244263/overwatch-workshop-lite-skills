@@ -1,0 +1,476 @@
+schema	schema_guid	key	category	type	values
+(未命名)	00000000006E.0C6	敌方生命条	Combat	Bool	开启|禁用
+乐动爱斗	000000000085.0C6	主动复生	Modes	Bool	
+乐动爱斗	000000000085.0C6	应援棒分值	Modes	Int	
+乐动爱斗	000000000085.0C6	比赛时长（分钟）	Modes	Int	
+乐动爱斗	000000000085.0C6	终极售票机刷新速度	Modes	Float	
+乐动爱斗	000000000085.0C6	获胜得分	Modes	Int	
+乐动爱斗	000000000085.0C6	选票分值	Modes	Int	
+决斗先锋	00000000000D.0C6	允许切换英雄	None	Bool	开启|禁用
+决斗先锋	000000000098.0C6	允许切换英雄	None	Bool	启用|禁用
+决斗先锋	00000000000D.0C6	占领时间	Modes	Int	
+决斗先锋	000000000098.0C6	占领时间	Modes	Int	
+决斗先锋	00000000000D.0C6	启用威能	Modes	Bool	
+决斗先锋	00000000000D.0C6	复生时间	None	Float	
+决斗先锋	000000000098.0C6	复生时间倍率	None	Float	
+决斗先锋	00000000000D.0C6	威能充能速度	Modes	Float	
+决斗先锋	00000000000D.0C6	无目标点决胜机制时平局时限	Modes	Int	
+决斗先锋	000000000098.0C6	无目标点决胜机制时平局时限	Modes	Int	
+决斗先锋	00000000000D.0C6	显示英雄位置	Modes	Bool	开启|禁用
+决斗先锋	000000000098.0C6	显示英雄位置	Modes	Bool	启用|禁用
+决斗先锋	00000000000D.0C6	比赛开始后显示英雄位置时间	Modes	Int	
+决斗先锋	000000000098.0C6	比赛开始后显示英雄位置时间	Modes	Int	
+决斗先锋	00000000000D.0C6	目标点决胜机制	Modes	Bool	开启|禁用
+决斗先锋	000000000098.0C6	目标点决胜机制	Modes	Bool	启用|禁用
+决斗先锋	00000000000D.0C6	目标点决胜机制激活时间	Modes	Int	
+决斗先锋	000000000098.0C6	目标点决胜机制激活时间	Modes	Int	
+决斗先锋	00000000000D.0C6	职责限制	None	Enum	关闭|每队同一职责最多2名
+决斗先锋	000000000098.0C6	职责限制	None	Enum	关闭|每队同一职责最多2名
+决斗先锋	00000000000D.0C6	英雄池上限	Modes	Enum	队伍人数|队伍人数+1|队伍人数+2|队伍人数+3
+决斗先锋	000000000098.0C6	英雄池上限	Modes	Enum	队伍人数|队伍人数+1|队伍人数+2|队伍人数+3
+决斗先锋	00000000000D.0C6	英雄选择	Modes	Enum	任意|限定|随机英雄|随机英雄（相同）
+决斗先锋	000000000098.0C6	英雄选择	Modes	Enum	任意|限定|随机英雄|随机英雄（相同）
+决斗先锋	00000000000D.0C6	英雄限制	None	Enum	关闭|每队同一英雄最多1名|每队同一英雄最多2名|每场同一英雄最多1名|每场同一英雄最多2名
+决斗先锋	000000000098.0C6	英雄限制	None	Enum	关闭|每队最多1名|每队最多2名|每场最多1名|每场最多2名
+决斗先锋	00000000000D.0C6	获胜得分	Modes	Int	
+决斗先锋	000000000098.0C6	获胜得分	Modes	Int	
+决斗先锋	00000000000D.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+决斗先锋	00000000000D.0C6	选择英雄时间	Modes	Int	
+决斗先锋	000000000098.0C6	选择英雄时间	Modes	Int	
+决斗先锋	00000000000D.0C6	锁定使用过的英雄	Modes	Enum	关闭|回合胜利后|回合结束后
+决斗先锋	000000000098.0C6	锁定使用过的英雄	Modes	Enum	关闭|回合胜利后|回合结束后
+决斗先锋	00000000000D.0C6	随机英雄复生	None	Bool	开启|禁用
+决斗先锋	000000000098.0C6	随机英雄复生	None	Bool	启用|禁用
+动感斗球	000000000036.0C6	奖励球分值	Modes	Int	
+动感斗球	000000000036.0C6	奖励球刷新间隔（秒）	Modes	Int	
+动感斗球	000000000036.0C6	斗球推力倍率	Modes	Float	
+动感斗球	000000000036.0C6	最大奖励球数量	Modes	Int	
+动感斗球	000000000036.0C6	最大足球数量	Modes	Int	
+动感斗球	000000000036.0C6	比赛时长（秒）	Modes	Int	
+动感斗球	000000000036.0C6	获得足够进球数即可获胜	Modes	Bool	开启|禁用
+动感斗球	000000000036.0C6	获胜所需进球数	Modes	Int	
+动感斗球	000000000036.0C6	获胜需要达到分数	Modes	Int	
+动感斗球	000000000036.0C6	起始足球数量	Modes	Int	
+动感斗球	000000000036.0C6	足球数量增加间隔（秒）	Modes	Int	
+动感斗球	000000000036.0C6	进球后重置玩家	Modes	Bool	开启|禁用
+勇夺锦旗	00000000000E.0C6	受到伤害打断夺旗	Modes	Bool	开启|禁用
+勇夺锦旗	00000000000E.0C6	启用威能	Modes	Bool	
+勇夺锦旗	00000000000E.0C6	复生加速增益时间	Modes	Float	
+勇夺锦旗	00000000000E.0C6	威能充能速度	Modes	Float	
+勇夺锦旗	00000000000E.0C6	得分后旗帜刷新时间	Modes	Float	
+勇夺锦旗	00000000000E.0C6	得分需我方旗帜在基地中	Modes	Bool	是|否
+勇夺锦旗	00000000000E.0C6	旗帜归还时间	Modes	Float	
+勇夺锦旗	00000000000E.0C6	旗帜拾取时间	Modes	Float	
+勇夺锦旗	00000000000E.0C6	旗帜掉落后锁定时间	Modes	Float	
+勇夺锦旗	00000000000E.0C6	旗手技能	Modes	Enum	无限制|全部禁用|受限制
+勇夺锦旗	00000000000E.0C6	比赛时长（分）	Modes	Int	
+勇夺锦旗	00000000000E.0C6	获胜得分	Modes	Int	
+勇夺锦旗	00000000000E.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+勇夺锦旗	00000000000E.0C6	闪电赛旗帜位置	Modes	Bool	是|否
+占领要点	00000000000C.0C6	占领速度	Modes	Float	
+占领要点	000000000099.0C6	占领速度	Modes	Float	
+占领要点	0000000000BA.0C6	占领速度	Modes	Float	
+占领要点	00000000000C.0C6	启用威能	Modes	Bool	
+占领要点	0000000000BA.0C6	启用威能	Modes	Bool	
+占领要点	00000000000C.0C6	威能充能速度	Modes	Float	
+占领要点	0000000000BA.0C6	威能充能速度	Modes	Float	
+占领要点	00000000000C.0C6	有效控制点选择	Modes	Enum	全部|第一|第二|第三
+占领要点	000000000099.0C6	有效控制点选择	Modes	Enum	全部|第一|第二|第三
+占领要点	0000000000BA.0C6	有效控制点选择	Modes	Enum	全部|第一|第二|第三
+占领要点	00000000000C.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+占领要点	000000000099.0C6	竞技比赛规则	Modes	Bool	启用|禁用
+占领要点	0000000000BA.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+占领要点	00000000000C.0C6	获胜得分	Modes	Int	
+占领要点	000000000099.0C6	获胜得分	Modes	Int	
+占领要点	0000000000BA.0C6	获胜得分	Modes	Int	
+占领要点	00000000000C.0C6	计分速度	Modes	Float	
+占领要点	000000000099.0C6	计分速度	Modes	Float	
+占领要点	0000000000BA.0C6	计分速度	Modes	Float	
+占领要点	00000000000C.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+占领要点	0000000000BA.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+团队死斗	000000000028.0C6	“天使”重生抵消消灭次数	Modes	Bool	
+团队死斗	000000000028.0C6	主动复生	Modes	Bool	
+团队死斗	0000000000C2.0C6	主动复生	Modes	Bool	
+团队死斗	000000000028.0C6	双方队伍获胜得分差异	Modes	Bool	
+团队死斗	0000000000C2.0C6	双方队伍获胜得分差异	Modes	Bool	
+团队死斗	000000000028.0C6	启用威能	Modes	Bool	
+团队死斗	000000000028.0C6	威能充能速度	Modes	Float	
+团队死斗	000000000028.0C6	比赛时长（分钟）	Modes	Int	
+团队死斗	0000000000C2.0C6	比赛时长（分钟）	Modes	Int	
+团队死斗	000000000028.0C6	获胜得分	Modes	Int	
+团队死斗	0000000000C2.0C6	获胜得分	Modes	Int	
+团队死斗	000000000028.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+团队死斗	000000000028.0C6	队伍1获胜所需分数	Modes	Int	
+团队死斗	0000000000C2.0C6	队伍1获胜所需分数	Modes	Int	
+团队死斗	000000000028.0C6	队伍2获胜所需分数	Modes	Int	
+团队死斗	0000000000C2.0C6	队伍2获胜所需分数	Modes	Int	
+怪鼠复仇	000000000037.0C6	大门生命值	Modes	Float	
+怪鼠复仇	000000000037.0C6	无尽模式	Modes	Bool	开启|禁用
+怪鼠复仇	000000000037.0C6	难度	Modes	Enum	普通|困难|专家|传奇
+战斗设置	000000000011.0C6	仅爆头有效	Modes	Bool	开启|禁用
+战斗设置	000000000011.0C6	伤害量	Modes	Float	
+战斗设置	000000000011.0C6	受到伤害量	Modes	Float	
+战斗设置	000000000011.0C6	受到治疗量	Modes	Float	
+战斗设置	000000000011.0C6	垂直跳跃速度	Modes	Float	
+战斗设置	000000000011.0C6	弹道速度	Modes	Float	
+战斗设置	000000000011.0C6	投射物重力	Modes	Float	
+战斗设置	000000000011.0C6	治疗量	Modes	Float	
+战斗设置	000000000011.0C6	生命值	Modes	Float	
+战斗设置	000000000011.0C6	移动速度	Modes	Float	
+战斗设置	000000000011.0C6	移动重力	Modes	Float	
+战斗设置	000000000011.0C6	被动生命值恢复	Modes	Bool	禁用|启用
+技能	000000000018.0C6	A-36战术榴弹冷却时间	Modes	Float	
+技能	000000000018.0C6	A-36战术榴弹击退倍率	HeroSpecific	Float	
+技能	00000000004A.0C6	“岚”数量	HeroSpecific	Int	
+技能	00000000006D.0C6	“瞬”距离倍率	HeroSpecific	Float	
+技能	00000000004A.0C6	“跃”冷却时间	HeroSpecific	Float	
+技能	00000000004A.0C6	“跃”距离设置	HeroSpecific	Float	
+技能	0000000000A6.0C6	上升气流高度	HeroSpecific	Float	
+技能	000000000012.0C6	冲锋击退倍率	HeroSpecific	Float	
+技能	00000000004B.0C6	动力铁球始终激活	HeroSpecific	Bool	开启|禁用
+技能	0000000000C6.0C6	助推器击退倍率	HeroSpecific	Float	
+技能	000000000029.0C6	原始暴怒近身攻击击退倍率	HeroSpecific	Float	
+技能	00000000004D.0C6	双筒猎枪击退距离（敌方）	HeroSpecific	Float	
+技能	00000000004D.0C6	双筒猎枪击退距离（自身）	HeroSpecific	Float	
+技能	000000000047.0C6	同情愈疗	HeroSpecific	Bool	开启|禁用
+技能	000000000015.0C6	呼叫机甲击退倍率	HeroSpecific	Float	
+技能	0000000000C6.0C6	呼叫机甲击退倍率	HeroSpecific	Float	
+技能	0000000000C1.0C6	咻咻飞无限燃料	Modes	Bool	开启|禁用
+技能	0000000000C1.0C6	咻咻飞最大时间	HeroSpecific	Float	
+技能	000000000029.0C6	喷射背包击退倍率	HeroSpecific	Float	
+技能	000000000029.0C6	喷射背包加速	HeroSpecific	Float	
+技能	000000000079.0C6	回春疾行	HeroSpecific	Bool	开启|禁用
+技能	000000000079.0C6	回春疾行冷却时间	HeroSpecific	Float	
+技能	000000000079.0C6	回春疾行治疗量	HeroSpecific	Float	
+技能	00000000004B.0C6	地雷禁区击退距离	HeroSpecific	Float	
+技能	000000000047.0C6	天使降临	HeroSpecific	Bool	开启|禁用
+技能	00000000009A.0C6	尖刺墙击退	HeroSpecific	Float	
+技能	00000000009A.0C6	尖刺墙生命值	HeroSpecific	Float	
+技能	00000000009A.0C6	尖刺护体移动速度惩罚	HeroSpecific	Float	
+技能	00000000009A.0C6	尖刺护体资源恢复	HeroSpecific	Float	
+技能	00000000009A.0C6	尖刺护体资源消耗	HeroSpecific	Float	
+技能	000000000043.0C6	屏障护盾充能速度	HeroSpecific	Float	
+技能	00000000004B.0C6	工程抓钩击退距离	HeroSpecific	Float	
+技能	00000000002C.0C6	废品压缩器击退倍率	HeroSpecific	Float	
+技能	00000000004D.0C6	延时雷管引爆时间	HeroSpecific	Float	
+技能	000000000088.0C6	心脏过载治疗量	HeroSpecific	Float	
+技能	000000000007.0C6	快速近身攻击	Modes	Bool	开启|禁用
+技能	000000000032.0C6	悍猛格挡充能速度	Modes	Float	
+技能	000000000019.0C6	悬浮背包	HeroSpecific	Bool	开启|禁用
+技能	000000000019.0C6	悬浮背包充能速度	HeroSpecific	Float	
+技能	000000000019.0C6	悬浮背包垂直速度	HeroSpecific	Float	
+技能	000000000019.0C6	悬浮背包无限燃料	Modes	Bool	开启|禁用
+技能	000000000019.0C6	悬浮背包最长时间	HeroSpecific	Float	
+技能	000000000019.0C6	悬浮背包额外燃料倍率	Modes	Float	
+技能	000000000007.0C6	战斗时终极技能充能速度	Modes	Float	
+技能	000000000007.0C6	技能冷却时间	Modes	Float	
+技能	0000000000B1.0C6	护盾重构治疗量倍率	HeroSpecific	Float	
+技能	0000000000AA.0C6	招架姿态恢复倍率	Modes	Float	
+技能	000000000015.0C6	推进器击退倍率	HeroSpecific	Float	
+技能	000000000019.0C6	推进背包加速	HeroSpecific	Float	
+技能	000000000019.0C6	推进背包燃料补充倍率	Modes	Float	
+技能	0000000000AA.0C6	旋风疾步距离	Modes	Float	
+技能	000000000015.0C6	无机甲重生	Modes	Bool	开启|禁用
+技能	0000000000C6.0C6	无机甲重生	Modes	Bool	开启|禁用
+技能	00000000003A.0C6	暴雪冰冻敌人的速度	HeroSpecific	Float	
+技能	00000000003A.0C6	暴雪冰冻最小值	HeroSpecific	Float	
+技能	0000000000BF.0C6	替魂纸人持续时间倍率	HeroSpecific	Float	
+技能	0000000000C5.0C6	机动闪避距离倍率	HeroSpecific	Float	
+技能	000000000032.0C6	毁天灭地击退倍率	HeroSpecific	Float	
+技能	000000000043.0C6	流星飞锤击退距离	HeroSpecific	Float	
+技能	000000000064.0C6	滑翔	HeroSpecific	Bool	开启|禁用
+技能	000000000095.0C6	滑翔推进持续时间倍率	HeroSpecific	Float	
+技能	000000000032.0C6	火箭重拳击退倍率	HeroSpecific	Float	
+技能	00000000004E.0C6	热力过载持续时间	Modes	Float	
+技能	0000000000C7.0C6	焕生无人机持续时间倍率	HeroSpecific	Float	
+技能	00000000009A.0C6	狂跃距离	HeroSpecific	Float	
+技能	00000000003B.0C6	生化之球伤害最大值	HeroSpecific	Float	
+技能	00000000003B.0C6	生化之球治疗最大值	HeroSpecific	Float	
+技能	000000000079.0C6	生命之握和愈疗灵花射程	HeroSpecific	Float	
+技能	000000000079.0C6	生命之树生命值	HeroSpecific	Float	
+技能	0000000000A6.0C6	疾冲距离	HeroSpecific	Float	
+技能	0000000000A6.0C6	瞄准射击持续时间	HeroSpecific	Float	
+技能	0000000000C6.0C6	突进刺击击退倍率	HeroSpecific	Float	
+技能	0000000000C5.0C6	纵情狂飙击退倍率	HeroSpecific	Float	
+技能	0000000000C5.0C6	纵情狂飙持续时间倍率	HeroSpecific	Float	
+技能	0000000000C5.0C6	纵情狂飙无限持续时间	HeroSpecific	Bool	开启|禁用
+技能	0000000000C5.0C6	纵情狂飙速度倍率	HeroSpecific	Float	
+技能	000000000007.0C6	终极技能	Modes	Bool	开启|禁用
+技能	000000000007.0C6	终极技能充能速度	Modes	Float	
+技能	0000000000B1.0C6	终极技能屏障生命值倍率（全景牢笼）	HeroSpecific	Float	
+技能	000000000007.0C6	终极技能持续时间	Modes	Float	
+技能	000000000007.0C6	终极技能持续时间无限	Modes	Bool	开启|禁用
+技能	000000000007.0C6	终极技能自动充能速度	Modes	Float	
+技能	0000000000A8.0C6	翻江浪击退倍率	Modes	Float	
+技能	000000000007.0C6	职责被动	Modes	Bool	开启|禁用
+技能	000000000043.0C6	能量盾击	HeroSpecific	Bool	开启|禁用
+技能	000000000043.0C6	能量盾击冷却时间	HeroSpecific	Float	
+技能	000000000043.0C6	能量盾击击退距离	HeroSpecific	Float	
+技能	000000000015.0C6	自毁击退倍率	HeroSpecific	Float	
+技能	000000000079.0C6	花瓣平台生命值	HeroSpecific	Float	
+技能	0000000000B8.0C6	虹吸冲击枪持续时间倍率	HeroSpecific	Float	
+技能	0000000000B8.0C6	虹吸冲击枪热量倍率	HeroSpecific	Float	
+技能	000000000088.0C6	蛮力冲撞击退	HeroSpecific	Float	
+技能	000000000013.0C6	螺旋飞弹击退倍率	HeroSpecific	Float	
+技能	0000000000B8.0C6	覆盖协议击退倍率	Modes	Float	
+技能	00000000005C.0C6	质量吸附击退距离	HeroSpecific	Float	
+技能	0000000000B8.0C6	赛博手雷击退倍率	Modes	Float	
+技能	00000000004A.0C6	跃	HeroSpecific	Bool	开启|禁用
+技能	0000000000C7.0C6	迅影疾行持续时间倍率	HeroSpecific	Float	
+技能	000000000007.0C6	重生时终极技能充能完毕	Modes	Bool	开启|禁用
+技能	000000000091.0C6	钻地持续时间倍率	HeroSpecific	Float	
+技能	000000000075.0C6	铁臂（天罚形态）	HeroSpecific	Bool	开启|禁用
+技能	0000000000AA.0C6	锋锐剑气	HeroSpecific	Bool	开启|禁用
+技能	000000000070.0C6	锯齿利刃击退倍率	HeroSpecific	Float	
+技能	000000000070.0C6	锯齿利刃自动召回延迟	HeroSpecific	Float	
+技能	0000000000C3.0C6	震地手雷击退倍率	HeroSpecific	Float	
+技能	000000000019.0C6	震荡冲击击退倍率	HeroSpecific	Float	
+技能	00000000002B.0C6	震荡地雷击退倍率	HeroSpecific	Float	
+技能	000000000014.0C6	音波击退倍率	HeroSpecific	Float	
+技能	0000000000B1.0C6	音速斥力场击退倍率	HeroSpecific	Float	
+技能	0000000000A8.0C6	飞流步持续时间倍率	HeroSpecific	Float	
+技能	0000000000AA.0C6	飞空斩击距离	Modes	Float	
+技能	00000000002C.0C6	鸡飞狗跳击退倍率	HeroSpecific	Float	
+拳套	00000000008D.0C6	比赛时长（分钟）	Modes	Int	
+拳套	00000000008D.0C6	获胜得分	Modes	Int	
+排球	00000000007C.0C6	得分后重置玩家	Modes	Bool	开启|禁用
+排球	00000000007C.0C6	排球推力倍率	Modes	Float	
+排球	00000000007C.0C6	比赛时长（秒）	Modes	Int	
+排球	00000000007C.0C6	获胜所需得分	Modes	Int	
+排球	00000000007C.0C6	获胜所需领先分数	Modes	Int	
+排球	00000000007C.0C6	赢得足够分数即可获胜	Modes	Bool	开启|禁用
+攻击/护送	00000000000A.0C6	占领速度	Modes	Float	
+攻击/护送	0000000000B4.0C6	占领速度	Modes	Float	
+攻击/护送	00000000000A.0C6	启用威能	Modes	Bool	
+攻击/护送	0000000000B4.0C6	启用威能	Modes	Bool	
+攻击/护送	00000000000A.0C6	威能充能速度	Modes	Float	
+攻击/护送	0000000000B4.0C6	威能充能速度	Modes	Float	
+攻击/护送	00000000000A.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+攻击/护送	0000000000B4.0C6	竞技比赛规则	Modes	Bool	启用|禁用
+攻击/护送	00000000000A.0C6	运载目标速度	Modes	Float	
+攻击/护送	0000000000B4.0C6	运载目标速度	Modes	Float	
+攻击/护送	00000000000A.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+攻击/护送	0000000000B4.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+攻防作战	000000000009.0C6	占领速度	Modes	Float	
+攻防作战	000000000009.0C6	启用威能	Modes	Bool	
+攻防作战	000000000009.0C6	威能充能速度	Modes	Float	
+攻防作战	000000000009.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+攻防作战	000000000009.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+攻防测试	000000000066.0C6	占领速度	Modes	Float	
+攻防测试	000000000066.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+攻防阵线	000000000074.0C6	占领速度	Modes	Float	
+攻防阵线	0000000000A4.0C6	占领速度	Modes	Float	
+攻防阵线	000000000074.0C6	启用威能	Modes	Bool	
+攻防阵线	000000000074.0C6	威能充能速度	Modes	Float	
+攻防阵线	000000000074.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+攻防阵线	000000000074.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+星际守望：银河救兵	00000000007B.0C6	占领速度	Modes	Float	
+机动推进	000000000048.0C6	TS-1推进速度	Modes	Float	
+机动推进	0000000000B5.0C6	TS-1推进速度	Modes	Float	
+机动推进	000000000048.0C6	TS-1行走速度	Modes	Float	
+机动推进	0000000000B5.0C6	TS-1行走速度	Modes	Float	
+机动推进	000000000048.0C6	启用威能	Modes	Bool	
+机动推进	0000000000B5.0C6	启用威能	Modes	Bool	
+机动推进	000000000048.0C6	威能充能速度	Modes	Float	
+机动推进	0000000000B5.0C6	威能充能速度	Modes	Float	
+机动推进	000000000048.0C6	竞技比赛规则	Modes	Bool	
+机动推进	0000000000B5.0C6	竞技比赛规则	Modes	Bool	
+机动推进	000000000048.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+机动推进	0000000000B5.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+武器	00000000004C.0C6	“毒蛇”无法进行普通攻击	HeroSpecific	Bool	开启|禁用
+武器	00000000001B.0C6	主要攻击模式	HeroCommon	Bool	开启|禁用
+武器	0000000000A9.0C6	养神泉	HeroSpecific	Bool	开启|禁用
+武器	0000000000A9.0C6	养神泉充能速度	HeroSpecific	Float	
+武器	0000000000A9.0C6	养神泉消耗速度	HeroSpecific	Float	
+武器	000000000022.0C6	冰冻叠加	HeroSpecific	Bool	开启|禁用
+武器	000000000022.0C6	冰霜枪冰冻敌人的时长	HeroSpecific	Float	
+武器	000000000022.0C6	冰霜枪冰冻敌人的速度	HeroSpecific	Float	
+武器	000000000022.0C6	冰霜枪冰冻最小值	HeroSpecific	Float	
+武器	00000000001D.0C6	可用武器	HeroSpecific	Enum	全部|仅限天使之杖|仅限天使冲击枪
+武器	00000000001E.0C6	可用武器	HeroSpecific	Enum	全部|仅限铆钉枪|仅限锻造锤
+武器	00000000007A.0C6	可用武器	HeroSpecific	Enum	全部|仅限愈疗灵花|仅限棘刺箭雨
+武器	000000000083.0C6	太阳能上限	HeroSpecific	Float	
+武器	000000000083.0C6	太阳能充能速度	HeroSpecific	Float	
+武器	00000000001B.0C6	弹夹容量倍率	WeaponAmmo	Float	
+武器	000000000087.0C6	弹夹容量倍率	WeaponAmmo	Float	
+武器	000000000033.0C6	弹药恢复时间速率	HeroSpecific	Float	
+武器	00000000001B.0C6	无需装弹	WeaponAmmo	Bool	
+武器	000000000087.0C6	无需装弹	WeaponAmmo	Bool	
+武器	00000000002E.0C6	榴弹发射器击退倍率	HeroSpecific	Float	
+武器	00000000002D.0C6	火箭发射器击退倍率	HeroSpecific	Float	
+武器	000000000031.0C6	火箭重锤击退倍率	HeroSpecific	Float	
+武器	000000000087.0C6	燃火链式机枪	HeroCommon	Bool	开启|禁用
+武器	000000000087.0C6	燃火链式机枪点燃伤害	HeroSpecific	Float	
+武器	000000000087.0C6	燃火链式机枪点燃持续时间	HeroSpecific	Float	
+武器	000000000087.0C6	燃火链式机枪点燃速度	HeroSpecific	Float	
+武器	000000000087.0C6	爆烈链式机枪	HeroSpecific	Bool	开启|禁用
+武器	0000000000A9.0C6	玄武杖水珠最大控制时间	HeroSpecific	Float	
+武器	0000000000A9.0C6	玄武杖水珠转向速度	HeroSpecific	Float	
+武器	000000000038.0C6	生化能量上限	HeroSpecific	Float	
+武器	000000000038.0C6	生化能量恢复速度	HeroSpecific	Float	
+武器	0000000000C0.0C6	生物猫爪弹射程	HeroSpecific	Float	
+武器	0000000000B9.0C6	禁止不开镜射击	HeroSpecific	Bool	开启|禁用
+武器	00000000001F.0C6	禁止开镜狙击	HeroSpecific	Bool	开启|禁用
+武器	000000000020.0C6	禁止开镜狙击	HeroSpecific	Bool	开启|禁用
+武器	00000000004C.0C6	禁止开镜狙击	HeroSpecific	Bool	开启|禁用
+武器	0000000000B9.0C6	禁止开镜狙击	HeroSpecific	Bool	开启|禁用
+武器	00000000001F.0C6	禁止自动射击	HeroSpecific	Bool	开启|禁用
+武器	000000000020.0C6	禁止自动射击	HeroSpecific	Bool	开启|禁用
+武器	000000000024.0C6	粒子炮辅助攻击击退倍率	HeroSpecific	Float	
+武器	00000000001D.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	00000000001E.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000021.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000022.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000023.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000024.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000025.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000026.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000027.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000038.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000055.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	00000000005E.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	00000000006C.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000076.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	000000000083.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+武器	0000000000BC.0C6	辅助攻击模式	HeroSpecific	Bool	开启|禁用
+死斗	00000000002A.0C6	主动复生	Modes	Bool	
+死斗	0000000000A7.0C6	主动复生	Modes	Bool	
+死斗	00000000002A.0C6	启用威能	Modes	Bool	
+死斗	0000000000A7.0C6	启用威能	Modes	Bool	
+死斗	00000000002A.0C6	威能充能速度	Modes	Float	
+死斗	0000000000A7.0C6	威能充能速度	Modes	Float	
+死斗	00000000002A.0C6	比赛时长（分钟）	Modes	Int	
+死斗	0000000000A7.0C6	比赛时长（分钟）	Modes	Int	
+死斗	00000000002A.0C6	获胜得分	Modes	Int	
+死斗	0000000000A7.0C6	获胜得分	Modes	Int	
+死斗	00000000002A.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+死斗	0000000000A7.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+猛兽之战	00000000008A.0C6	占领速度	Modes	Float	
+猛兽之战	00000000008A.0C6	控制点B	Modes	Bool	开启|禁用
+猛兽之战	00000000008A.0C6	控制点C	Modes	Bool	开启|禁用
+猛兽之战	00000000008A.0C6	控制点D	Modes	Bool	开启|禁用
+猛兽之战	00000000008A.0C6	控制点E	Modes	Bool	开启|禁用
+猛兽之战	00000000008A.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+猛兽之战	00000000008A.0C6	获胜得分	Modes	Int	
+猛兽之战	00000000008A.0C6	计分速度	Modes	Float	
+猛兽之战	00000000008A.0C6	首先激活的控制点	Modes	Enum	B|C|D|E|随机
+突击模式	000000000010.0C6	启用威能	Modes	Bool	
+突击模式	000000000010.0C6	威能充能速度	Modes	Float	
+突击模式	000000000010.0C6	有效控制点选择	Modes	Enum	全部|第一|第二|第三|第四|第五
+突击模式	000000000010.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+综合	000000000006.0C6	急救包刷新	Combat	Enum	依据比赛模式而定|开启|禁用
+综合	000000000006.0C6	急救包刷新时间	Combat	Float	
+综合	000000000006.0C6	敌方生命条	Combat	Bool	开启|禁用
+综合	000000000006.0C6	消灭提示	Combat	Bool	开启|禁用
+综合	000000000006.0C6	游戏模式开始	Combat	Enum	比赛人满后|即时|手动
+综合	000000000006.0C6	皮肤	Combat	Bool	开启|禁用
+综合	000000000006.0C6	队伍界面	Combat	Bool	开启|禁用
+综合	000000000006.0C6	阵亡镜头	Combat	Bool	开启|禁用
+英雄	000000000008.0C6	允许切换英雄	Combat	Bool	开启|禁用
+英雄	000000000008.0C6	复生时间	Combat	Float	
+英雄	0000000000AF.0C6	复生时间	Combat	Float	
+英雄	000000000008.0C6	每队随机限定英雄职责	Combat	Int	
+英雄	000000000008.0C6	职责限制	Combat	Enum	关闭|每队同一职责最多2名|1重装，2输出，2支援
+英雄	0000000000AF.0C6	职责限制	Combat	Enum	关闭|每队同一职责最多2名|1重装，2输出，2支援|1重装，最多2突击，最多3支援
+英雄	000000000008.0C6	英雄限制	Combat	Enum	关闭|每队同一英雄最多1名|每队同一英雄最多2名|每场同一英雄最多1名|每场同一英雄最多2名
+英雄	0000000000AF.0C6	英雄限制	Combat	Enum	关闭|每队同一英雄最多1名|每队同一英雄最多2名|每场同一英雄最多1名|每场同一英雄最多2名
+英雄	000000000008.0C6	重装职责被动生命值加成	Combat	Enum	始终启用|1重装，2输出，2支援|禁用
+英雄	0000000000AF.0C6	重装职责被动生命值加成	Combat	Enum	始终启用|1重装，2输出，2支援|禁用
+英雄	000000000008.0C6	随机英雄复生	Combat	Bool	开启|禁用
+融冰决斗	000000000067.0C6	允许切换英雄	None	Bool	开启|禁用
+融冰决斗	000000000067.0C6	占领时间	Modes	Int	
+融冰决斗	000000000067.0C6	复生时间	None	Float	
+融冰决斗	000000000067.0C6	无目标点决胜机制时平局时限	Modes	Int	
+融冰决斗	000000000067.0C6	显示英雄位置	Modes	Bool	开启|禁用
+融冰决斗	000000000067.0C6	比赛开始后显示英雄位置时间	Modes	Int	
+融冰决斗	000000000067.0C6	目标点决胜机制	Modes	Bool	开启|禁用
+融冰决斗	000000000067.0C6	目标点决胜机制激活时间	Modes	Int	
+融冰决斗	000000000067.0C6	职责限制	None	Enum	关闭|每队同一职责最多2名
+融冰决斗	000000000067.0C6	英雄池上限	Modes	Enum	队伍人数|队伍人数+1|队伍人数+2|队伍人数+3
+融冰决斗	000000000067.0C6	英雄选择	Modes	Enum	任意|受限|随机顺序|随机英雄（相同）
+融冰决斗	000000000067.0C6	英雄限制	None	Enum	关闭|每队最多1名|每队最多2名|每场最多1名|每场最多2名
+融冰决斗	000000000067.0C6	获胜得分	Modes	Int	
+融冰决斗	000000000067.0C6	选择英雄时间	Modes	Int	
+融冰决斗	000000000067.0C6	锁定使用过的英雄	Modes	Enum	关闭|回合胜利后|回合结束后
+融冰决斗	000000000067.0C6	随机英雄复生	None	Bool	开启|禁用
+角斗领域	0000000000AE.0C6	MVP奖金资金	Combat	Int	
+角斗领域	0000000000AE.0C6	仁慈法则	Combat	Bool	开启|禁用
+角斗领域	0000000000AE.0C6	仁慈法则资金差距	Combat	Int	
+角斗领域	0000000000AE.0C6	伤害资金倍率	Combat	Float	
+角斗领域	0000000000AE.0C6	军械库持续时间倍率	Combat	Float	
+角斗领域	0000000000AE.0C6	初始资金	Combat	Int	
+角斗领域	0000000000AE.0C6	回合完成资金倍率	Combat	Float	
+角斗领域	0000000000AE.0C6	异能1解锁回合	Combat	Int	
+角斗领域	0000000000AE.0C6	异能2解锁回合	Combat	Int	
+角斗领域	0000000000AE.0C6	异能3解锁回合	Combat	Int	
+角斗领域	0000000000AE.0C6	异能4解锁回合	Combat	Int	
+角斗领域	0000000000AE.0C6	最小回合收入	Combat	Int	
+角斗领域	0000000000AE.0C6	治疗资金倍率	Combat	Float	
+角斗领域	0000000000AE.0C6	物品售价倍率	Combat	Float	
+角斗领域	0000000000AE.0C6	竞技比赛规则	Combat	Bool	开启|禁用
+角斗领域	0000000000AE.0C6	获胜得分	Combat	Int	
+角斗领域	0000000000AE.0C6	赏金资金倍率	Combat	Float	
+训练靶场	000000000060.0C6	刷新训练机器人	Modes	Bool	开启|禁用
+训练靶场	0000000000C4.0C6	刷新训练机器人	Modes	Bool	开启|禁用
+训练靶场	000000000060.0C6	启用威能	Modes	Bool	
+训练靶场	000000000060.0C6	威能充能速度	Modes	Float	
+训练靶场	000000000060.0C6	训练伙伴	Modes	Bool	开启|禁用
+训练靶场	0000000000C4.0C6	训练伙伴	Modes	Bool	开启|禁用
+训练靶场	000000000060.0C6	训练机器人刷新时间	Modes	Float	
+训练靶场	0000000000C4.0C6	训练机器人刷新时间	Modes	Float	
+训练靶场	000000000060.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+赏金猎手	00000000006B.0C6	每次消灭得分	Modes	Int	
+赏金猎手	00000000006B.0C6	消灭狩猎目标基础得分	Modes	Int	
+赏金猎手	00000000006B.0C6	狩猎目标数量	Modes	Int	
+赏金猎手	00000000006B.0C6	狩猎目标每次消灭得分	Modes	Int	
+赏金猎手	00000000006B.0C6	狩猎目标每次消灭赏金加值	Modes	Int	
+路霸的小鱿抓抓乐	000000000078.0C6	主动复生	Modes	Bool	
+路霸的小鱿抓抓乐	000000000078.0C6	双方队伍获胜得分差异	Modes	Bool	
+路霸的小鱿抓抓乐	000000000078.0C6	比赛时长（分钟）	Modes	Int	
+路霸的小鱿抓抓乐	000000000078.0C6	获胜得分	Modes	Int	
+路霸的小鱿抓抓乐	000000000078.0C6	队伍1获胜所需分数	Modes	Int	
+路霸的小鱿抓抓乐	000000000078.0C6	队伍2获胜所需分数	Modes	Int	
+运载目标	00000000000B.0C6	启用威能	Modes	Bool	
+运载目标	0000000000B2.0C6	启用威能	Modes	Bool	
+运载目标	00000000000B.0C6	威能充能速度	Modes	Float	
+运载目标	0000000000B2.0C6	威能充能速度	Modes	Float	
+运载目标	00000000000B.0C6	竞技比赛规则	Modes	Bool	
+运载目标	0000000000B2.0C6	竞技比赛规则	Modes	Bool	
+运载目标	00000000000B.0C6	运载目标速度	Modes	Float	
+运载目标	0000000000B2.0C6	运载目标速度	Modes	Float	
+运载目标	00000000000B.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+运载目标	0000000000B2.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+闪点作战	000000000068.0C6	占领速度	Modes	Float	
+闪点作战	0000000000B6.0C6	占领速度	Modes	Float	
+闪点作战	000000000068.0C6	启用威能	Modes	Bool	
+闪点作战	0000000000B6.0C6	启用威能	Modes	Bool	
+闪点作战	000000000068.0C6	威能充能速度	Modes	Float	
+闪点作战	0000000000B6.0C6	威能充能速度	Modes	Float	
+闪点作战	000000000068.0C6	控制点A	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	控制点A	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	控制点B	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	控制点B	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	控制点C	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	控制点C	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	控制点D	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	控制点D	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	控制点E	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	控制点E	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	竞技比赛规则	Modes	Bool	开启|禁用
+闪点作战	0000000000B6.0C6	竞技比赛规则	Modes	Bool	启用|禁用
+闪点作战	000000000068.0C6	获胜得分	Modes	Int	
+闪点作战	0000000000B6.0C6	获胜得分	Modes	Int	
+闪点作战	000000000068.0C6	计分速度	Modes	Float	
+闪点作战	0000000000B6.0C6	计分速度	Modes	Float	
+闪点作战	000000000068.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+闪点作战	0000000000B6.0C6	追赶等级时造成消灭威能加值	Modes	Float	
+闪点作战	000000000068.0C6	首先激活的控制点	Modes	Enum	A|B|C|D|E|随机
+闪点作战	0000000000B6.0C6	首先激活的控制点	Modes	Enum	A|B|C|D|E|随机顺序
+雪域狩猎	00000000003C.0C6	时间限制（分钟）	Modes	Int	
+雪域狩猎	00000000003C.0C6	肉块刷新上限	Modes	Int	
+雪域狩猎	00000000003C.0C6	雪人获胜得分	Modes	Int	
+魔法淘气包	00000000007E.0C6	启用躲藏者嘲讽	Modes	Bool	
+魔法淘气包	00000000007E.0C6	嘲讽频率	Modes	Float	
+魔法淘气包	00000000007E.0C6	回合时长（秒）	Modes	Int	
+魔法淘气包	00000000007E.0C6	躲藏时间（秒）	Modes	Int	
+魔法淘气包	00000000007E.0C6	骑士伤害	Modes	Int	
