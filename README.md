@@ -120,6 +120,21 @@ python tools/ws.py gen --src <导出目录>                  # 重新生成 data
 python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量对照
 ```
 
+
+## 如何更新
+
+这个 skill 是拷贝安装，不会自动升级。想更新时重跑一次安装命令即可（覆盖旧版本）：
+
+```bash
+npx skills add sandsand244263/overwatch-workshop-lite-skills
+```
+
+**怎么知道该不该更新**
+
+- 每次校验代码时，如果仓库有新版本，会附一行提示（24 小时查一次，没网就静默跳过）
+- 游戏更新后跑 `python tools/ws.py baseline`：数据基线跟不上游戏版本，就该更新了
+- 也可以手动查：`python tools/ws.py update-check`
+
 ---
 
 ## 验证与测试

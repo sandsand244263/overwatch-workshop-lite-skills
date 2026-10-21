@@ -49,6 +49,7 @@ def cmd_check(args):
             print("✓ %s：通过（warning %d）" % (name, len(problems)))
             for ln, level, msg in problems[:5]:
                 print("   %s %s：%s" % ("第 %d 行" % ln if ln else "全文", level, msg))
+        _print_update_hint()
     return 1 if failed else 0
 
 
@@ -125,6 +126,9 @@ def main():
     p = sub.add_parser("modes", help="列出全部模式")
     p.set_defaults(func=cmd_modes)
 
+    p = sub.add_parser("update-check", help="查技能是否有新版本")
+    p.set_defaults(func=cmd_update_check)
+
     p = sub.add_parser("baseline", help="比较数据基线与游戏版本")
     p.add_argument("--game-dir", default=None)
     p.set_defaults(func=cmd_baseline)
@@ -163,6 +167,10 @@ def main():
 # ---------------- settings: 按模式生成设置块 ----------------
 VALUE_WORD_MAP = {"启用": "开启", "禁用": "关闭", "是": "开启", "否": "关闭"}
 
+# 实测：这些键在游戏数据里有，但写进 .ow 的对应模式块会被判定为非法（"之后应有一个游戏模式设置"）
+# 加进来之前必须实机导入验证过，不要凭感觉加。
+NOT_WRITABLE = {"威能充能速度", "追赶等级时造成消灭威能加值"}
+
 
 def _load_settings_values():
     """settings.tsv -> {(schema, key): 第一个合法值}"""
@@ -173,6 +181,8 @@ def _load_settings_values():
         for row in csv.DictReader(f, delimiter="\t"):
             raw = (row.get("values") or "").strip()
             if not raw:
+                if (row.get("type") or "").upper() == "BOOL":   # 布尔项数据里没有选项，默认开
+                    out[(row.get("schema", ""), row.get("key", ""))] = {"value": "开启", "raw": "BOOL", "kind": "BOOL"}
                 continue
             opts = [x.strip() for x in raw.split("|") if x.strip()]
             concrete = [x for x in opts if not x.startswith("默认")] or opts
@@ -214,7 +224,7 @@ def build_settings_block(mode, hero=None, lobby=False):
     for page, rows in grouped.items():
         lines.append("\t\t%s" % page)
         lines.append("\t\t{")
-        for r in sorted(rows, key=lambda x: int(x["key_no"] or 0)):
+        for r in sorted(rows, key=lambda x: x["key"]):      # .ow 块内键序 = Unicode 码位升序
             key = r["key"]
             if not key:
                 continue
@@ -245,7 +255,7 @@ def build_lobby_block(vals):
     path = os.path.join(DATA, "lobby-keys.tsv")
     rows = list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
     lines = ["\t大厅", "\t{"]
-    for r in rows:
+    for r in sorted(rows, key=lambda x: x["key"]):
         v = r.get("default_value") or _value_of(vals, "", r["key"])
         if v:
             lines.append("\t\t%s: %s" % (r["key"], v))
@@ -266,7 +276,7 @@ def build_hero_block(hero, vals):
     for page, rs in grouped.items():
         lines.append("\t\t%s" % page)
         lines.append("\t\t{")
-        for r in sorted(rs, key=lambda x: int(x["key_no"] or 0)):
+        for r in sorted(rs, key=lambda x: x["key"]):
             key = r["key"]
             if not key:
                 continue
@@ -277,6 +287,93 @@ def build_hero_block(hero, vals):
         lines.append("\t\t}")
     lines.append("\t}")
     return lines
+
+
+# ---------------- 版本检查（缓存 + 静默失败） ----------------
+REPO = "sandsand244263/overwatch-workshop-lite-skills"
+
+
+def _skill_version():
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "SKILL.md")
+    try:
+        for line in open(path, encoding="utf-8"):
+            if line.startswith("version:"):
+                return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return None
+
+
+def check_update(quiet=True, force=False):
+    """查 GitHub 最新 release。缓存 24 小时；任何失败都静默。"""
+    import json, time, urllib.request
+    cache = os.path.join(DATA, ".update-cache.json")
+    now = time.time()
+    info = None
+    if not force and os.path.isfile(cache):
+        try:
+            c = json.load(open(cache, encoding="utf-8"))
+            if now - c.get("t", 0) < 86400:
+                info = c
+        except (OSError, ValueError):
+            pass
+    if info is None:
+        tag = None
+        # 首选 raw 文件（不限流）；API 有 60 次/小时的匿名限额，会 403
+        try:
+            url = "https://raw.githubusercontent.com/%s/main/SKILL.md" % REPO
+            req = urllib.request.Request(url, headers={"User-Agent": "workshop-lite"})
+            with urllib.request.urlopen(req, timeout=2.0) as r:
+                for line in r.read(4000).decode("utf-8", "replace").splitlines():
+                    if line.startswith("version:"):
+                        tag = line.split(":", 1)[1].strip()
+                        break
+        except Exception:
+            pass
+        if not tag:
+            try:
+                req = urllib.request.Request(
+                    "https://api.github.com/repos/%s/releases/latest" % REPO,
+                    headers={"User-Agent": "workshop-lite", "Accept": "application/vnd.github+json"})
+                with urllib.request.urlopen(req, timeout=2.0) as r:
+                    tag = json.load(r).get("tag_name", "").lstrip("v")
+            except Exception:
+                return None                  # 没网 / 超时 / 限流：静默
+        if not tag:
+            return None
+        info = {"t": now, "latest": tag}
+        try:
+            json.dump(info, open(cache, "w", encoding="utf-8"))
+        except OSError:
+            pass
+    cur, latest = _skill_version(), info.get("latest")
+    if cur and latest and cur != latest:
+        return (cur, latest)
+    return None
+
+
+def _print_update_hint():
+    try:
+        hit = check_update()
+    except Exception:
+        return
+    if hit:
+        cur, latest = hit
+        print("  提示：技能有新版本 v%s（当前 v%s）" % (latest, cur))
+        print("        升级：npx skills add %s" % REPO)
+
+
+def cmd_update_check(args):
+    hit = check_update(quiet=False, force=True)
+    if hit:
+        print("有新版本：当前 v%s → 最新 v%s" % hit)
+        print("升级：npx skills add %s" % REPO)
+        return 1
+    if _skill_version():
+        print("已是最新（v%s）" % _skill_version())
+    else:
+        print("查不到最新版本（没网 / 超时 / 限流）")
+    return 0
 
 
 def cmd_settings(args):

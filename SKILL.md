@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.24.1
+version: 2.25.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -12,6 +12,17 @@ metadata:
 # Overwatch Workshop Lite
 
 写 `.ow` 工坊代码。用户只负责导入和试玩，语法、参数、设置项、元素预算、混淆、交付文件由本技能兜底。
+
+## 版本与数据基线
+
+| 项 | 当前值 |
+|---|---|
+| 技能版本 | 见本文件 `version:` 字段 |
+| 数据基线 | `data/meta.json` 的 `build`（当前 2.25.0.1.154504） |
+
+- 游戏更新后先跑 `python tools/ws.py baseline`：不一致说明数据过期，去仓库拉新版
+- `ws.py check` 会顺带查一次新版本（24 小时缓存，没网/超时静默跳过），有新版本附一行提示
+- 升级：`npx skills add sandsand244263/overwatch-workshop-lite-skills`（重复执行即覆盖安装）
 
 ## 目录契约
 
