@@ -1,0 +1,48 @@
+var_id	field_name	unit	source	evidence
+00000000F12F.01C	伤害量		面板行(ability-panel row)	loadout 00000000011F.09E「裂地重拳」第0行 表达式 fragment[0]；该行显示格式 '|Rfn%1$s:N0;'
+000000011195.01C	伤害量		面板行(ability-panel row)	loadout 00000000011F.09E「裂地重拳」第0行 表达式 fragment[1]；该行显示格式 '|Rfn%1$s:N0;'
+0000000090C1.01C	伤害量		面板行(ability-panel row)	loadout 00000000011F.09E「裂地重拳」第0行 表达式 fragment[2]；该行显示格式 '|Rfn%1$s:N0;'
+0000000104E4.01C	强化重拳伤害量阈值		面板行(ability-panel row)	loadout 00000000033E.09E「悍猛格挡」第1行 表达式 fragment[0]；该行显示格式 '|Rfn%1$s:N0;抵挡伤害量'
+00000000F12F.01C	生命值		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第0行 表达式 fragment[0]；该行显示格式 '|Rfn%1$s:N0;'
+000000011713.01C	生命值		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第0行 表达式 fragment[1]；该行显示格式 '|Rfn%1$s:N0;'
+0000000090C9.01C	生命值		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第0行 表达式 fragment[2]；该行显示格式 '|Rfn%1$s:N0;'
+00000000F12F.01C	护甲		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第1行 表达式 fragment[0]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+0000000093BF.01C	护甲		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第1行 表达式 fragment[1]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+0000000090CD.01C	护甲		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第1行 表达式 fragment[2]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+00000000F12F.01C	护盾		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第2行 表达式 fragment[0]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+00000000930D.01C	护盾		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第2行 表达式 fragment[1]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+000000009288.01C	护盾		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第2行 表达式 fragment[2]；该行显示格式 '<fg#FF00BA00>|Rfn%1$s:N0;</fg>（<fg#FF00BA00>+|Rfn%2$s:P0;</fg>）'
+00000000F12F.01C	近身攻击伤害量		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第5行 表达式 fragment[0]；该行显示格式 '|Rfn%1$s:N0;'
+0000000090BD.01C	近身攻击伤害量		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第5行 表达式 fragment[1]；该行显示格式 '|Rfn%1$s:N0;'
+0000000108B8.01C	近身攻击伤害量		面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第5行 表达式 fragment[2]；该行显示格式 '|Rfn%1$s:N0;'
+0000000109D7.01C	移动速度	米/秒	面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第6行 表达式 fragment[0]；该行显示格式 '|Rfn%1$s:N1;米/秒'
+0000000096EA.01C	移动速度	米/秒	面板行(ability-panel row)	loadout 000000000DCB.09E「英雄属性」第6行 表达式 fragment[1]；该行显示格式 '|Rfn%1$s:N1;米/秒'
+000000000004.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（91 处）
+000000001E6A.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（17 处）
+000000007894.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（12 处）
+000000001E6B.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（8 处）
+000000007896.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（8 处）
+000000001E6C.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（8 处）
+000000007895.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（8 处）
+000000009456.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）
+00000000556D.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（12 处）
+0000000051B8.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（5 处）
+000000012CFE.01C	m_radius	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_radius（5 处）
+0000000082EA.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（12 处）
+00000000A9E2.01C	m_amount	(未知)	节点字段绑定(node-field binding)	半藏 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（12 处）
+00000000294D.01C	m_speed	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_speed（7 处）
+0000000029B8.01C	m_speed	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_speed（7 处）
+00000000186C.01C	m_radius	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_radius（16 处）
+00000000049E.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）
+00000000000B.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）
+000000001E2E.01C	m_radius	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_radius（6 处）
+00000000247B.01C	m_radius	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_radius（6 处）
+0000000023BD.01C	m_radius	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_radius（6 处）
+0000000001DC.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（10 处）
+000000002BD4.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）
+000000002BD0.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）
+000000004F79.01C	m_amount	(未知)	节点字段绑定(node-field binding)	末日铁拳 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（9 处）
+0000000019B2.01C	m_amount	(未知)	节点字段绑定(node-field binding)	天使 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（5 处）
+000000002820.01C	m_amount	(未知)	节点字段绑定(node-field binding)	天使 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（5 处）
+0000000001A4.01C	m_amount	(未知)	节点字段绑定(node-field binding)	天使 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（12 处）
+0000000094CB.01C	m_amount	(未知)	节点字段绑定(node-field binding)	天使 实体 statescript 图内 STUConfigVarIdentifier 绑定到节点字段 m_amount（6 处）

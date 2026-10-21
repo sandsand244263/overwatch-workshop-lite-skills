@@ -183,10 +183,12 @@ def cmd_stats(a):
 
     heroes = load("hero-stats.tsv")
     abilities = load("ability-stats.tsv")
+    dmg = load("ability-damage.tsv") if os.path.isfile(os.path.join(DATA, "ability-damage.tsv")) else []
     kw = a.name
 
     hh = [r for r in heroes if r["hero"] == kw] or [r for r in heroes if kw in r["hero"]]
     aa = [r for r in abilities if r["hero"] == kw] or [r for r in abilities if kw in r["hero"] or kw in r["ability"]]
+    dd = [r for r in dmg if r["hero"] == kw] or [r for r in dmg if kw in r["hero"] or kw in r["ability"]]
     if not hh and not aa:
         print("没有「%s」的数值。可查英雄：%s" % (kw, "、".join(sorted({r["hero"] for r in heroes}))))
         return 1
@@ -195,6 +197,15 @@ def cmd_stats(a):
         print("=== %s 英雄属性 ===" % hh[0]["hero"])
         for r in hh:
             print("  %-8s %s %s" % (r["field"], r["value"], r["unit"]))
+        print()
+    if dd:
+        print("=== %s 技能数值（技能面板行）===" % dd[0]["hero"])
+        cur = None
+        for r in sorted(dd, key=lambda x: (x["ability"], x["field"])):
+            if r["ability"] != cur:
+                cur = r["ability"]
+                print("  [%s]" % cur)
+            print("    %-24s %s %s" % (r["field"], r["value"], r["unit"]))
         print()
     if aa:
         hero = aa[0]["hero"]
