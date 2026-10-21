@@ -1,0 +1,758 @@
+key	owner	source
+敌方生命条	综合	settings
+急救包刷新时间	综合	settings
+消灭提示	综合	settings
+阵亡镜头	综合	settings
+皮肤	综合	settings
+队伍界面	综合	settings
+技能冷却时间	技能	settings
+快速近身攻击	技能	settings
+终极技能	技能	settings
+终极技能充能速度	技能	settings
+战斗时终极技能充能速度	技能	settings
+终极技能自动充能速度	技能	settings
+重生时终极技能充能完毕	技能	settings
+终极技能持续时间	技能	settings
+终极技能持续时间无限	技能	settings
+职责被动	技能	settings
+随机英雄复生	英雄	settings
+复生时间	英雄	settings
+每队随机限定英雄职责	英雄	settings
+允许切换英雄	英雄	settings
+竞技比赛规则	攻防作战	settings
+占领速度	攻防作战	settings
+启用威能	攻防作战	settings
+威能充能速度	攻防作战	settings
+追赶等级时造成消灭威能加值	攻防作战	settings
+运载目标速度	攻击/护送	settings
+计分速度	占领要点	settings
+获胜得分	占领要点	settings
+选择英雄时间	决斗先锋	settings
+目标点决胜机制	决斗先锋	settings
+目标点决胜机制激活时间	决斗先锋	settings
+占领时间	决斗先锋	settings
+无目标点决胜机制时平局时限	决斗先锋	settings
+显示英雄位置	决斗先锋	settings
+比赛开始后显示英雄位置时间	决斗先锋	settings
+得分需我方旗帜在基地中	勇夺锦旗	settings
+旗帜拾取时间	勇夺锦旗	settings
+旗帜归还时间	勇夺锦旗	settings
+旗帜掉落后锁定时间	勇夺锦旗	settings
+得分后旗帜刷新时间	勇夺锦旗	settings
+受到伤害打断夺旗	勇夺锦旗	settings
+比赛时长（分）	勇夺锦旗	settings
+闪电赛旗帜位置	勇夺锦旗	settings
+复生加速增益时间	勇夺锦旗	settings
+生命值	战斗设置	settings
+伤害量	战斗设置	settings
+受到伤害量	战斗设置	settings
+治疗量	战斗设置	settings
+受到治疗量	战斗设置	settings
+移动速度	战斗设置	settings
+弹道速度	战斗设置	settings
+仅爆头有效	战斗设置	settings
+移动重力	战斗设置	settings
+投射物重力	战斗设置	settings
+垂直跳跃速度	战斗设置	settings
+被动生命值恢复	战斗设置	settings
+冲锋击退倍率	技能	settings
+螺旋飞弹击退倍率	技能	settings
+音波击退倍率	技能	settings
+推进器击退倍率	技能	settings
+自毁击退倍率	技能	settings
+呼叫机甲击退倍率	技能	settings
+无机甲重生	技能	settings
+A-36战术榴弹冷却时间	技能	settings
+A-36战术榴弹击退倍率	技能	settings
+悬浮背包	技能	settings
+悬浮背包无限燃料	技能	settings
+悬浮背包充能速度	技能	settings
+悬浮背包最长时间	技能	settings
+悬浮背包额外燃料倍率	技能	settings
+悬浮背包垂直速度	技能	settings
+推进背包加速	技能	settings
+推进背包燃料补充倍率	技能	settings
+震荡冲击击退倍率	技能	settings
+主要攻击模式	武器	settings
+弹夹容量倍率	武器	settings
+无需装弹	武器	settings
+辅助攻击模式	武器	settings
+禁止自动射击	武器	settings
+禁止开镜狙击	武器	settings
+冰霜枪冰冻敌人的速度	武器	settings
+冰霜枪冰冻最小值	武器	settings
+冰霜枪冰冻敌人的时长	武器	settings
+冰冻叠加	武器	settings
+粒子炮辅助攻击击退倍率	武器	settings
+比赛时长（分钟）	团队死斗	settings
+主动复生	团队死斗	settings
+“天使”重生抵消消灭次数	团队死斗	settings
+双方队伍获胜得分差异	团队死斗	settings
+队伍1获胜所需分数	团队死斗	settings
+队伍2获胜所需分数	团队死斗	settings
+喷射背包加速	技能	settings
+原始暴怒近身攻击击退倍率	技能	settings
+喷射背包击退倍率	技能	settings
+震荡地雷击退倍率	技能	settings
+鸡飞狗跳击退倍率	技能	settings
+废品压缩器击退倍率	技能	settings
+火箭发射器击退倍率	武器	settings
+榴弹发射器击退倍率	武器	settings
+火箭重锤击退倍率	武器	settings
+火箭重拳击退倍率	技能	settings
+毁天灭地击退倍率	技能	settings
+悍猛格挡充能速度	技能	settings
+弹药恢复时间速率	武器	settings
+比赛时长（秒）	动感斗球	settings
+获得足够进球数即可获胜	动感斗球	settings
+获胜所需进球数	动感斗球	settings
+获胜需要达到分数	动感斗球	settings
+进球后重置玩家	动感斗球	settings
+斗球推力倍率	动感斗球	settings
+起始足球数量	动感斗球	settings
+最大足球数量	动感斗球	settings
+足球数量增加间隔（秒）	动感斗球	settings
+最大奖励球数量	动感斗球	settings
+奖励球刷新间隔（秒）	动感斗球	settings
+奖励球分值	动感斗球	settings
+无尽模式	怪鼠复仇	settings
+大门生命值	怪鼠复仇	settings
+生化能量恢复速度	武器	settings
+生化能量上限	武器	settings
+暴雪冰冻敌人的速度	技能	settings
+暴雪冰冻最小值	技能	settings
+生化之球伤害最大值	技能	settings
+生化之球治疗最大值	技能	settings
+雪人获胜得分	雪域狩猎	settings
+肉块刷新上限	雪域狩猎	settings
+时间限制（分钟）	雪域狩猎	settings
+能量盾击	技能	settings
+能量盾击冷却时间	技能	settings
+能量盾击击退距离	技能	settings
+流星飞锤击退距离	技能	settings
+屏障护盾充能速度	技能	settings
+天使降临	技能	settings
+同情愈疗	技能	settings
+TS-1行走速度	机动推进	settings
+TS-1推进速度	机动推进	settings
+跃	技能	settings
+“跃”冷却时间	技能	settings
+“跃”距离设置	技能	settings
+“岚”数量	技能	settings
+工程抓钩击退距离	技能	settings
+地雷禁区击退距离	技能	settings
+动力铁球始终激活	技能	settings
+“毒蛇”无法进行普通攻击	武器	settings
+延时雷管引爆时间	技能	settings
+双筒猎枪击退距离（自身）	技能	settings
+双筒猎枪击退距离（敌方）	技能	settings
+热力过载持续时间	技能	settings
+质量吸附击退距离	技能	settings
+刷新训练机器人	训练靶场	settings
+训练机器人刷新时间	训练靶场	settings
+训练伙伴	训练靶场	settings
+滑翔	技能	settings
+控制点A	闪点作战	settings
+控制点B	闪点作战	settings
+控制点C	闪点作战	settings
+控制点D	闪点作战	settings
+控制点E	闪点作战	settings
+每次消灭得分	赏金猎手	settings
+狩猎目标每次消灭得分	赏金猎手	settings
+消灭狩猎目标基础得分	赏金猎手	settings
+狩猎目标数量	赏金猎手	settings
+狩猎目标每次消灭赏金加值	赏金猎手	settings
+“瞬”距离倍率	技能	settings
+锯齿利刃击退倍率	技能	settings
+锯齿利刃自动召回延迟	技能	settings
+铁臂（天罚形态）	技能	settings
+花瓣平台生命值	技能	settings
+生命之握和愈疗灵花射程	技能	settings
+回春疾行	技能	settings
+回春疾行冷却时间	技能	settings
+回春疾行治疗量	技能	settings
+生命之树生命值	技能	settings
+赢得足够分数即可获胜	排球	settings
+获胜所需得分	排球	settings
+获胜所需领先分数	排球	settings
+得分后重置玩家	排球	settings
+排球推力倍率	排球	settings
+回合时长（秒）	魔法淘气包	settings
+躲藏时间（秒）	魔法淘气包	settings
+骑士伤害	魔法淘气包	settings
+启用躲藏者嘲讽	魔法淘气包	settings
+嘲讽频率	魔法淘气包	settings
+太阳能充能速度	武器	settings
+太阳能上限	武器	settings
+终极售票机刷新速度	乐动爱斗	settings
+选票分值	乐动爱斗	settings
+应援棒分值	乐动爱斗	settings
+燃火链式机枪	武器	settings
+爆烈链式机枪	武器	settings
+燃火链式机枪点燃速度	武器	settings
+燃火链式机枪点燃伤害	武器	settings
+燃火链式机枪点燃持续时间	武器	settings
+心脏过载治疗量	技能	settings
+蛮力冲撞击退	技能	settings
+钻地持续时间倍率	技能	settings
+滑翔推进持续时间倍率	技能	settings
+复生时间倍率	决斗先锋	settings
+狂跃距离	技能	settings
+尖刺墙生命值	技能	settings
+尖刺墙击退	技能	settings
+尖刺护体资源消耗	技能	settings
+尖刺护体资源恢复	技能	settings
+尖刺护体移动速度惩罚	技能	settings
+疾冲距离	技能	settings
+上升气流高度	技能	settings
+瞄准射击持续时间	技能	settings
+飞流步持续时间倍率	技能	settings
+翻江浪击退倍率	技能	settings
+养神泉	武器	settings
+养神泉充能速度	武器	settings
+养神泉消耗速度	武器	settings
+玄武杖水珠最大控制时间	武器	settings
+玄武杖水珠转向速度	武器	settings
+旋风疾步距离	技能	settings
+飞空斩击距离	技能	settings
+招架姿态恢复倍率	技能	settings
+锋锐剑气	技能	settings
+初始资金	角斗领域	settings
+MVP奖金资金	角斗领域	settings
+最小回合收入	角斗领域	settings
+回合完成资金倍率	角斗领域	settings
+伤害资金倍率	角斗领域	settings
+治疗资金倍率	角斗领域	settings
+赏金资金倍率	角斗领域	settings
+物品售价倍率	角斗领域	settings
+仁慈法则	角斗领域	settings
+仁慈法则资金差距	角斗领域	settings
+异能1解锁回合	角斗领域	settings
+异能2解锁回合	角斗领域	settings
+异能3解锁回合	角斗领域	settings
+异能4解锁回合	角斗领域	settings
+军械库持续时间倍率	角斗领域	settings
+音速斥力场击退倍率	技能	settings
+终极技能屏障生命值倍率（全景牢笼）	技能	settings
+护盾重构治疗量倍率	技能	settings
+虹吸冲击枪持续时间倍率	技能	settings
+虹吸冲击枪热量倍率	技能	settings
+赛博手雷击退倍率	技能	settings
+覆盖协议击退倍率	技能	settings
+禁止不开镜射击	武器	settings
+替魂纸人持续时间倍率	技能	settings
+生物猫爪弹射程	武器	settings
+咻咻飞无限燃料	技能	settings
+咻咻飞最大时间	技能	settings
+震地手雷击退倍率	技能	settings
+机动闪避距离倍率	技能	settings
+纵情狂飙持续时间倍率	技能	settings
+纵情狂飙无限持续时间	技能	settings
+纵情狂飙速度倍率	技能	settings
+纵情狂飙击退倍率	技能	settings
+助推器击退倍率	技能	settings
+突进刺击击退倍率	技能	settings
+迅影疾行持续时间倍率	技能	settings
+焕生无人机持续时间倍率	技能	settings
+%1$s充能速度		ranges
+%1$s冷却时间		ranges
+%1$s最长时间		ranges
+上升气流冷却时间		ranges
+乱冷却时间		ranges
+传送面板冷却时间		ranges
+位移传动冷却时间		ranges
+充能速度 %1$s		ranges
+冰墙冷却时间		ranges
+冲锋冷却时间		ranges
+切换模式冷却时间		ranges
+切歌冷却时间		ranges
+剧毒诡雷冷却时间		ranges
+动力铁球冷却时间		ranges
+动能俘获冷却时间		ranges
+助推器冷却时间		ranges
+吞噬漩涡冷却时间		ranges
+呼吸器冷却时间		ranges
+呼噜噜冷却时间		ranges
+命令怒吼冷却时间		ranges
+哨戒炮冷却时间		ranges
+喷射背包冷却时间		ranges
+天罚形态冷却时间		ranges
+守护天使冷却时间		ranges
+尖刺墙冷却时间		ranges
+屏障发射器冷却时间		ranges
+岚冷却时间		ranges
+干扰弹冷却时间		ranges
+幽灵形态冷却时间		ranges
+延时雷管冷却时间		ranges
+强固防御冷却时间		ranges
+强音冷却时间		ranges
+影冷却时间		ranges
+微型飞弹冷却时间		ranges
+心脏过载冷却时间		ranges
+怒炎冲冷却时间		ranges
+急冻冷却时间		ranges
+恢复包冷却时间		ranges
+悍猛格挡冷却时间		ranges
+愈合冲击冷却时间		ranges
+感应护盾冷却时间		ranges
+战斗时终极技能充能速度 人格复制		ranges
+战斗时终极技能充能速度 光子屏障		ranges
+战斗时终极技能充能速度 全景牢笼		ranges
+战斗时终极技能充能速度 千针雨		ranges
+战斗时终极技能充能速度 原始暴怒		ranges
+战斗时终极技能充能速度 召唤鲍勃		ranges
+战斗时终极技能充能速度 圣		ranges
+战斗时终极技能充能速度 地壳震击		ranges
+战斗时终极技能充能速度 地雷禁区		ranges
+战斗时终极技能充能速度 增幅矩阵		ranges
+战斗时终极技能充能速度 女武神		ranges
+战斗时终极技能充能速度 开路先锋		ranges
+战斗时终极技能充能速度 引力乱流		ranges
+战斗时终极技能充能速度 惊涛破		ranges
+战斗时终极技能充能速度 战术目镜		ranges
+战斗时终极技能充能速度 护魂结界		ranges
+战斗时终极技能充能速度 撼地猛刺		ranges
+战斗时终极技能充能速度 斩		ranges
+战斗时终极技能充能速度 斩地巨剑		ranges
+战斗时终极技能充能速度 无极斩		ranges
+战斗时终极技能充能速度 暴雪		ranges
+战斗时终极技能充能速度 朱羽焚		ranges
+战斗时终极技能充能速度 机体超频		ranges
+战斗时终极技能充能速度 杀戮狂宴		ranges
+战斗时终极技能充能速度 桎梏灼日		ranges
+战斗时终极技能充能速度 死亡绽放		ranges
+战斗时终极技能充能速度 毁天灭地		ranges
+战斗时终极技能充能速度 流星索		ranges
+战斗时终极技能充能速度 火炮模式		ranges
+战斗时终极技能充能速度 火箭弹幕		ranges
+战斗时终极技能充能速度 炸弹轮胎		ranges
+战斗时终极技能充能速度 熔火核心		ranges
+战斗时终极技能充能速度 狐		ranges
+战斗时终极技能充能速度 猫猫劫		ranges
+战斗时终极技能充能速度 生命之树		ranges
+战斗时终极技能充能速度 电磁脉冲		ranges
+战斗时终极技能充能速度 神射手		ranges
+战斗时终极技能充能速度 竜		ranges
+战斗时终极技能充能速度 笼中斗		ranges
+战斗时终极技能充能速度 红外侦测		ranges
+战斗时终极技能充能速度 纳米激素		ranges
+战斗时终极技能充能速度 聚合射线		ranges
+战斗时终极技能充能速度 脉冲炸弹		ranges
+战斗时终极技能充能速度 自毁		ranges
+战斗时终极技能充能速度 裂地猛击		ranges
+战斗时终极技能充能速度 覆盖协议		ranges
+战斗时终极技能充能速度 诛		ranges
+战斗时终极技能充能速度 轨道射线		ranges
+战斗时终极技能充能速度 轰翻天		ranges
+战斗时终极技能充能速度 重力喷涌		ranges
+战斗时终极技能充能速度 集结号令		ranges
+战斗时终极技能充能速度 音障		ranges
+战斗时终极技能充能速度 鸡飞狗跳		ranges
+战术翻滚冷却时间		ranges
+抓钩冷却时间		ranges
+投射屏障冷却时间		ranges
+捕兽夹冷却时间		ranges
+推进器冷却时间		ranges
+推进背包冷却时间		ranges
+救生索冷却时间		ranges
+旋风疾步冷却时间		ranges
+暗影步冷却时间		ranges
+替魂纸人冷却时间		ranges
+机动滑铲冷却时间		ranges
+机动闪避冷却时间		ranges
+标枪旋击冷却时间		ranges
+治疗光塔冷却时间		ranges
+流星飞锤冷却时间		ranges
+消散冷却时间		ranges
+滑翔推进冷却时间		ranges
+烈日冲击冷却时间		ranges
+烈焰打击冷却时间		ranges
+热力过载冷却时间		ranges
+熠闪舞冷却时间		ranges
+爆能水晶冷却时间		ranges
+狂跃冷却时间		ranges
+生化之球冷却时间		ranges
+生命之握冷却时间		ranges
+生物力场冷却时间		ranges
+生物手雷冷却时间		ranges
+疾冲冷却时间		ranges
+疾跑冷却时间		ranges
+瞬冷却时间		ranges
+短筒猎枪冷却时间		ranges
+粒子屏障冷却时间		ranges
+纵情狂飙冷却时间		ranges
+终极技能充能速度（人格复制）		ranges
+终极技能充能速度（光子屏障）		ranges
+终极技能充能速度（全景牢笼）		ranges
+终极技能充能速度（千针雨）		ranges
+终极技能充能速度（原始暴怒）		ranges
+终极技能充能速度（召唤鲍勃）		ranges
+终极技能充能速度（圣）		ranges
+终极技能充能速度（地壳震击）		ranges
+终极技能充能速度（地雷禁区）		ranges
+终极技能充能速度（增幅矩阵）		ranges
+终极技能充能速度（女武神）		ranges
+终极技能充能速度（开路先锋）		ranges
+终极技能充能速度（引力乱流）		ranges
+终极技能充能速度（惊涛破）		ranges
+终极技能充能速度（战术目镜）		ranges
+终极技能充能速度（护魂结界）		ranges
+终极技能充能速度（撼地猛刺）		ranges
+终极技能充能速度（斩地巨剑）		ranges
+终极技能充能速度（斩）		ranges
+终极技能充能速度（无极斩）		ranges
+终极技能充能速度（暴雪）		ranges
+终极技能充能速度（朱羽焚）		ranges
+终极技能充能速度（机体超频）		ranges
+终极技能充能速度（杀戮狂宴）		ranges
+终极技能充能速度（桎梏灼日）		ranges
+终极技能充能速度（死亡绽放）		ranges
+终极技能充能速度（毁天灭地）		ranges
+终极技能充能速度（流星索）		ranges
+终极技能充能速度（火炮模式）		ranges
+终极技能充能速度（火箭弹幕）		ranges
+终极技能充能速度（炸弹轮胎）		ranges
+终极技能充能速度（熔火核心）		ranges
+终极技能充能速度（狐）		ranges
+终极技能充能速度（猫猫劫）		ranges
+终极技能充能速度（生命之树）		ranges
+终极技能充能速度（电磁脉冲）		ranges
+终极技能充能速度（神射手）		ranges
+终极技能充能速度（竜）		ranges
+终极技能充能速度（笼中斗）		ranges
+终极技能充能速度（红外侦测）		ranges
+终极技能充能速度（纳米激素）		ranges
+终极技能充能速度（聚合射线）		ranges
+终极技能充能速度（脉冲炸弹）		ranges
+终极技能充能速度（自毁）		ranges
+终极技能充能速度（裂地猛击）		ranges
+终极技能充能速度（覆盖协议）		ranges
+终极技能充能速度（诛）		ranges
+终极技能充能速度（轨道射线）		ranges
+终极技能充能速度（轰翻天）		ranges
+终极技能充能速度（重力喷涌）		ranges
+终极技能充能速度（集结号令）		ranges
+终极技能充能速度（音障）		ranges
+终极技能充能速度（鸡飞狗跳）		ranges
+终极技能自动充能速度 人格复制		ranges
+终极技能自动充能速度 光子屏障		ranges
+终极技能自动充能速度 全景牢笼		ranges
+终极技能自动充能速度 千针雨		ranges
+终极技能自动充能速度 原始暴怒		ranges
+终极技能自动充能速度 召唤鲍勃		ranges
+终极技能自动充能速度 圣		ranges
+终极技能自动充能速度 地壳震击		ranges
+终极技能自动充能速度 地雷禁区		ranges
+终极技能自动充能速度 增幅矩阵		ranges
+终极技能自动充能速度 女武神		ranges
+终极技能自动充能速度 开路先锋		ranges
+终极技能自动充能速度 引力乱流		ranges
+终极技能自动充能速度 惊涛破		ranges
+终极技能自动充能速度 战术目镜		ranges
+终极技能自动充能速度 护魂结界		ranges
+终极技能自动充能速度 撼地猛刺		ranges
+终极技能自动充能速度 斩		ranges
+终极技能自动充能速度 斩地巨剑		ranges
+终极技能自动充能速度 无极斩		ranges
+终极技能自动充能速度 暴雪		ranges
+终极技能自动充能速度 朱羽焚		ranges
+终极技能自动充能速度 机体超频		ranges
+终极技能自动充能速度 杀戮狂宴		ranges
+终极技能自动充能速度 桎梏灼日		ranges
+终极技能自动充能速度 死亡绽放		ranges
+终极技能自动充能速度 毁天灭地		ranges
+终极技能自动充能速度 流星索		ranges
+终极技能自动充能速度 火炮模式		ranges
+终极技能自动充能速度 火箭弹幕		ranges
+终极技能自动充能速度 炸弹轮胎		ranges
+终极技能自动充能速度 熔火核心		ranges
+终极技能自动充能速度 狐		ranges
+终极技能自动充能速度 猫猫劫		ranges
+终极技能自动充能速度 生命之树		ranges
+终极技能自动充能速度 电磁脉冲		ranges
+终极技能自动充能速度 神射手		ranges
+终极技能自动充能速度 竜		ranges
+终极技能自动充能速度 笼中斗		ranges
+终极技能自动充能速度 红外侦测		ranges
+终极技能自动充能速度 纳米激素		ranges
+终极技能自动充能速度 聚合射线		ranges
+终极技能自动充能速度 脉冲炸弹		ranges
+终极技能自动充能速度 自毁		ranges
+终极技能自动充能速度 裂地猛击		ranges
+终极技能自动充能速度 覆盖协议		ranges
+终极技能自动充能速度 诛		ranges
+终极技能自动充能速度 轨道射线		ranges
+终极技能自动充能速度 轰翻天		ranges
+终极技能自动充能速度 重力喷涌		ranges
+终极技能自动充能速度 集结号令		ranges
+终极技能自动充能速度 音障		ranges
+终极技能自动充能速度 鸡飞狗跳		ranges
+维生力场冷却时间		ranges
+缚魂锁链冷却时间		ranges
+翻江浪冷却时间		ranges
+聚变连发枪冷却时间		ranges
+聚焦光线冷却时间		ranges
+花瓣平台冷却时间		ranges
+虹吸冲击枪冷却时间		ranges
+蛮力冲撞冷却时间		ranges
+血斩冷却时间		ranges
+裂地重拳冷却时间		ranges
+谐冷却时间		ranges
+质量吸附冷却时间		ranges
+赛博手雷冷却时间		ranges
+赛博空间冷却时间		ranges
+超能环域冷却时间		ranges
+部署炮台冷却时间		ranges
+重生冷却时间		ranges
+钻地冷却时间		ranges
+铃冷却时间		ranges
+链钩冷却时间		ranges
+锚点无人机冷却时间		ranges
+闪光弹冷却时间		ranges
+闪冷却时间		ranges
+闪回冷却时间		ranges
+闪现冷却时间		ranges
+震地手雷冷却时间		ranges
+震荡冲击冷却时间		ranges
+震荡地雷冷却时间		ranges
+音冷却时间		ranges
+音速斥力场冷却时间		ranges
+飞流步冷却时间		ranges
+飞空斩击冷却时间		ranges
+飞行冷却时间		ranges
+麻醉镖冷却时间		ranges
+急救包刷新	怪鼠复仇	mode-pages
+游戏模式开始	怪鼠复仇	mode-pages
+英雄限制	怪鼠复仇	mode-pages
+职责限制	怪鼠复仇	mode-pages
+重装职责被动生命值加成	怪鼠复仇	mode-pages
+难度	怪鼠复仇	mode-pages
+旗手技能	勇夺锦旗	mode-pages
+锁定使用过的英雄	决斗先锋	mode-pages
+英雄选择	决斗先锋	mode-pages
+英雄池上限	决斗先锋	mode-pages
+有效控制点选择	突击模式	mode-pages
+首先激活的控制点	闪点作战	mode-pages
+可用武器	武器	schema-keys
+地图轮换	大厅	lobby-keys
+比赛结束后转换队伍	大厅	lobby-keys
+观战者人数上限	大厅	lobby-keys
+返回大厅	大厅	lobby-keys
+队列中的玩家可以加入	大厅	lobby-keys
+最低延迟（毫秒）	大厅	lobby-keys
+比赛语音聊天	大厅	lobby-keys
+玩家上限 队伍1	大厅	lobby-keys
+玩家上限 队伍2	大厅	lobby-keys
+玩家断线时暂停游戏	大厅	lobby-keys
+自由混战人数上限	大厅	lobby-keys
+队伍平衡	大厅	lobby-keys
+地图顺序	大厅	lobby-values
+玩家上限 队伍1 / 队伍2	大厅	lobby-values
+描述	实测	verified-keys
+模式名称	实测	verified-keys
+幽灵形态	死神	英雄设定页
+暗影步	死神	英雄设定页
+终极技能（死亡绽放）	死神	英雄设定页
+闪现	猎空	英雄设定页
+闪回	猎空	英雄设定页
+终极技能（脉冲炸弹）	猎空	英雄设定页
+守护天使	天使	英雄设定页
+重生	天使	英雄设定页
+终极技能（女武神）	天使	英雄设定页
+音	半藏	英雄设定页
+岚	半藏	英雄设定页
+终极技能（竜）	半藏	英雄设定页
+部署炮台	托比昂	英雄设定页
+热力过载	托比昂	英雄设定页
+终极技能（熔火核心）	托比昂	英雄设定页
+冲锋	莱因哈特	英雄设定页
+烈焰打击	莱因哈特	英雄设定页
+终极技能（裂地猛击）	莱因哈特	英雄设定页
+推进背包	法老之鹰	英雄设定页
+震荡冲击	法老之鹰	英雄设定页
+终极技能（火箭弹幕）	法老之鹰	英雄设定页
+喷射背包	温斯顿	英雄设定页
+屏障发射器	温斯顿	英雄设定页
+终极技能（原始暴怒）	温斯顿	英雄设定页
+抓钩	黑百合	英雄设定页
+剧毒诡雷	黑百合	英雄设定页
+终极技能（红外侦测）	黑百合	英雄设定页
+切换模式	堡垒	英雄设定页
+终极技能（火炮模式）	堡垒	英雄设定页
+哨戒炮	秩序之光	英雄设定页
+传送面板	秩序之光	英雄设定页
+终极技能（光子屏障）	秩序之光	英雄设定页
+谐	禅雅塔	英雄设定页
+乱	禅雅塔	英雄设定页
+终极技能（圣）	禅雅塔	英雄设定页
+影	源氏	英雄设定页
+闪	源氏	英雄设定页
+终极技能（斩）	源氏	英雄设定页
+链钩	路霸	英雄设定页
+呼吸器	路霸	英雄设定页
+终极技能（鸡飞狗跳）	路霸	英雄设定页
+呼吸器最长时间	路霸	英雄设定页
+呼吸器充能速度	路霸	英雄设定页
+战术翻滚	卡西迪	英雄设定页
+闪光弹	卡西迪	英雄设定页
+终极技能（神射手）	卡西迪	英雄设定页
+震荡地雷	狂鼠	英雄设定页
+捕兽夹	狂鼠	英雄设定页
+终极技能（炸弹轮胎）	狂鼠	英雄设定页
+粒子屏障	查莉娅	英雄设定页
+投射屏障	查莉娅	英雄设定页
+终极技能（重力喷涌）	查莉娅	英雄设定页
+疾跑	士兵：76	英雄设定页
+生物力场	士兵：76	英雄设定页
+终极技能（战术目镜）	士兵：76	英雄设定页
+切歌	卢西奥	英雄设定页
+强音	卢西奥	英雄设定页
+终极技能（音障）	卢西奥	英雄设定页
+推进器	D.Va	英雄设定页
+微型飞弹	D.Va	英雄设定页
+终极技能（自毁）	D.Va	英雄设定页
+急冻	美	英雄设定页
+冰墙	美	英雄设定页
+终极技能（暴雪）	美	英雄设定页
+赛博空间	黑影	英雄设定页
+位移传动	黑影	英雄设定页
+终极技能（电磁脉冲）	黑影	英雄设定页
+裂地重拳	末日铁拳	英雄设定页
+悍猛格挡	末日铁拳	英雄设定页
+终极技能（毁天灭地）	末日铁拳	英雄设定页
+麻醉镖	安娜	英雄设定页
+生物手雷	安娜	英雄设定页
+终极技能（纳米激素）	安娜	英雄设定页
+强固防御	奥丽莎	英雄设定页
+标枪旋击	奥丽莎	英雄设定页
+终极技能（撼地猛刺）	奥丽莎	英雄设定页
+流星飞锤	布丽吉塔	英雄设定页
+恢复包	布丽吉塔	英雄设定页
+终极技能（集结号令）	布丽吉塔	英雄设定页
+消散	莫伊拉	英雄设定页
+生化之球	莫伊拉	英雄设定页
+终极技能（聚合射线）	莫伊拉	英雄设定页
+动力铁球	破坏球	英雄设定页
+感应护盾	破坏球	英雄设定页
+终极技能（地雷禁区）	破坏球	英雄设定页
+工程抓钩冷却时间	破坏球	英雄设定页
+重力坠击冷却时间	破坏球	英雄设定页
+机动滑铲	索杰恩	英雄设定页
+干扰弹	索杰恩	英雄设定页
+终极技能（机体超频）	索杰恩	英雄设定页
+充能速度 充能射击	索杰恩	英雄设定页
+短筒猎枪	艾什	英雄设定页
+延时雷管	艾什	英雄设定页
+终极技能（召唤鲍勃）	艾什	英雄设定页
+飞行	回声	英雄设定页
+聚焦光线	回声	英雄设定页
+终极技能（人格复制）	回声	英雄设定页
+愈合冲击	巴蒂斯特	英雄设定页
+维生力场	巴蒂斯特	英雄设定页
+终极技能（增幅矩阵）	巴蒂斯特	英雄设定页
+瞬	雾子	英雄设定页
+铃	雾子	英雄设定页
+终极技能（狐）	雾子	英雄设定页
+命令怒吼	渣客女王	英雄设定页
+血斩	渣客女王	英雄设定页
+终极技能（轰翻天）	渣客女王	英雄设定页
+动能俘获	西格玛	英雄设定页
+质量吸附	西格玛	英雄设定页
+终极技能（引力乱流）	西格玛	英雄设定页
+实验屏障冷却时间	西格玛	英雄设定页
+实验屏障充能速度	西格玛	英雄设定页
+天罚形态	拉玛刹	英雄设定页
+吞噬漩涡	拉玛刹	英雄设定页
+终极技能（诛）	拉玛刹	英雄设定页
+花瓣平台	生命之梭	英雄设定页
+生命之握	生命之梭	英雄设定页
+终极技能（生命之树）	生命之梭	英雄设定页
+蛮力冲撞	毛加	英雄设定页
+心脏过载	毛加	英雄设定页
+终极技能（笼中斗）	毛加	英雄设定页
+烈日冲击	伊拉锐	英雄设定页
+治疗光塔	伊拉锐	英雄设定页
+终极技能（桎梏灼日）	伊拉锐	英雄设定页
+疾冲	弗蕾娅	英雄设定页
+上升气流	弗蕾娅	英雄设定页
+终极技能（流星索）	弗蕾娅	英雄设定页
+钻地	探奇	英雄设定页
+终极技能（地壳震击）	探奇	英雄设定页
+狂跃	骇灾	英雄设定页
+尖刺墙	骇灾	英雄设定页
+终极技能（千针雨）	骇灾	英雄设定页
+滑翔推进	朱诺	英雄设定页
+超能环域	朱诺	英雄设定页
+终极技能（轨道射线）	朱诺	英雄设定页
+飞流步	无漾	英雄设定页
+翻江浪	无漾	英雄设定页
+终极技能（惊涛破）	无漾	英雄设定页
+旋风疾步	斩仇	英雄设定页
+飞空斩击	斩仇	英雄设定页
+终极技能（斩地巨剑）	斩仇	英雄设定页
+音速斥力场	金驭	英雄设定页
+爆能水晶	金驭	英雄设定页
+终极技能（全景牢笼）	金驭	英雄设定页
+锚点无人机	西拉	英雄设定页
+震地手雷	西拉	英雄设定页
+终极技能（开路先锋）	西拉	英雄设定页
+虹吸冲击枪	埃姆雷	英雄设定页
+赛博手雷	埃姆雷	英雄设定页
+终极技能（覆盖协议）	埃姆雷	英雄设定页
+怒炎冲	安燃	英雄设定页
+熠闪舞	安燃	英雄设定页
+终极技能（朱羽焚）	安燃	英雄设定页
+替魂纸人	瑞稀	英雄设定页
+缚魂锁链	瑞稀	英雄设定页
+终极技能（护魂结界）	瑞稀	英雄设定页
+救生索	飞天猫	英雄设定页
+呼噜噜	飞天猫	英雄设定页
+终极技能（猫猫劫）	飞天猫	英雄设定页
+机动闪避	死怨	英雄设定页
+纵情狂飙	死怨	英雄设定页
+终极技能（杀戮狂宴）	死怨	英雄设定页
+助推器	D.Mon	英雄设定页
+聚变连发枪	D.Mon	英雄设定页
+终极技能（无极斩）	D.Mon	英雄设定页
+助推器充能速度	D.Mon	英雄设定页
+迅影疾行	血律	英雄设定页
+迅影疾行冷却时间	血律	英雄设定页
+焕生无人机	血律	英雄设定页
+焕生无人机冷却时间	血律	英雄设定页
+终极技能（救赎恩典）	血律	英雄设定页
+终极技能充能速度（救赎恩典）	血律	英雄设定页
+战斗时终极技能充能速度 救赎恩典	血律	英雄设定页
+终极技能自动充能速度 救赎恩典	血律	英雄设定页
+助推器最长时间	D.Mon	英雄官方键
+强力屏障	D.Mon	英雄官方键
+防御矩阵	D.Va	英雄官方键
+音波	卢西奥	英雄官方键
+黏性炸弹	回声	英雄官方键
+A-36战术榴弹	堡垒	英雄官方键
+螺旋飞弹	士兵：76	英雄官方键
+快速治疗	天使	英雄官方键
+能量标枪	奥丽莎	英雄官方键
+屏障护盾	布丽吉塔	英雄官方键
+瞄准射击	弗蕾娅	英雄官方键
+虚空屏障（智械形态）	拉玛刹	英雄官方键
+钻头突刺	探奇	英雄官方键
+招架姿态	斩仇	英雄官方键
+火箭重拳	末日铁拳	英雄官方键
+火星套靴	朱诺	英雄官方键
+脉冲星飞雷	朱诺	英雄官方键
+交叉枪决	死怨	英雄官方键
+疾冲背包	法老之鹰	英雄官方键
+锯齿利刃（格雷西）	渣客女王	英雄官方键
+疗魂斗笠	瑞稀	英雄官方键
+工程抓钩	破坏球	英雄官方键
+重力坠击	破坏球	英雄官方键
+充能射击	索杰恩	英雄官方键
+屏障力场	莱因哈特	英雄官方键
+灌注	血律	英雄官方键
+追踪弹	西拉	英雄官方键
+实验屏障	西格玛	英雄官方键
+废品压缩器	路霸	英雄官方键
+屏障阵列	金驭	英雄官方键
+咻咻飞	飞天猫	英雄官方键
+尖刺护体	骇灾	英雄官方键
+在线修复	黑影	英雄官方键

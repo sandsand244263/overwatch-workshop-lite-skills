@@ -6,3 +6,12 @@ setting-out-of-range.ow	超出范围
 event-player-in-global.ow	不能用 事件玩家
 missing-var-block.ow	没有「变量」块
 old-map-name.ow	不在当前版本地图表
+old-hero-name.ow	英雄名「美羊羊」不在当前版本数据表里
+old-ability-name.ow	技能名「鸡飞狗跳改」不在当前版本数据表里
+unknown-button-name.ow	按钮名「技能三」不在当前版本数据表里
+unknown-setting-key.ow	设置键「获胜分数」不在当前版本数据表里
+unknown-event-name.ow	事件名「玩家被击杀」不在当前版本数据表里
+player-slot-number.ow	要的是「玩家」
+undefined-subroutine.ow	找不到对应的子程序声明
+rule-too-long.ow	超过单条规则 98KB
+element-over-limit.ow	超过 32768 上限

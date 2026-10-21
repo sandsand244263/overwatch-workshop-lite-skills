@@ -141,7 +141,7 @@ def cmd_count(args):
         est, detail = estimate(path, sigs, labels)
         line = "%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail))
         if est >= 1500:                      # 大文件：模型已知低估，给校准值
-            line += "\n   └ 按真实模式校准约 %d 个（系数 2.2；32,768 上限请按此值判断）" % int(est * REAL_WORLD_FACTOR)
+            line += "\n   └ 按真实模式校准约 %d 个（系数 %.2f；32,768 上限请按此值判断）" % (int(est * REAL_WORLD_FACTOR), REAL_WORLD_FACTOR)
         print(line)
         print("  上限 32768。估算仅供预警，最终以游戏「显示诊断结果 → 总计元素数量」为准。")
     return 0

@@ -22,9 +22,20 @@
   12. 持续 - 全局 规则里不许用 事件玩家
   13. 不存在 ===
 
+三层检查的分工（2026-10 升级）：
+  格式层：上面 1-13，只跟语法有关，不查数据表。
+  数据 ID 层：地图 / 英雄 / 技能 / 按钮 / 设置键 / 事件名 必须存在于 data/ 的当前版本表
+              （check_map_names / check_hero_names / check_ability_names /
+               check_button_names / check_setting_keys / check_event_names），
+              文案统一为「X「Y」不在当前版本数据表里（可能已改名或移除）」。
+  类型层：参数槽类型硬冲突（玩家槽塞数字、数值槽塞玩家表达式）、
+          变量与子程序完整性、单条规则 98KB 上限、元素数上限。
+行号：跨行语句会合并到起始行，报错统一按 SegMap 换算回原文行号。
+
 退出码：0 无问题，1 有错误。
 """
 import argparse
+import csv
 import os
 import re
 import sys
@@ -32,6 +43,8 @@ import sys
 PLACEHOLDER = re.compile(r"\{(\d)\}")
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 COMPARISON = re.compile(r"==|!=|>=|<=|>|<")
+# 玩家变量赋值：所有玩家(所有队伍).X = … / 事件玩家.X = …
+ASSIGNMENT = re.compile(r"^.+?\.[A-Za-z_]\w*(?:\[[^\]]*\])?\s*=(?!=)")
 VAR_REF = re.compile(r"(全局|本地玩家|事件玩家|攻击方|被攻击方|主机玩家|本市玩家)\.([A-Za-z_][A-Za-z0-9_]*)")
 
 BLOCK_KEYWORDS = ("设置", "主程序", "大厅", "模式", "英雄", "地图工坊", "扩展",
@@ -269,6 +282,9 @@ def load_settings_schema(path):
 
 FOR_PREFIX = re.compile(r"For\s+$")
 
+# 可变参数：签名表里只能写出前几个占位，实际能一直往里塞
+VARIADIC = {"数组", "自定义字符串", "字符串"}
+
 
 def scan_calls(text, sigs, labels, problems, options=None):
     options = options or {}
@@ -304,10 +320,11 @@ def scan_calls(text, sigs, labels, problems, options=None):
                     j += 1
                 inner = text[i + 1:j - 1]
                 line = text[:start].count("\n") + 1
-                arg_list = split_args(inner) if inner.strip() else []
+                arg_pos = split_args_pos(inner, i + 1) if inner.strip() else []
+                arg_list = [a.strip() for a, _p in arg_pos]
 
                 for slot in (VERIFIED_NO_SLOTS.get(name) or {}).get("slots", ()):
-                    if len(arg_list) >= abs(slot) and arg_list[slot].strip() == "无":
+                    if len(arg_list) >= abs(slot) and arg_list[slot] == "无":
                         problems.append((line, "error",
                                          "%s 这个位置要写 全部禁用，写 无 导入会失败" % name))
                 if name in ("全局变量", "玩家变量") and "For" in text[max(0, start - 30):start]:
@@ -319,18 +336,24 @@ def scan_calls(text, sigs, labels, problems, options=None):
                     got = len(arg_list)
                     if total == 0 and got:
                         problems.append((line, "error", "%s 不接受参数，实际给了 %d 个" % (name, got)))
-                    elif got > total:
+                    elif got > total and name not in VARIADIC:
                         problems.append((line, "error", "%s 参数过多：最多 %d 个，实际 %d 个"
                                          % (name, total, got)))
                     elif got == 0 and total > 0:
                         problems.append((line, "error", "%s 至少需要 1 个参数" % name))
                     params = labels.get(name) or []
                     if params and params[0].endswith(":玩家") and inner.strip():
-                        first = split_args(inner)[0].strip()
+                        first = arg_list[0]
                         if first in ("真", "假", "True", "False"):
                             problems.append((line, "error",
                                              "%s 第 1 个参数是「可见」（玩家或玩家列表），不能填 %s"
                                              % (name, first)))
+                    for idx, label in enumerate(params):
+                        if idx >= len(arg_pos):
+                            break
+                        _check_arg_type(name, idx, label, arg_pos[idx][0],
+                                        arg_pos[idx][1], problems, text)
+
                 i = j
                 continue
             continue
@@ -470,6 +493,7 @@ def check_element_kind(text, kinds, problems):
     if not kinds:
         return
     lines = text.split("\n")
+    offs = _line_offsets(lines)
     block = None
     depth = 0
     for idx, raw in enumerate(lines):
@@ -489,17 +513,20 @@ def check_element_kind(text, kinds, problems):
         if not s or s.startswith("//"):
             continue
         if block == "动作" and depth == 1 and s.endswith(";"):
+            if ASSIGNMENT.match(s):          # 玩家变量赋值：所有玩家(所有队伍).X = …
+                continue
             m = re.match(r"^([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s)
             if m and kinds.get(m.group(1)) == "值":
-                problems.append((idx + 1, "error",
-                                 "「%s」是值函数（返回一个值），不能单独当动作写；"
-                                 "要判断它请写进条件/If" % m.group(1)))
+                _add(problems, text, offs[idx] + m.start(), "error",
+                     "「%s」是值函数（返回一个值），不能单独当动作写；"
+                     "要判断它请写进条件/If" % m.group(1))
         elif block == "条件" and depth == 1:
             for m in re.finditer(r"([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s):
                 if kinds.get(m.group(1)) == "动作":
-                    problems.append((idx + 1, "error",
-                                     "「%s」是动作，不能写在条件里" % m.group(1)))
+                    _add(problems, text, offs[idx] + m.start(), "error",
+                         "「%s」是动作，不能写在条件里" % m.group(1))
                     break
+
 
 
 def check_string_interp(text, problems):
@@ -535,9 +562,9 @@ def check_string_interp(text, problems):
         need = max(idx) + 1
         have = len(args) - 1
         if have < need:
-            line = text.count("\n", 0, m.start()) + 1
-            problems.append((line, "warning",
-                             "%s 的模板里有 {%d}，但只给了 %d 个值（需要 %d 个）" % (fn, max(idx), have, need)))
+            _add(problems, text, m.start(), "warning",
+                 "%s 的模板里有 {%d}，但只给了 %d 个值（需要 %d 个）" % (fn, max(idx), have, need))
+
 
 
 def check_duplicate_rule_names(text, problems):
@@ -569,7 +596,7 @@ def check_bare_functions(text, sigs, problems, bare_ok=None):
             return 0
     needs_arg = {name for name, params in sigs.items() if _n(params) >= 1}
     allowed = (bare_ok or set()) | {name for name, params in sigs.items() if _n(params) == 0}
-    for m in re.finditer(r"(?<![\w.\u4e00-\u9fa5])([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)(?!\s*\()", text):
+    for m in re.finditer(r"(?<![\w.\u4e00-\u9fa5])([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)(?![\w\u4e00-\u9fa5])(?!\s*\()", text):
         name = m.group(1)
         line_start = text.rfind("\n", 0, m.start()) + 1
         line_end = text.find("\n", m.start())
@@ -577,10 +604,14 @@ def check_bare_functions(text, sigs, problems, bare_ok=None):
         # 只检查处在表达式里的行（块标题行没有括号/逗号，跳过）
         if "(" not in line_text and "," not in line_text:
             continue
+        # 下拉选项是整串中文短语（用全角逗号分隔），不是裸函数名
+        if re.match(r"\s*[，、；]", text[m.end():m.end() + 2]) or \
+                re.search(r"[，、；]\s*$", text[max(0, m.start() - 3):m.start()]):
+            continue
         if name in needs_arg and name not in allowed:
-            line = text.count("\n", 0, m.start()) + 1
-            problems.append((line, "error",
-                             "「%s」是函数，必须写成 %s(...)；只写名字游戏会报「之后应有 (」" % (name, name)))
+            _add(problems, text, m.start(), "error",
+                 "「%s」是函数，必须写成 %s(...)；只写名字游戏会报「之后应有 (」" % (name, name))
+
 
 
 def check_event_params(text, event_params, problems, event_param_words=None):
@@ -613,6 +644,9 @@ def check_event_params(text, event_params, problems, event_param_words=None):
                 in_events = False
         elif depth == 1 and raw.endswith(";") and "(" not in raw:
             name = raw[:-1].strip()
+            if name == "子程序":
+                i += 2                  # 子程序; 名字;  第二行是子程序名，不是事件参数
+                continue
             need = event_params.get(name)
             if need is not None:
                 got = 0
@@ -662,7 +696,454 @@ def check_duplicate_blocks(text, problems):
                              % (kw, len(hits), "、".join(str(x) for x in lines))))
 
 
+# ---------------------------------------------------------------- 数据 ID 层
+# 名字表全部来自 data/ 下的导出表（tools/gen_name_tables.py 可重新生成）。
+# 表里没有 = 游戏当前版本没有这个名字；这里是唯一允许把「名字」判成 error 的地方。
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+_CACHE = {}
+
+
+def _name_set(fname, col, path=None):
+    """读 data/ 下某个 tsv 的一列，返回名字集合（带缓存，缺文件返回空集合）。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, fname))
+    key = ("set", path, col)
+    if key in _CACHE:
+        return _CACHE[key]
+    out = set()
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                v = (row.get(col) or "").strip()
+                if v:
+                    out.add(v)
+    _CACHE[key] = out
+    return out
+
+
+def load_hero_names(path=None):
+    """英雄名集合（data/heroes.tsv）。"""
+    return _name_set("heroes.tsv", "name", path)
+
+
+def load_button_names(path=None):
+    """按钮名集合（data/buttons.tsv）。"""
+    return _name_set("buttons.tsv", "name", path)
+
+
+def load_setting_keys(path=None):
+    """设置键全集（data/setting-keys.tsv：模式/大厅/主程序/英雄页 的并集）。"""
+    return _name_set("setting-keys.tsv", "key", path)
+
+
+def load_event_names(path=None):
+    """事件名集合（data/events.tsv）。"""
+    return _name_set("events.tsv", "event", path)
+
+
+def load_ability_names(path=None):
+    """{技能名: {英雄…}}（data/abilities.tsv）。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "abilities.tsv"))
+    key = ("abilities", path)
+    if key in _CACHE:
+        return _CACHE[key]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                a = (row.get("name") or "").strip()
+                if a:
+                    out.setdefault(a, set()).add((row.get("hero") or "").strip())
+    _CACHE[key] = out
+    return out
+
+
+def _pos(text, pos):
+    """字符偏移 -> (1 基行号, 行内列偏移)。"""
+    return text.count("\n", 0, pos) + 1, pos - (text.rfind("\n", 0, pos) + 1)
+
+
+def _add(problems, text, pos, level, msg):
+    """带列的报错入口：列用于把合并行的行号换算回原文行号。"""
+    ln, col = _pos(text, pos)
+    problems.append((ln, level, msg, col))
+
+
+PLAYER_WORDS = ("事件玩家", "本地玩家", "攻击方", "被攻击方", "主机玩家", "本市玩家",
+                "玩家", "全部玩家", "真", "假", "True", "False", "无", "_", "空数组",
+                "全部", "双方", "队伍1", "队伍2", "所有队伍", "全部队伍")
+
+
+def _looks_like_name(arg):
+    """参数看起来是「裸名字常量」而不是表达式/变量引用/数字。
+
+    只对裸名字做存在性检查：带括号的是函数调用，带 . 的是变量或字段访问，
+    带运算符的是表达式，数字/真假是字面量——这些都不是名字。
+    """
+    a = arg.strip()
+    if not a or len(a) > 40:
+        return False
+    if "." in a or "(" in a or ")" in a or "," in a or "，" in a:
+        return False
+    if any(ch in a for ch in "[]{}|=<>+*/\"'!?"):
+        return False
+    if a in PLAYER_WORDS:
+        return False
+    if re.fullmatch(r"-?\d+(?:\.\d+)?%?", a):
+        return False
+    return bool(re.match(r"^[\u4e00-\u9fffA-Za-z_][\u4e00-\u9fff\w·：:＋\- ]*$", a))
+
+
+def _unknown_name(kind, name, pos, problems, text, hint=""):
+    _add(problems, text, pos, "error",
+         "%s「%s」不在当前版本数据表里（可能已改名或移除）%s" % (kind, name, hint))
+
+
+def check_hero_names(text, problems, hero_names, declared=None):
+    """英雄(名字) 里的英雄名必须还在当前版本英雄表里。
+
+    游戏只报「"英雄("之后应有一个英雄名」，指不到「这个英雄没了」。
+    """
+    if not hero_names:
+        return
+    declared = declared or set()
+    for m in re.finditer(r"(?<![\w\u4e00-\u9fff])英雄\(([^()]*)\)", text):
+        arg = m.group(1).strip()
+        if not _looks_like_name(arg) or arg in declared or arg in hero_names:
+            continue
+        _unknown_name("英雄名", arg, m.start(), problems, text,
+                      "；用 ws.py doc --search 英雄 查有效名")
+
+
+def check_button_names(text, problems, button_names):
+    """按钮(名字) 里的按钮名必须还在当前版本按钮表里。"""
+    if not button_names:
+        return
+    for m in re.finditer(r"(?<![\w\u4e00-\u9fff])按钮\(([^()]*)\)", text):
+        arg = m.group(1).strip()
+        if not _looks_like_name(arg) or arg in button_names or arg == "按钮":
+            continue
+        _unknown_name("按钮名", arg, m.start(), problems, text,
+                      "；可选：%s" % " / ".join(sorted(button_names)))
+
+
+# 技能名在 .ow 里只出现在英雄设置键里，两种形态：
+#   终极技能充能速度（鸡飞狗跳）     括号里
+#   战斗时终极技能充能速度 鸡飞狗跳   空格后（前面是 …速度/倍率/冷却时间 …）
+ABILITY_SPACE_PREFIX = re.compile(r"(速度|倍率|冷却时间|最长时间|持续时间|充能)$")
+
+
+def _ability_candidates(key):
+    out = []
+    for m in re.finditer(r"[（(]\s*([^（）()]+?)\s*[）)]", key):
+        out.append(m.group(1))
+    if " " in key:
+        head, tail = key.rsplit(" ", 1)
+        if ABILITY_SPACE_PREFIX.search(head.strip()):
+            out.append(tail.strip())
+    return [x for x in out if x and not re.fullmatch(r"-?\d+(?:\.\d+)?%?", x)]
+
+
+def _line_offsets(lines):
+    """每行起始字符偏移，用于把「第几行」换算回字符位置。"""
+    offs = [0]
+    for line in lines:
+        offs.append(offs[-1] + len(line) + 1)
+    return offs
+
+
+def check_ability_names(text, problems, abilities, hero_names):
+    """英雄设置块里的技能名必须还在当前版本技能表里。
+
+    游戏更新会改技能中文名；写错了只会报「之后应有一个…」这类看不懂的话。
+    """
+    if not abilities:
+        return
+    lines = text.split("\n")
+    offs = _line_offsets(lines)
+    stack, pending, hero = [], None, None
+    for idx, raw in enumerate(lines):
+        s = strip_noise(raw).strip()
+        if not s:
+            continue
+        if s in BLOCK_KEYWORDS:
+            pending = s
+            continue
+        if s.endswith("{"):
+            label = s[:-1].strip() or pending or (stack[-1] if stack else "")
+            stack.append(label)
+            pending = None
+            if "英雄" in stack and label in hero_names:
+                hero = label
+            continue
+        if s.startswith("{"):
+            stack.append(pending or (stack[-1] if stack else None))
+            pending = None
+            continue
+        if s.startswith("}"):
+            while stack and s:
+                stack.pop()
+                s = s.lstrip("}").strip()
+            hero = next((x for x in reversed(stack) if x in hero_names), None)
+            continue
+        m = re.match(r"^([^:：]{1,60}?)\s*[:：]\s*\S", s)
+        if not m:
+            pending = s                 # 裸标签行（英雄名 / 队伍1 …）后面跟的就是 {
+            continue
+        if hero is None or "英雄" not in stack:
+            continue
+        key = m.group(1).strip()
+        for cand in _ability_candidates(key):
+            if cand in abilities:
+                continue
+            pos = offs[idx] + raw.find(cand)
+            _unknown_name("技能名", cand, pos, problems, text,
+                          "；英雄 %s 的设置键「%s」用到了它" % (hero, key))
+
+
+
+def check_setting_keys(text, problems, setting_keys, hero_names=None):
+    """设置块里的键必须还在当前版本设置键表里。
+
+    键改名（比如「急救包刷新时间」→「急救包刷新」）导入时只报
+    「之后应有一个游戏模式设置」，看不出是键没了。
+    """
+    if not setting_keys:
+        return
+    lines = text.split("\n")
+    offs = _line_offsets(lines)
+    stack, pending = [], None
+    for idx, raw in enumerate(lines):
+        s = strip_noise(raw).strip()
+        if not s:
+            continue
+        if s in BLOCK_KEYWORDS or s.startswith("规则("):
+            pending = "规则" if s.startswith("规则(") else s
+            if s.endswith("{"):
+                stack.append(pending)
+                pending = None
+            continue
+        if s.startswith("{"):
+            stack.append(pending or (stack[-1] if stack else None))
+            pending = None
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            continue
+        block = stack[-1] if stack else None
+        if block not in SETTINGS_BLOCKS:
+            continue
+        if "英雄" in stack:                 # 英雄块里的键走 check_ability_names
+            continue
+        m = re.match(r"^([^\s:：]{1,40})\s*[:：]\s*\S", s)
+        if not m:
+            continue
+        key = m.group(1)
+        if key in setting_keys:
+            continue
+        _unknown_name("设置键", key, offs[idx] + raw.find(key), problems, text,
+                      "；用 ws.py settings --mode <模式> 生成合法的键")
+
+
+def check_event_names(text, problems, event_names):
+    """事件块第一行的事件名必须还在当前版本事件表里。"""
+    if not event_names:
+        return
+    lines = text.split("\n")
+    offs = _line_offsets(lines)
+    in_events, depth, i = False, 0, 0
+    while i < len(lines):
+        s = strip_noise(lines[i]).strip()
+        if s == "事件":
+            in_events, depth = True, 0
+            i += 1
+            continue
+        if not in_events:
+            i += 1
+            continue
+        if s.startswith("{"):
+            depth += 1
+        elif s.startswith("}"):
+            depth -= 1
+            if depth <= 0:
+                in_events = False
+        elif depth == 1 and s.endswith(";") and "(" not in s:
+            name = s[:-1].strip()
+            if name and name not in event_names:
+                _add(problems, text, offs[i], "error",
+                     "事件名「%s」不在当前版本数据表里（可能已改名或移除）；"
+                     "用 ws.py explain 查事件相关报错文案" % name)
+            if name == "子程序":
+                i += 1                    # 下一行是子程序名，不是事件名
+                while i < len(lines) and not strip_noise(lines[i]).strip():
+                    i += 1
+                i += 1
+                continue
+            # 事件参数行跟着事件名，不再当名字检查
+            i += 1
+            while i < len(lines):
+                nxt = strip_noise(lines[i]).strip()
+                if not nxt or nxt.startswith(("}", "{")) or "(" in nxt:
+                    break
+                i += 1
+            continue
+        i += 1
+
+
+def check_subroutines(text, problems, subroutines):
+    """子程序完整性：调用必存在（error）、声明必被调用（warning）。"""
+    if not isinstance(subroutines, dict):
+        subroutines = {n: 0 for n in subroutines}
+    called = {}
+    for m in re.finditer(r"调用子程序\(\s*([A-Za-z_]\w*)\s*\)", text):
+        called.setdefault(m.group(1), m.start())
+        if m.group(1) not in subroutines:
+            _add(problems, text, m.start(), "error",
+                 "调用子程序(%s) 找不到对应的子程序声明；游戏会报「未知的子程序」" % m.group(1))
+    for m in re.finditer(r"子程序\s*;\s*([A-Za-z_]\w*)\s*;", text):
+        called.setdefault(m.group(1), m.start())
+        if m.group(1) not in subroutines:
+            _add(problems, text, m.start(), "error",
+                 "事件里的子程序 %s 找不到对应的子程序声明" % m.group(1))
+    for name, line in sorted(subroutines.items(), key=lambda x: (x[1] or 0, x[0])):
+        if name and name not in called:
+            problems.append((line or 0, "warning",
+                             "子程序 %s 声明了但从未被调用（调用子程序 / 子程序事件里都没有）" % name))
+
+
+RULE_BYTE_LIMIT = 100352          # 98KB：游戏诊断面板「每条规则长度不得超过98KB」
+ELEMENT_LIMIT = 32768
+ELEMENT_WARN = 16384
+
+
+def check_limits(path, text, problems, sigs=None, labels=None):
+    """单条规则字节数上限 + 元素数上限。"""
+    for m in re.finditer(r"^\s*规则\(", text, re.M):
+        ob = text.find("{", m.end())
+        if ob < 0:
+            continue
+        depth, i = 1, ob + 1
+        while i < len(text) and depth:
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+            i += 1
+        size = len(text[m.start():i].encode("utf-8"))
+        if size > RULE_BYTE_LIMIT:
+            nm = re.search(r'规则\(\s*"([^"]*)"', text[m.start():m.start() + 80])
+            _add(problems, text, m.start(), "error",
+                 "规则「%s」有 %d 字节，超过单条规则 98KB（%d 字节）上限；"
+                 "游戏会报「每条规则长度不得超过98KB」，拆成多条规则"
+                 % (nm.group(1) if nm else "?", size, RULE_BYTE_LIMIT))
+    try:
+        import element_count
+        est = element_count.estimate(path, sigs, labels)[0]
+    except Exception:
+        return
+    if est > ELEMENT_LIMIT:
+        problems.append((0, "error",
+                         "预计元素数约 %d，超过 32768 上限（估算偏保守，按低估的值算也已经超了）；"
+                         "以游戏「显示诊断结果 → 总计元素数量」为准" % est))
+    elif est >= ELEMENT_WARN:
+        problems.append((0, "warning",
+                         "预计元素数约 %d，已接近 32768 上限（估算不精确，仅提示）；"
+                         "以游戏「显示诊断结果 → 总计元素数量」为准" % est))
+
+
+# ---------------------------------------------------------------- 类型层
 MIN_ARGS = {"修改全局变量": 3, "修改玩家变量": 4, "设置全局变量": 2, "设置玩家变量": 3}
+
+
+def _param_type(label):
+    """签名里的 `参数名:类型` -> 类型；没有类型标注返回空串。"""
+    if ":" in label:
+        return label.rsplit(":", 1)[1].strip()
+    return ""
+
+
+PLAYER_EXPR = re.compile(
+    r"^(事件玩家|本地玩家|攻击方|被攻击方|主机玩家|本市玩家|玩家|全部玩家|全部|双方|"
+    r"队伍1|队伍2|所有队伍|全部队伍)$"
+    r"|^(所有玩家|玩家|随机玩家|随机英雄|所有支援英雄|所有输出英雄|所有重装英雄)\(.*\)$")
+
+
+def _check_arg_type(name, idx, label, arg, pos, problems, text):
+    """参数类型硬冲突：只报「玩家槽塞数字」「数值槽塞玩家表达式」这两种。
+
+    其余组合（布尔、选择、变量、向量…）一律不报——数据里的类型标注不全，
+    历史上按「必填参数个数」硬查过一次，噪声 71 条，整条撤回了。
+    """
+    a = arg.strip()
+    if not a:
+        return
+    ptype = _param_type(label)
+    slot = "第 %d 个参数" % (idx + 1)
+    if ptype == "玩家":
+        if re.fullmatch(r"-?\d+(?:\.\d+)?", a) or a in ("真", "假", "True", "False"):
+            _add(problems, text, pos, "error",
+                 "%s %s 要的是「玩家」（玩家 / 玩家列表），这里填的是 %s；"
+                 "游戏会报「之后应有一个玩家」" % (name, slot, a))
+    elif ptype == "数值":
+        if PLAYER_EXPR.match(a):
+            _add(problems, text, pos, "error",
+                 "%s %s 要的是「数值」，这里填的是玩家表达式 %s" % (name, slot, a))
+
+
+def split_args_pos(s, base=0):
+    """按顶层逗号切分参数，同时给出每个参数在原文里的起始偏移。"""
+    out, depth, cur, start = [], 0, "", None
+    in_str, escaped = False, False
+    for idx, ch in enumerate(s):
+        if in_str:
+            cur += ch
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+            cur += ch
+        elif ch in "([{":
+            depth += 1
+            cur += ch
+        elif ch in ")]}":
+            depth -= 1
+            cur += ch
+        elif ch == "," and depth == 0:
+            out.append((cur, base + (start if start is not None else idx)))
+            cur, start = "", None
+            continue
+        else:
+            cur += ch
+        if start is None and not ch.isspace():
+            start = idx
+    if cur.strip() or out:
+        out.append((cur, base + (start if start is not None else base)))
+    return out
+
+
+def _var_block_span(text):
+    """变量块的 (起, 止) 字符偏移；没有变量块返回 None。"""
+    m = re.search(r"^\s*变量\s*$", text, re.M)
+    if not m:
+        return None
+    ob = text.find("{", m.end())
+    if ob < 0:
+        return None
+    depth, i = 1, ob + 1
+    while i < len(text) and depth:
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+        i += 1
+    return ob, i
+
+
 
 
 def check_arg_count(text, problems):
@@ -713,10 +1194,10 @@ def check_local_values(text, problems):
         body = m.group(1)
         if "本地玩家" not in body:
             continue
-        line = text.count("\n", 0, m.start()) + 1
-        problems.append((line, "error",
-                         "全局变量不能存局部值（含「本地玩家」）；游戏会报"
-                         "「局部值只能用于视觉效果或HUD动作」，改用玩家变量或 事件玩家"))
+        _add(problems, text, m.start(), "error",
+             "全局变量不能存局部值（含「本地玩家」）；游戏会报"
+             "「局部值只能用于视觉效果或HUD动作」，改用玩家变量或 事件玩家")
+
 
 
 def check_map_names(text, problems, map_names):
@@ -731,10 +1212,10 @@ def check_map_names(text, problems, map_names):
         name = m.group(1)
         if name in map_names or re.fullmatch(r"[\d.]+", name):
             continue
-        line = text.count("\n", 0, m.start()) + 1
-        problems.append((line, "error",
-                         "地图「%s」不在当前版本地图表里（可能已改名或移除）；"
-                         "游戏会报「\"地图(\"之后应有一个地图名称」。用 ws.py maps 查有效名" % name))
+        _add(problems, text, m.start(), "error",
+             "地图「%s」不在当前版本地图表里（可能已改名或移除）；"
+             "游戏会报「\"地图(\"之后应有一个地图名称」。用 ws.py maps 查有效名" % name)
+
 
 
 def check_missing_var_block(text, problems):
@@ -757,10 +1238,10 @@ def check_missing_var_block(text, problems):
 
 def check_var_refs(text, problems):
     """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。"""
-    vi = text.find("变量")
-    if vi < 0:
+    span = _var_block_span(text)
+    if not span:
         return
-    body = text[vi:]
+    body = text[span[0]:span[1]]
     gi = body.find("全局:")
     pi = body.find("玩家:")
     gl, pl = set(), set()
@@ -774,25 +1255,38 @@ def check_var_refs(text, problems):
         return
     for m in re.finditer(r"全局\.(\w+)", text):
         if m.group(1) not in gl:
-            line = text.count(chr(10), 0, m.start()) + 1
-            problems.append((line, "error", "全局.%s 没有在变量块里声明" % m.group(1)))
+            _add(problems, text, m.start(), "error", "全局.%s 没有在变量块里声明" % m.group(1))
     for m in re.finditer(r"(?:事件玩家|本地玩家)\.(\w+)", text):
         if m.group(1) not in pl:
-            line = text.count(chr(10), 0, m.start()) + 1
-            problems.append((line, "error", "%s.%s 没有声明为玩家变量" % (m.group(0).split(".")[0], m.group(1))))
+            _add(problems, text, m.start(), "error",
+                 "%s.%s 没有声明为玩家变量" % (m.group(0).split(".")[0], m.group(1)))
 
 
 def check_unassigned(text, problems):
     """声明了但从未赋值的变量（会静默保持 0）。warning。"""
-    names = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
-    if not names:
+    span = _var_block_span(text)
+    if not span:
+        return
+    body = text[span[0]:span[1]]
+    decl = {}
+    for m in re.finditer(r"^[ \t]*\d+\s*:\s*([A-Za-z_]\w*)\s*$", body, re.M):
+        decl.setdefault(m.group(1), span[0] + m.start(1))
+    if not decl:
         return
     written = set()
     for pat in (r"(?:设置|修改)全局变量\(\s*(\w+)", r"(?:设置|修改)玩家变量\([^,，]+[,，]\s*(\w+)"):
         written |= set(re.findall(pat, text))
-    used = set(re.findall(r"(?:全局|事件玩家|本地玩家)\.(\w+)", text))
-    for n in sorted((used & names) - written):
-        problems.append((0, "warning", "变量 %s 声明了但从未赋值，会一直是 0" % n))
+    # 直接赋值写法：全局.X = … / 事件玩家.X += 1 / 所有玩家(所有队伍).X[2] = …
+    written |= set(re.findall(
+        r"(?:全局|事件玩家|本地玩家|攻击方|被攻击方|主机玩家|本市玩家"
+        r"|所有玩家\([^()]*\)|玩家\([^()]*\)|随机玩家\([^()]*\))\.(\w+)(?:\[[^\]]*\])*\s*[-+*/]?=(?!=)", text))
+    # For 循环的控制变量由循环本身赋值
+    written |= set(re.findall(r"For\s+(?:全局变量|玩家变量)\(\s*(\w+)", text))
+
+    for name, pos in sorted(decl.items(), key=lambda x: x[1]):
+        if name not in written:
+            _add(problems, text, pos, "warning", "变量 %s 声明了但从未赋值，会一直是 0" % name)
+
 
 
 def check_lazy_display(text, problems):
@@ -807,7 +1301,7 @@ def check_lazy_display(text, problems):
                                  "先用临时变量快照再显示" % var))
 
 
-def check_types(text, problems):
+def check_types(text, problems, labels=None):
     """按参数类型校验（类型来自 data/signatures.md）。
 
     覆盖两类高频错：For 控制变量必须先声明；变量当值要写 全局.X。
@@ -815,14 +1309,16 @@ def check_types(text, problems):
     declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
     if not declared:
         return
+    # 这些函数的某个参数类型是「变量」，本来就要裸写变量名，不算「当值用」
+    var_slot_funcs = {n for n, ls in (labels or {}).items()
+                      if any(_param_type(x) == "变量" for x in ls)}
     # For 全局变量 / For 玩家变量：第一个参数必须是已声明的变量
     for m in re.finditer(r"For\s+(全局变量|玩家变量)\(\s*([A-Za-z_]\w*)", text):
         if m.group(2) not in declared:
-            line = text.count(chr(10), 0, m.start()) + 1
-            problems.append((line, "error",
-                             "For 循环的控制变量 %s 没有在变量块里声明" % m.group(2)))
+            _add(problems, text, m.start(), "error",
+                 "For 循环的控制变量 %s 没有在变量块里声明" % m.group(2))
     # 变量当值：出现在值位置（逗号后）的裸变量名
-    for m in re.finditer(r"[，,]\s*([A-Za-z_]\w*)\s*(?=[，,)])", text):
+    for m in re.finditer(r"[，,]\s*([A-Za-z_]\w*)\s*(?=[，,)]|$)", text):
         name = m.group(1)
         if name not in declared:
             continue
@@ -831,39 +1327,47 @@ def check_types(text, problems):
             continue                      # 变量目标位，合法
         if re.search(r"For\s+(全局变量|玩家变量)\([^,，]*$", before):
             continue                      # For 的控制变量，本来就是裸写
-        line = text.count(chr(10), 0, m.start()) + 1
-        problems.append((line, "error",
-                         "变量 %s 当值用要写 全局.%s 或 事件玩家.%s" % (name, name, name)))
+        fn = re.search(r"([\u4e00-\u9fffA-Za-z_][\w\u4e00-\u9fff]*)\([^()]*$", before)
+        if fn and fn.group(1) in var_slot_funcs:
+            continue                      # 追踪变量 / 设置变量 这类槽位本来就裸写
+        _add(problems, text, m.start(), "error",
+             "变量 %s 当值用要写 全局.%s 或 事件玩家.%s" % (name, name, name))
+
 
 
 def check_misc(text, problems):
     """吸收自 workshop.codes linter 的其余规则。"""
     # 1) 块结尾 } 后多余分号
     for m in re.finditer(r"\}\s*;", text):
-        line = text.count(chr(10), 0, m.start()) + 1
-        problems.append((line, "error", "块结尾的 } 后面不能加分号"))
+        _add(problems, text, m.start(), "error", "块结尾的 } 后面不能加分号")
 
-    # 2) 子程序必须已声明
-    declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
-    for m in re.finditer(r"调用子程序\(\s*([A-Za-z_]\w*)\s*\)", text):
-        if m.group(1) not in declared:
-            line = text.count(chr(10), 0, m.start()) + 1
-            problems.append((line, "error", "调用子程序(%s) 找不到对应的子程序声明" % m.group(1)))
+    # 2) 地图 id 不能是 0（会导致导入失败）
+    lines = text.split("\n")
+    offs = _line_offsets(lines)
+    for idx, line in enumerate(lines):
+        if " 0" not in line:             # 快速排除，别让长行上去回溯
+            continue
+        m = re.fullmatch(r"[ \t]*([^\s:][^\n:]*?)[ \t]+0[ \t]*", line)
+        if not m:
+            continue
+        if re.search(r"[=()<>!+\-*/]", m.group(0)):
+            continue                     # 是表达式/赋值，不是「地图名 id」行
+        _add(problems, text, offs[idx], "error", "地图 id 不能是 0：%s" % m.group(1).strip())
 
-    # 3) 地图 id 不能是 0（会导致导入失败）
-    for m in re.finditer(r"^\s*([^\s:][^\n:]*?)\s+0\s*$", text, re.M):
-        line = text.count(chr(10), 0, m.start()) + 1
-        problems.append((line, "error", "地图 id 不能是 0：%s" % m.group(1).strip()))
 
-    # 4) 变量名只差大小写
-    names = re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M)
-    groups = {}
-    for n in names:
-        groups.setdefault(n.lower(), set()).add(n)
-    for group in groups.values():
-        if len(group) > 1:
-            problems.append((0, "warning", "变量名只差大小写，工坊会当成同一个：%s"
-                             % " / ".join(sorted(group))))
+    # 3) 变量名只差大小写
+    span = _var_block_span(text)
+    if span:
+        names = re.findall(r"^[ \t]*\d+\s*:\s*([A-Za-z_]\w*)\s*$",
+                           text[span[0]:span[1]], re.M)
+        groups = {}
+        for n in names:
+            groups.setdefault(n.lower(), set()).add(n)
+        for group in groups.values():
+            if len(group) > 1:
+                problems.append((0, "warning", "变量名只差大小写，工坊会当成同一个：%s"
+                                 % " / ".join(sorted(group))))
+
 
 
 def strip_comments(text):
@@ -906,41 +1410,91 @@ def _ends_in_string(line, in_str=False):
     return in_str
 
 
-def join_multiline_strings(text):
-    """把跨行的字符串字面量接回一行（.ow 允许字符串内直接换行）。"""
+class SegMap:
+    """合并后的 (行, 列) -> 上一层原文的 (行, 列)。
+
+    跨行语句/跨行字符串都是把后续行的内容挪到前面的行上，行号本身不变，
+    但报错必须指到内容真正所在的那一行，所以合并时要记下每段的起始列。
+    """
+
+    def __init__(self):
+        self.segs = {}          # 行号(1 基) -> [(起始列, 源行号, 源行内列偏移)]
+
+    def add(self, line_no, col_start, src_line, src_col=0):
+        self.segs.setdefault(line_no, []).append((col_start, src_line, src_col))
+
+    def drop(self, line_no):
+        self.segs.pop(line_no, None)
+
+    def locate(self, line_no, col):
+        """合并文本的 (行, 列) -> 上一层的 (行, 列)。"""
+        segs = self.segs.get(line_no)
+        if not segs or col is None:
+            return line_no, col
+        pick = None
+        for seg in segs:                     # segs 按列递增
+            if col >= seg[0]:
+                pick = seg
+            else:
+                break
+        if pick is None:                     # 列在第一个续行之前 = 起始行自己的内容
+            return line_no, col
+        return pick[1], col - pick[0] + pick[2]
+
+
+
+def join_multiline_strings_mapped(text):
+    """把跨行的字符串字面量接回一行（.ow 允许字符串内直接换行）。
+
+    返回 (接好的文本, SegMap)。接好的文本行数与原文一致（续行留空）。
+    """
     lines = text.split("\n")
     out, in_str = [], False
-    for line in lines:
+    smap = SegMap()
+    for idx, line in enumerate(lines):
         if out and in_str:
-            out[-1] += " " + line.strip()   # 字符串续行，拼到上一行
-            out.append("")                  # 原行留空，保持行号
+            col_start = len(out[-1]) + 1                 # 空格之后
+            indent = len(line) - len(line.lstrip())
+            out[-1] += " " + line.strip()
+            smap.add(len(out), col_start, idx + 1, indent)
+            out.append("")                               # 原行留空，保持行号
             in_str = _ends_in_string(line, True)
             continue
         out.append(line)
         in_str = _ends_in_string(line, False)
-    return "\n".join(out)
+    return "\n".join(out), smap
 
 
-def merge_continuations(text, max_lines=60):
+def join_multiline_strings(text):
+    """把跨行的字符串字面量接回一行（.ow 允许字符串内直接换行）。"""
+    return join_multiline_strings_mapped(text)[0]
+
+
+def merge_continuations_mapped(text, max_lines=60):
     """把跨行语句合并到起始行（括号未闭合时继续拼接），后续行留空以保持行号。
 
     只合并、不改写原文。超过 max_lines 仍未闭合时**放弃合并并还原**——
     宁可让这一处退回逐行检查，也不能把后面整个文件吞进一条语句。
+    返回 (合并后的文本, SegMap)，SegMap 用来把报错换算回原文行号。
     """
     lines = text.split("\n")
-    out = []
+    out, smap = [], SegMap()
     buf, depth, start, group = None, 0, -1, []
-    for line in lines:
+    for idx, line in enumerate(lines):
         code = strip_noise(line)
         if buf is not None:
             group.append(line)
+            col_start = len(buf) + 1
+            indent = len(line) - len(line.lstrip())
             buf += " " + line.strip()
+            smap.add(start + 1, col_start, idx + 1, indent)
             depth += code.count("(") - code.count(")")
             out.append("")
             if depth <= 0 and code.strip().endswith(";"):
                 out[start] = buf
                 buf, depth, start, group = None, 0, -1, []
             elif len(group) > max_lines:
+                smap.drop(start + 1)
                 for k, orig in enumerate(group[:max_lines + 1]):
                     if start + k < len(out):
                         out[start + k] = orig
@@ -954,7 +1508,80 @@ def merge_continuations(text, max_lines=60):
             out.append(line)
     if buf is not None and start >= 0:
         out[start] = buf
-    return "\n".join(out)
+    return "\n".join(out), smap
+
+
+def merge_continuations(text, max_lines=60):
+    """把跨行语句合并到起始行（括号未闭合时继续拼接），后续行留空以保持行号。
+
+    只合并、不改写原文。超过 max_lines 仍未闭合时**放弃合并并还原**——
+    宁可让这一处退回逐行检查，也不能把后面整个文件吞进一条语句。
+    """
+    return merge_continuations_mapped(text, max_lines)[0]
+
+
+def mask_text(text):
+    """和 strip_noise 同样的语义，但**保持长度不变**。
+
+    字符串内容、行注释、块注释都替换成等长空格，换行原样保留。
+    这样各处报错算出来的列偏移能直接拿去查 SegMap。
+    """
+    out = []
+    i, n = 0, len(text)
+    in_str = in_block = in_line = False
+    escaped = False
+    while i < n:
+        ch = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if in_line:
+            if ch == "\n":
+                in_line = False
+                out.append(ch)
+            else:
+                out.append(" ")
+            i += 1
+            continue
+        if in_block:
+            if ch == "*" and nxt == "/":
+                in_block = False
+                out.append("  ")
+                i += 2
+                continue
+            out.append("\n" if ch == "\n" else " ")
+            i += 1
+            continue
+        if in_str:
+            if escaped:
+                escaped = False
+                out.append(" ")
+            elif ch == "\\":
+                escaped = True
+                out.append(" ")
+            elif ch == '"':
+                in_str = False
+                out.append('"')
+            else:
+                out.append("\n" if ch == "\n" else " ")
+            i += 1
+            continue
+        if ch == "/" and nxt == "/":
+            in_line = True
+            out.append("  ")
+            i += 2
+            continue
+        if ch == "/" and nxt == "*":
+            in_block = True
+            out.append("  ")
+            i += 2
+            continue
+        if ch == '"':
+            in_str = True
+            out.append('"')
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
 
 
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None):
@@ -963,14 +1590,24 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     with open(path, encoding="utf-8") as f:
         raw = f.read()
     text = raw.replace("\r\n", "\n")
-    text = merge_continuations(join_multiline_strings(text))
+    # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
+    text, s_str = join_multiline_strings_mapped(text)
+    text, s_merge = merge_continuations_mapped(text)
     lines = text.split("\n")
+
+    def orig_line(line_no, col=None):
+        """合并文本的 (行, 列) -> 原文行号。"""
+        if not line_no:
+            return line_no
+        ln, c = s_merge.locate(line_no, col)
+        ln, _c = s_str.locate(ln, c)
+        return ln
 
     stack, pending = [], None
     paren_depth = 0
     var_section = None
     declared = {"全局": set(), "玩家": set()}
-    subroutines = set()
+    subroutines = {}
     global_rule = False
     in_comment = False
 
@@ -1037,7 +1674,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
                 sidx = int(stripped.split(":", 1)[0])
                 if sidx > 127:
                     problems.append((ln, "error", "子程序索引最大 127，这里是 %d" % sidx))
-                subroutines.add(stripped.split(":", 1)[1].strip())
+                subroutines[stripped.split(":", 1)[1].strip()] = ln
             if not re.match(r"^\d+\s*:", stripped):
                 problems.append((ln, "error", "子程序块里只能写 `索引: 子程序名`：%s" % stripped))
             else:
@@ -1121,7 +1758,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             problems.append((0, "error",
                              "事件块只能是 1 行（全局事件）或 3 行（事件; 队伍; 英雄;），这里是 %d 行" % count))
 
-    masked = strip_noise(text)
+    masked = mask_text(text)                 # 与 text 等长，列偏移可直接查 SegMap
     if len(subroutines) > 128:
         problems.append((0, "error", "子程序最多 128 个，现在 %d 个" % len(subroutines)))
     for section, names in declared.items():
@@ -1132,8 +1769,13 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         owner, name = m.group(1), m.group(2)
         section = "全局" if owner == "全局" else "玩家"
         if name not in declared[section]:
-            problems.append((0, "warning", "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
+            pos = text.find("%s.%s" % (owner, name))
+            line_no = text.count("\n", 0, pos) + 1 if pos >= 0 else 0
+            problems.append((line_no, "warning",
+                             "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
+    all_vars = declared["全局"] | declared["玩家"]
+    hero_names = load_hero_names()
     scan_calls(masked, sigs, labels, problems, options)
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
@@ -1143,7 +1785,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_string_interp(text, problems)
     check_duplicate_rule_names(text, problems)
     check_arg_count(masked, problems)
-    check_types(masked, problems)
+    check_types(masked, problems, labels)
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
@@ -1152,18 +1794,32 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
+    # 数据 ID 层：名字必须还在当前版本表里
+    check_hero_names(masked, problems, hero_names, all_vars)
+    check_button_names(masked, problems, load_button_names())
+    check_ability_names(text, problems, load_ability_names(), hero_names)
+    check_setting_keys(text, problems, load_setting_keys())
+    check_event_names(masked, problems, load_event_names())
+    # 类型层：完整性 + 上限
+    check_subroutines(masked, problems, subroutines)
+    check_limits(path, text, problems, sigs, labels)
 
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))
 
     seen, unique = set(), []
     for item in problems:
-        key = (item[0], item[2])
+        line_no, level, msg = item[0], item[1], item[2]
+        col = item[3] if len(item) > 3 else None
+        if line_no:
+            line_no = orig_line(line_no, col)      # 换算回原文行号
+        key = (line_no, msg)
         if key in seen:
             continue
         seen.add(key)
-        unique.append(item)
+        unique.append((line_no, level, msg))
     return unique
+
 
 
 def main():
