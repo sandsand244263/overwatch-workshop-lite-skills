@@ -86,3 +86,29 @@ python tools/ws.py stats 天使
 #   全量扫描约 7 秒；整理脚本 build_all_full.py
 # 详见 C:/owdump/hero-stats/报告-技能数值全量.md
 ```
+
+## 排错：`BLTEKeyException unknown key` 不等于缺密钥
+
+第一次跑全量时有 1 个英雄（血律）读不出，报：
+
+```
+BLTEKeyException unknown key 16060580FBF16E29
+```
+
+**但 key 本来就在 keyring 里**：
+
+```
+16060580FBF16E29 F0B4C09C44DD411322C494686D3142CD 1  # [2.24.1] Doctrine
+```
+
+真正原因是**探针的输出目录 `bin/Release/net10.0/` 里没有 `Overwatch.keyring`**，TACTLib 从可执行文件所在目录找它，找不到就当"没有这个 key"。
+
+修法：
+
+```bash
+cp "E:/工作内容/11_vibe-coding项目/OWLib/TankLib/Overwatch.keyring"    <探针目录>/bin/Release/net10.0/
+```
+
+补上后同一份代码重跑：面板行 1977 → 2012、`loadout_fail` 归零、血律出 59 行。
+
+**教训**：报"未知 key"时，先查 keyring 文件是否存在且被加载，再怀疑密钥缺失。
