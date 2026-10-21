@@ -340,7 +340,8 @@ def _guess_value(key):
 def _load_visible_keys(hero):
     """data/hero-visible-keys.tsv：游戏页实际显示的键（截图/导出为证）。"""
     import csv
-    path = os.path.join(DATA, "hero-visible-keys.tsv")
+    off = os.path.join(DATA, "hero-official-keys.tsv")
+    path = off if os.path.isfile(off) else os.path.join(DATA, "hero-visible-keys.tsv")
     if not os.path.isfile(path):
         return None
     rows = [r["key"] for r in csv.DictReader(open(path, encoding="utf-8"), delimiter="\t") if r["hero"] == hero]
