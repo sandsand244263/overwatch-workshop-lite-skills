@@ -82,7 +82,6 @@ hero	key	page	visibility	evidence
 天使	天使降临	技能	visible	hero-page-re 逆向 + golden2 实证
 天使	同情愈疗	技能	visible	hero-page-re 逆向 + golden2 实证
 天使		技能	visible	hero-page-re 逆向 + golden2 实证
-天使	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 半藏	音	技能	visible	hero-page-re 逆向 + golden2 实证
 半藏	音冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 半藏	岚	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -171,8 +170,6 @@ hero	key	page	visibility	evidence
 莱因哈特	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 莱因哈特	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 莱因哈特		技能	visible	hero-page-re 逆向 + golden2 实证
-莱因哈特	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
-莱因哈特	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
 莱因哈特	冲锋击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 莱因哈特	火箭重锤击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
 法老之鹰	推进背包	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -211,7 +208,6 @@ hero	key	page	visibility	evidence
 法老之鹰	推进背包燃料补充倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 法老之鹰	震荡冲击击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 法老之鹰		技能	visible	hero-page-re 逆向 + golden2 实证
-法老之鹰	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 法老之鹰	火箭发射器击退倍率	武器	visible	hero-page-re 逆向 + golden2 实证
 温斯顿	喷射背包	技能	visible	hero-page-re 逆向 + golden2 实证
 温斯顿	喷射背包冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -274,7 +270,6 @@ hero	key	page	visibility	evidence
 堡垒	切换模式	技能	visible	hero-page-re 逆向 + golden2 实证
 堡垒	切换模式冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 堡垒		技能	visible	hero-page-re 逆向 + golden2 实证
-堡垒	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 堡垒	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
 堡垒	终极技能（火炮模式）	技能	visible	hero-page-re 逆向 + golden2 实证
 堡垒	终极技能充能速度（火炮模式）	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -410,10 +405,7 @@ hero	key	page	visibility	evidence
 路霸	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 路霸	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 路霸	鸡飞狗跳击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
-路霸	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
-路霸	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
 路霸		技能	visible	hero-page-re 逆向 + golden2 实证
-路霸	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 路霸	废品压缩器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 卡西迪	战术翻滚	技能	visible	hero-page-re 逆向 + golden2 实证
 卡西迪	战术翻滚冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -527,7 +519,6 @@ hero	key	page	visibility	evidence
 士兵：76	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 士兵：76	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 士兵：76		技能	visible	hero-page-re 逆向 + golden2 实证
-士兵：76	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 士兵：76	螺旋飞弹击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 卢西奥	切歌	技能	visible	hero-page-re 逆向 + golden2 实证
 卢西奥	切歌冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -556,7 +547,6 @@ hero	key	page	visibility	evidence
 卢西奥	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 卢西奥	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 卢西奥		技能	visible	hero-page-re 逆向 + golden2 实证
-卢西奥	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 卢西奥	音波击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Va	推进器	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Va	推进器冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -585,8 +575,6 @@ D.Va	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
 D.Va	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 D.Va	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 D.Va		技能	visible	hero-page-re 逆向 + golden2 实证
-D.Va	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
-D.Va	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Va	推进器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Va	自毁击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Va	呼叫机甲击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -651,7 +639,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 黑影	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 黑影	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 黑影		技能	visible	hero-page-re 逆向 + golden2 实证
-黑影	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	裂地重拳	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	裂地重拳冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	悍猛格挡	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -679,7 +666,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 末日铁拳	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 末日铁拳		技能	visible	hero-page-re 逆向 + golden2 实证
-末日铁拳	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	火箭重拳击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	毁天灭地击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 末日铁拳	悍猛格挡充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -739,7 +725,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 奥丽莎	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 奥丽莎	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 奥丽莎		技能	visible	hero-page-re 逆向 + golden2 实证
-奥丽莎	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	流星飞锤	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	流星飞锤冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	恢复包	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -767,7 +752,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 布丽吉塔	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 布丽吉塔		技能	visible	hero-page-re 逆向 + golden2 实证
-布丽吉塔	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	能量盾击	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	能量盾击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 布丽吉塔	能量盾击击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -831,10 +815,8 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 破坏球	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 破坏球	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 破坏球		技能	visible	hero-page-re 逆向 + golden2 实证
-破坏球	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 破坏球	工程抓钩击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
 破坏球		技能	visible	hero-page-re 逆向 + golden2 实证
-破坏球	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 破坏球	地雷禁区击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
 破坏球	动力铁球始终激活	技能	visible	hero-page-re 逆向 + golden2 实证
 索杰恩	机动滑铲	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -867,7 +849,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 索杰恩	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 索杰恩		技能	visible	hero-page-re 逆向 + golden2 实证
 索杰恩	辅助攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
-索杰恩	充能速度 %1$s	武器	visible	hero-page-re 逆向 + golden2 实证
 艾什	短筒猎枪	技能	visible	hero-page-re 逆向 + golden2 实证
 艾什	短筒猎枪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 艾什	延时雷管	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -928,7 +909,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 回声	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 回声	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 回声		技能	visible	hero-page-re 逆向 + golden2 实证
-回声	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 回声	滑翔	技能	visible	hero-page-re 逆向 + golden2 实证
 巴蒂斯特	愈合冲击	技能	visible	hero-page-re 逆向 + golden2 实证
 巴蒂斯特	愈合冲击冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1012,7 +992,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 渣客女王	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 渣客女王	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 渣客女王		技能	visible	hero-page-re 逆向 + golden2 实证
-渣客女王	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 渣客女王	锯齿利刃击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 渣客女王	锯齿利刃自动召回延迟	技能	visible	hero-page-re 逆向 + golden2 实证
 西格玛	动能俘获	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1042,8 +1021,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 西格玛	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 西格玛	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 西格玛		技能	visible	hero-page-re 逆向 + golden2 实证
-西格玛	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
-西格玛	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
 西格玛	质量吸附击退距离	技能	visible	hero-page-re 逆向 + golden2 实证
 拉玛刹	天罚形态	技能	visible	hero-page-re 逆向 + golden2 实证
 拉玛刹	天罚形态冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1074,7 +1051,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 拉玛刹	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 拉玛刹	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 拉玛刹		技能	visible	hero-page-re 逆向 + golden2 实证
-拉玛刹	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 拉玛刹	铁臂（天罚形态）	技能	visible	hero-page-re 逆向 + golden2 实证
 生命之梭	花瓣平台	技能	visible	hero-page-re 逆向 + golden2 实证
 生命之梭	花瓣平台冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1197,14 +1173,12 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 弗蕾娅	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 弗蕾娅	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 弗蕾娅		技能	visible	hero-page-re 逆向 + golden2 实证
-弗蕾娅	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 弗蕾娅	疾冲距离	技能	visible	hero-page-re 逆向 + golden2 实证
 弗蕾娅	上升气流高度	技能	visible	hero-page-re 逆向 + golden2 实证
 弗蕾娅	瞄准射击持续时间	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	钻地	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	钻地冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇		技能	visible	hero-page-re 逆向 + golden2 实证
-探奇	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	快速近身攻击	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	终极技能（地壳震击）	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	终极技能充能速度（地壳震击）	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1230,7 +1204,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 探奇	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 探奇		技能	visible	hero-page-re 逆向 + golden2 实证
-探奇	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 探奇	钻地持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 骇灾	狂跃	技能	visible	hero-page-re 逆向 + golden2 实证
 骇灾	狂跃冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1292,7 +1265,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 朱诺	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 朱诺	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 朱诺		技能	visible	hero-page-re 逆向 + golden2 实证
-朱诺	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 朱诺	滑翔推进持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 朱诺		技能	visible	hero-page-re 逆向 + golden2 实证
 无漾	飞流步	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1386,7 +1358,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 金驭	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 金驭	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 金驭		技能	visible	hero-page-re 逆向 + golden2 实证
-金驭	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 金驭	音速斥力场击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 金驭	终极技能屏障生命值倍率（全景牢笼）	技能	visible	hero-page-re 逆向 + golden2 实证
 金驭	护盾重构治疗量倍率	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1417,7 +1388,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 西拉	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 西拉	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 西拉		技能	visible	hero-page-re 逆向 + golden2 实证
-西拉	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 西拉	震地手雷击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 埃姆雷	虹吸冲击枪	技能	visible	hero-page-re 逆向 + golden2 实证
 埃姆雷	虹吸冲击枪冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1505,7 +1475,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 瑞稀	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 瑞稀	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 瑞稀		技能	visible	hero-page-re 逆向 + golden2 实证
-瑞稀	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 瑞稀	替魂纸人持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 飞天猫	救生索	技能	visible	hero-page-re 逆向 + golden2 实证
 飞天猫	救生索冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1536,7 +1505,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 飞天猫	生物猫爪弹射程	武器	visible	hero-page-re 逆向 + golden2 实证
 飞天猫		技能	visible	hero-page-re 逆向 + golden2 实证
 飞天猫	咻咻飞无限燃料	技能	visible	hero-page-re 逆向 + golden2 实证
-飞天猫	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
 飞天猫	咻咻飞最大时间	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	机动闪避	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	机动闪避冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1566,7 +1534,6 @@ D.Va	无机甲重生	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 死怨	机动闪避距离倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨		技能	visible	hero-page-re 逆向 + golden2 实证
-死怨	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	纵情狂飙持续时间倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	纵情狂飙无限持续时间	技能	visible	hero-page-re 逆向 + golden2 实证
 死怨	纵情狂飙速度倍率	技能	visible	hero-page-re 逆向 + golden2 实证
@@ -1598,10 +1565,6 @@ D.Mon	主要攻击模式	武器	visible	hero-page-re 逆向 + golden2 实证
 D.Mon	弹夹容量倍率	武器	hidden	hero-page-re 逆向 + golden2 实证
 D.Mon	无需装弹	武器	hidden	hero-page-re 逆向 + golden2 实证
 D.Mon		技能	visible	hero-page-re 逆向 + golden2 实证
-D.Mon	%1$s冷却时间	技能	visible	hero-page-re 逆向 + golden2 实证
-D.Mon	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
-D.Mon	%1$s充能速度	技能	visible	hero-page-re 逆向 + golden2 实证
-D.Mon	%1$s最长时间	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Mon	助推器击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Mon	突进刺击击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
 D.Mon	呼叫机甲击退倍率	技能	visible	hero-page-re 逆向 + golden2 实证
