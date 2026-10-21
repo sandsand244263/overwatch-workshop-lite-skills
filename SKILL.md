@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.21.1
+version: 2.22.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -11,75 +11,93 @@ metadata:
 
 # Overwatch Workshop Lite
 
-定位：**纯 vibe coding**。用户只做两件事——把文件导入工坊、开一局看功能对不对。其余（语法、参数、设置项、元素预算、混淆、发布文件）全部由你兜底，不许要求用户手改代码或装插件。
+写 `.ow` 工坊代码。用户只负责导入和试玩，语法、参数、设置项、元素预算、混淆、交付文件由本技能兜底。
 
-## 目录分工
+## 目录契约
 
-| 目录 | 内容 | 能否手改 |
+| 目录 | 内容 | 维护方式 |
 |---|---|---|
-| `data/` | 动作、值函数、参数、下拉选项、设置项、字符串、英雄地图；由 `tools/gen_data.py` 从游戏导出生成，文件头带 build 与导出日期 | **禁止手改** |
-| `docs/` | 数据里没有的知识：格式、坑、模式、诊断、上限、元素成本、生态 | 手写 |
-| `tools/` | `ws.py` 唯一入口 + 校验引擎 + 数据生成 + 实测探针 | 手写 |
+| `data/` | 游戏导出的权威数据 | **只由 `ws.py gen` / `enrich.py` 生成，禁止手改** |
+| `docs/` | 数据里没有的知识 | 手写 |
+| `tools/` | 唯一入口 `ws.py`、校验引擎、生成器、探针 | 手写 |
 
-判据：**数据决定"存在什么"，实测决定"能不能导入"**。冲突时以实测为准，并在 `docs/` 写明依据。
+判据：**数据决定"存在什么"，实测决定"能不能导入"**。两者冲突以实测为准，并写进 `docs/`。
 
-## 唯一入口
+### data/ 文件清单
+
+| 文件 | 内容 |
+|---|---|
+| `signatures.md` | 225 动作 + 266 值函数的参数签名（含类型与下拉可选值） |
+| `settings.tsv` | 269 设置键：类型与可写值 |
+| `schema-keys.tsv` | schema → 键名（475 条），设置项归属的权威来源 |
+| `mode-schemas.tsv` | 模式 → schema 列表（137 模式） |
+| `hero-schemas.tsv` | 英雄 → schema 列表（135 英雄） |
+| `maps.tsv` | 291 地图名 + GUID + 变体标记 |
+| `events.tsv` | 14 个事件 + 参数位 |
+| `strings.md` | 615 条文本选项（`字符串(...)` 只能用这里面的） |
+| `defaults.tsv` | 参数省略时的默认值 |
+| `enums.md` | 英雄 / 地图 / 下拉选项全集 |
+| `action-tags.tsv` | 484 动作的功能分类 |
+| `meta.json` | 数据基线的 build 与导出日期 |
+
+## 入口
 
 ```bash
 python tools/ws.py check 模式.ow                        # 校验，交付前必跑，必须 0 error
-python tools/ws.py count 模式.ow                        # 元素数估算（预警用）
-python tools/ws.py defaults 创建HUD文本                  # 查参数默认值（省略尾部参数时游戏用什么）
-python tools/ws.py publish 模式.ow --outdir out          # 出源码版
-python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 额外出混淆版
+python tools/ws.py count 模式.ow                        # 元素数估算
+python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
+python tools/ws.py publish 模式.ow --outdir out          # 源码版
+python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 加一份混淆版
 python tools/ws.py gen --src <导出目录>                  # 重新生成 data/
-python tools/ws.py diff --prev <旧导出> --cur <新导出>    # 全量对照
+python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量对照
 ```
 
 ## 工作流
 
-1. **查数据不凭记忆**：参数个数与顺序看 `data/signatures.md`（`ws.py defaults 函数名` 能查每个参数省略时的默认值）；设置项键与值看 `data/settings.tsv`；`字符串(...)` 只能用 `data/strings.md` 里的现成词条，自由文本一律 `自定义字符串`。
-2. **先抄模板**：HUD、周期、计分、条件等待、数组、快照六类骨架在 `docs/patterns.md` 末尾「可套用模板」，直接套用不要临场发挥。
-3. **格式照 `docs/format-spec.md`**：块标题独占一行、`{` 在下一行；变量分 `全局:` / `玩家:` 两段；事件块全局 1 行、其它 3 行、子程序 2 行；控制流 `While(...)/If(...)/Else If(...)/End;`。
-3. **写完必跑 `ws.py check`**，0 error 才交付；有 error 自己改，不交给用户试错。
-4. **设置块按真实样本抄**（大厅/比赛类默认项不会出现，模式/地图等结构项总会列出）；取自 `data/settings-blocks/`**（大厅/死斗/团队/占领/护送/推进/赏金猎手/英雄级共 8 份），整块复制，只改模式名称与地图；布尔项只能写 开启/关闭。原做法：整块照抄 `tools/probes/golden3.ow`，键值不手改——导出器有老 BUG（布尔项导出 `启用/禁用`，导入只认 `开启/关闭`）。`综合` 块只有 `复生时间` / `急救包刷新` / `游戏模式开始` / `英雄限制` 四个键可用。
-5. **默认只给源码版**。用户明确要防复制才出混淆版，并说清代价（占元素额度、影响可维护性、索引混淆拖性能、字符串混淆改变比较语义）。
-6. **元素超预算**先用 `ws.py count` 预警，再按 `docs/element-audit.md` 的顺序降级：HUD/特效 → 规则结构 → 过滤排序 → 小值替换。报数字时说明是估算，最终以游戏诊断为准。
-7. **改 skill 前先 `ws.py diff`**：无差异才动别的；有差异先摆给用户确认。
+1. **查表不凭记忆**：参数与顺序查 `data/signatures.md`；设置键查 `data/settings.tsv`；`字符串(...)` 只用 `data/strings.md` 的现成词条，自由文本一律 `自定义字符串`。
+2. **先抄骨架**：HUD、周期、计分、条件等待、数组、快照六类在 `docs/patterns.md` 末尾「可套用模板」。
+3. **格式照 `docs/format-spec.md`**：块标题独占一行、`{` 另起一行；变量分 `全局:` / `玩家:` 两段；事件块全局 1 行、其它 3 行、子程序 2 行；控制流 `While(...)/If(...)/Else If(...)/End;`。
+4. **设置块整块复制**：模板在 `data/settings-blocks/`（大厅 / 死斗 / 团队 / 占领 / 护送 / 推进 / 赏金猎手 / 英雄级），只改模式名与地图。布尔项只能写 `开启` / `关闭`。
+5. **默认只交付源码版**。要防复制才出混淆版，并说明代价：占元素、影响可维护性、索引混淆拖性能、字符串混淆改变比较语义。
+6. **元素超预算**：`ws.py count` 预警 → 按 `docs/cost-patterns.md` 的顺序降级 → 报数时说明是估算。
+7. **改数据前先 `ws.py diff`**：无差异才动别的。
 
-## 生成纪律（会直接导致导入失败的点）
+## 生成纪律（写错就导不进去）
 
-- 单个 `自定义字符串` 最多用 `{0}{1}{2}`；再多要嵌套，别写 `{3}`。
-- **持续做事必须显式循环**：`While(真); …; 等待(0.1, 无视条件); End;`。`持续` 规则本身不会重入，只加 `等待` 也不循环（实测见 `docs/pitfalls.md`）。
-- `If` / `Else If` 是一次性判断，不是监听器；等未来条件用 `While` + `等待(...)` 或 `等待直到(...)`。
-- 条件块避免整行 `!(A && B)`，改写成 `(...) == 真` / `!= 真` 或拆成多条，否则报"应有一个关系运算子"。
-- 变量名、子程序名只能 ASCII（字母数字下划线），≤32 字符，不能数字开头；中文名直接导不进。
-- 函数名里带引号的必须用中文弯引号 `“ ”`（如 `如条件为“真”则循环`），ASCII 直引号导入失败。
-- 刷新槽等位置只能写 `全部禁用`，不能写 `无`（校验器会点名）。
-- `.ow` 注释只有 `//`、`/* */` 和动作/条件块内的 `"注释"` 三种；`#` 是给人看的，不是语法。
-- 反泄漏/防复制设计（密码、按键映射）重构时保留混淆层，不要摊平成明文。
+- 持续做事必须显式循环：`While(真); …; 等待(0.1, 无视条件); End;`。`持续` 规则不会重入，单加 `等待` 也不循环。
+- `If` / `Else If` 是一次性判断；等未来条件用 `While` + `等待` 或 `等待直到`。
+- 条件块不写整行 `!(A && B)`，改写 `(...) == 真` / `!= 真` 或拆成多条。
+- 变量名、子程序名只能 ASCII 字母数字下划线，≤32 字符，不能数字开头。
+- 函数名里的引号必须是中文弯引号 `“ ”`，ASCII 直引号导入失败。
+- `自定义字符串` 单条最多 `{0}{1}{2}`，再多要嵌套。
+- 刷新槽等位置只能写 `全部禁用`，不能写 `无`。
+- 动作/条件的行尾必须有分号；块结尾 `}` 后面不加分号。
 
 ## 参考索引
 
-- 常识与已知 bug：`docs/basics.md`（HUD 居中、chase 不刷新、地图变体、弹药失效等）
-- 格式与报错：`docs/format-spec.md`、`docs/syntax.md`、`docs/diagnostics.md`
-- 坑：`docs/pitfalls.md`；上限：`docs/limits.md`；模式：`docs/patterns.md`
-- HUD 排版：`docs/ui-notes.md`；元素成本：`docs/element-audit.md`
-- 设置项老 BUG：`docs/settings-map.md`；周边工具：`docs/ecosystem.md`；资料分级：`docs/sources.md`
-- 实测探针（导入验证过）：`tools/probes/`；改校验器后必须重跑 `ws.py check tools/probes/*.ow tools/probes/calib/*.ow`
+| 文件 | 用途 |
+|---|---|
+| `docs/basics.md` | 常识与已知 bug |
+| `docs/format-spec.md` | 骨架、硬规则、报错对照 |
+| `docs/syntax.md` | 语法细节 |
+| `docs/pitfalls.md` | 执行机制陷阱（循环、等待、数组、事件） |
+| `docs/patterns.md` | 可套用骨架 |
+| `docs/cost-patterns.md` | 省元素与省性能的手法 |
+| `docs/limits.md` | 容量上限 + 元素估算公式 |
+| `docs/settings-map.md` | 设置界面分区与层级来源 |
+| `docs/diagnostics.md` | 报错定位 |
+| `docs/ui-notes.md` | HUD 排版 |
+| `docs/ecosystem.md` | 周边工具 |
+| `docs/sources.md` | 资料可信度分级 |
 
-## 任务处理
-
-- **生成**：给满足需求的最小规则集；沿用用户已有的命名与结构；涉及扩展、地图设置时提前说明。
-- **审查**：先结构（事件/条件/动作顺序、分号、块位置），再条件写法，再数组索引（追加式数组是 1 起始），最后逻辑与时序。
-- **解释**：按规则逐条讲，说清事件、关键条件、状态变量、可见效果；枚举与签名先查表再讲。
-- **调试**：第一轮找最小可疑点；第二轮起用 `记入查看器` 打点让用户回传，不要连续盲改。要验运行时行为时给 `tools/probes/diagnose.ow`（自动打快照，用户只需在查看器点「将当前记录复制到剪贴板」）。语法或行为不确定时，先写最小探针让用户导入验证，再改正式代码。
+实测探针在 `tools/probes/`；改校验器后重跑 `ws.py check-all`（必须全过）。
 
 ## 交付标准
 
-- 交付的 `.ow` 必须 `ws.py check` 0 error，且一次粘贴导入成功。
-- 只说结果和导入后看什么（元素数、功能现象），不解释内部结构，除非用户问。
-- 报元素成本时说明节省来自值、条件、动作还是规则结构，并声明是估算。
+- `ws.py check` 0 error，一次粘贴导入成功。
+- 只说结果和导入后看什么，不解释内部结构，除非用户问。
+- 报元素成本时说清节省来自值、条件、动作还是规则结构，并声明是估算。
 
 ## 相关技能
 
-- 数据更新流程见 `workshop-data-update`（导出 → 生成 → 对照 → 回归 → 发版）。
+数据更新走 `workshop-data-update`（导出 → 对照 → 生成 → 回归 → 发版）。

@@ -4,9 +4,7 @@ import os
 """派生数据生成器：从已有导出产出 data/ 下的增强表。
 
 用法：
-  python tools/enrich.py settings-tree --src C:/owdump/export-20261020 --out data/settings-tree.tsv
   python tools/enrich.py events       --src C:/owdump/export-20261020 --out data/events.tsv
-  python tools/enrich.py strings      --out data/strings.tsv
   python tools/enrich.py maps         --src C:/owdump/export-20261020 --out data/maps.tsv
 
 所有产物都是 TSV，UTF-8 无 BOM，\\n 换行，首行表头。禁止手改。
@@ -177,23 +175,11 @@ def main():
     ap = argparse.ArgumentParser(description="派生数据生成")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    p = sub.add_parser("settings-tree")
-    p.add_argument("--src", required=True)
-    p.add_argument("--out", required=True)
-
     p = sub.add_parser("events")
     p.add_argument("--src", required=True)
     p.add_argument("--out", required=True)
 
-    p = sub.add_parser("strings")
-    p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "strings.md"))
-    p.add_argument("--out", required=True)
-
     p = sub.add_parser("action-tags")
-    p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
-    p.add_argument("--out", required=True)
-
-    p = sub.add_parser("required-args")
     p.add_argument("--md", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "signatures.md"))
     p.add_argument("--out", required=True)
 
@@ -207,16 +193,10 @@ def main():
     a = ap.parse_args()
     if a.cmd == "all":
         return run_all(a)
-    if a.cmd == "settings-tree":
-        build_settings_tree(a.src, a.out)
-    elif a.cmd == "events":
+    if a.cmd == "events":
         build_events(a.src, a.out)
     elif a.cmd == "action-tags":
         build_action_tags(a.md, a.out)
-    elif a.cmd == "required-args":
-        build_required_args(a.md, a.out)
-    elif a.cmd == "strings":
-        build_strings(a.md, a.out)
     else:
         build_maps(a.src, a.out)
     return 0
@@ -226,9 +206,9 @@ if __name__ == "__main__":
     sys.exit(main())
 
 def run_all(args):
-    """依次生成全部派生表（顺序有依赖：settings-tree 先行）。"""
+    """依次生成 events / action-tags / maps。"""
     import sys as _sys
-    for name in ("settings-tree", "events", "strings", "action-tags", "required-args", "maps"):
+    for name in ("events", "action-tags", "maps"):
         _sys.argv = [_sys.argv[0], name] + (["--src", args.src] if getattr(args, "src", None) else [])
         main()
     return 0
