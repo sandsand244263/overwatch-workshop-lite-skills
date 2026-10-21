@@ -126,6 +126,11 @@ def main():
     p = sub.add_parser("modes", help="列出全部模式")
     p.set_defaults(func=cmd_modes)
 
+    p = sub.add_parser("explain", help="按关键词查工坊报错文案")
+    p.add_argument("keyword")
+    p.add_argument("--limit", type=int, default=20)
+    p.set_defaults(func=cmd_explain)
+
     p = sub.add_parser("update-check", help="查技能是否有新版本")
     p.set_defaults(func=cmd_update_check)
 
@@ -373,6 +378,23 @@ def cmd_update_check(args):
         print("已是最新（v%s）" % _skill_version())
     else:
         print("查不到最新版本（没网 / 超时 / 限流）")
+    return 0
+
+
+def cmd_explain(args):
+    """按关键词搜工坊报错文案（数据来自游戏内的报错字符串）。"""
+    import csv
+    path = os.path.join(DATA, "errors.tsv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
+    kw = args.keyword.lower()
+    hits = [r for r in rows if kw in r["text"].lower() or kw in r["group"].lower()]
+    if not hits:
+        print("没有匹配“%s”的报错文案（共 %d 条）" % (args.keyword, len(rows)))
+        return 1
+    for r in hits[: args.limit]:
+        print("[%s%s] %s" % (r["layer"], " " + r["group"] if r["group"] else "", r["text"]))
+    if len(hits) > args.limit:
+        print("…共 %d 条，用 --limit 调整" % len(hits))
     return 0
 
 
