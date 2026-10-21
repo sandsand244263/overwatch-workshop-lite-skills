@@ -171,6 +171,45 @@ def cmd_doc(a):
     return 0
 
 
+def cmd_stats(a):
+    """查英雄/技能数值（来自客户端 STU 数据）。"""
+    import csv
+
+    def load(name):
+        path = os.path.join(DATA, name)
+        if not os.path.isfile(path):
+            sys.exit("缺少 %s" % path)
+        return list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
+
+    heroes = load("hero-stats.tsv")
+    abilities = load("ability-stats.tsv")
+    kw = a.name
+
+    hh = [r for r in heroes if r["hero"] == kw] or [r for r in heroes if kw in r["hero"]]
+    aa = [r for r in abilities if r["hero"] == kw] or [r for r in abilities if kw in r["hero"] or kw in r["ability"]]
+    if not hh and not aa:
+        print("没有「%s」的数值。可查英雄：%s" % (kw, "、".join(sorted({r["hero"] for r in heroes}))))
+        return 1
+
+    if hh:
+        print("=== %s 英雄属性 ===" % hh[0]["hero"])
+        for r in hh:
+            print("  %-8s %s %s" % (r["field"], r["value"], r["unit"]))
+        print()
+    if aa:
+        hero = aa[0]["hero"]
+        print("=== %s 技能数值 ===" % hero)
+        cur = None
+        for r in sorted(aa, key=lambda x: x["ability"]):
+            if r["ability"] != cur:
+                cur = r["ability"]
+                print("  [%s]" % cur)
+            print("    %-26s %s %s" % (r["field"], r["value"], r["unit"]))
+        print()
+    print("数据来源：客户端 STU 数据（health/cooldown/magazine 等）；伤害类字段覆盖不全，见 docs/hero-stats.md")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ws", description="WorkshopLite 工具入口")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -202,6 +241,10 @@ def main():
     p.add_argument("--search", default=None, help="按关键词搜索说明")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_doc)
+
+    p = sub.add_parser("stats", help="查英雄/技能数值（生命值/冷却/弹匣）")
+    p.add_argument("name", help="英雄名，如 半藏")
+    p.set_defaults(func=cmd_stats)
 
     p = sub.add_parser("update-check", help="查技能是否有新版本")
     p.set_defaults(func=cmd_update_check)
