@@ -122,6 +122,7 @@ def main():
     p.add_argument("--lobby", action="store_true", help="额外生成大厅块")
     p.add_argument("--all", action="store_true", help="（默认已是全量，此参数保留兼容）")
     p.add_argument("--safe", action="store_true", help="只写实测导入通过过的键")
+    p.add_argument("--teams", action="store_true", help="英雄块用 队伍1/队伍2 形式（含队伍级键）")
     p.add_argument("--out", default=None)
     p.set_defaults(func=cmd_settings)
 
@@ -240,7 +241,7 @@ def _load_pages(name):
     return rows
 
 
-def build_settings_block(mode, hero=None, lobby=False, allow_all=True):
+def build_settings_block(mode, hero=None, lobby=False, allow_all=True, teams=False):
     """生成「设置」块。
 
     实测结论（2026-10-21，实机导入成功）：
@@ -278,7 +279,7 @@ def build_settings_block(mode, hero=None, lobby=False, allow_all=True):
     lines += body
     lines += ["\t\t}", "\t}"]
     if hero:
-        hb = build_hero_block(hero, vals)
+        hb = build_hero_block(hero, vals, teams=teams)
         if hb:
             lines += hb
     lines += ["}", ""]
@@ -346,7 +347,10 @@ def _load_visible_keys(hero):
     return rows or None
 
 
-def build_hero_block(hero, vals):
+TEAM_LEVEL_KEYS = ("技能冷却时间",)
+
+
+def build_hero_block(hero, vals, teams=False):
     """英雄级设置块。
 
     键名优先用「游戏页实际显示的键」(data/hero-visible-keys.tsv)；
@@ -360,8 +364,17 @@ def build_hero_block(hero, vals):
     body = []
     for key in sorted(set(keys)):
         body.append("\t\t\t\t%s: %s" % (key, _guess_value(key)))
-    return (["\t英雄", "\t{", "\t\t综合", "\t\t{", "\t\t\t%s" % hero, "\t\t\t{"]
-            + body + ["\t\t\t}", "\t\t}", "\t}"])
+    if not teams:
+        return (["\t英雄", "\t{", "\t\t综合", "\t\t{", "\t\t\t%s" % hero, "\t\t\t{"]
+                + body + ["\t\t\t}", "\t\t}", "\t}"])
+    out = ["\t英雄", "\t{"]
+    for team in ("队伍1", "队伍2"):
+        out += ["\t\t%s" % team, "\t\t{"]
+        out += ["\t\t\t%s: 100%%" % k for k in TEAM_LEVEL_KEYS]
+        out += ["\t\t\t%s" % hero, "\t\t\t{"] + ["\t" + b for b in body] + ["\t\t\t}"]
+        out += ["\t\t}"]
+    out += ["\t}"]
+    return out
 
 
 def _skill_version():
@@ -472,7 +485,7 @@ def cmd_explain(args):
 
 
 def cmd_settings(args):
-    text = build_settings_block(args.mode, hero=args.hero, lobby=args.lobby, allow_all=not args.safe)
+    text = build_settings_block(args.mode, hero=args.hero, lobby=args.lobby, allow_all=not args.safe, teams=args.teams)
     if args.out:
         open(args.out, "w", encoding="utf-8", newline="").write(text.replace("\n", "\r\n"))
         print("已写入 %s" % args.out)
