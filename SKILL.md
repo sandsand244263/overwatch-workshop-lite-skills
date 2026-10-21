@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.48.1
+version: 2.49.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -120,6 +120,7 @@ python tools/ws.py doc --search 数组       # 按关键词搜说明
 ## 参考索引
 
 - `docs/hero-stats.md` — 英雄/技能数值（生命值、冷却、弹匣），查：`python tools/ws.py stats 半藏`
+- `docs/hero-quickref.md` — 54 英雄血量速查表（模式设计调平衡用）
 
 | 文件 | 用途 |
 |---|---|
