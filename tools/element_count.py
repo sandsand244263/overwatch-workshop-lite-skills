@@ -70,6 +70,8 @@ def split_args(s):
 
 
 COMPARE_BONUS = 3
+IF_CALL_BONUS = 5      # 实测 K6：If(余数(1,3) == 0)
+IF_LITERAL_BONUS = 2   # 实测 K5：If(1 == 1)
 # 只有"集合类"常量嵌在函数里才 +2；标量常量（白色/球体/可见…）仍算 1
 SET_CONSTANTS = {"所有队伍", "所有玩家", "全部队伍", "所有英雄", "全部英雄", "全部", "双方", "队伍1", "队伍2"}   # While/If 的条件里出现比较运算符时固定 +3（实测 G02/G04）
 
@@ -129,6 +131,10 @@ def estimate(path, sigs=None, labels=None):
             continue
         if re.match(r"(While|If|Else If|For 全局变量|For 玩家变量)\(", s):
             inner_act += block_cost(s, variables)
+            if s.startswith("If("):
+                cond = s[s.find("(") + 1: s.rfind(")")]
+                has_call = bool(re.search(r"[\u4e00-\u9fa5\w]+\(", cond))
+                inner_act += IF_CALL_BONUS if has_call else IF_LITERAL_BONUS
             continue
         if block == "条件":
             conds += 1
