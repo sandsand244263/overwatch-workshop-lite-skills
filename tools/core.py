@@ -1519,6 +1519,7 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
             pending = None
             continue
         if (":" not in st and "：" not in st and ";" not in st and "(" not in st
+                and not re.search(r"\s[0-9A-Fa-f]{4,}\.[0-9A-Fa-f]{2,}$", st)
                 and not re.search(r"\s\d{3,}$", st)):
             pending = st
             continue
@@ -1529,7 +1530,7 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
         if not modes:
             continue
         mode = modes[-1]
-        m = re.match(r"^([^\s]+)(?:\s+\d{6,})?$", st)
+        m = re.match(r"^([^\s]+)(?:\s+(?:[0-9A-Fa-f]{4,}\.[0-9A-Fa-f]{2,}|\d{6,}))?$", st)
         if not m:
             continue
         mp = m.group(1).strip()
