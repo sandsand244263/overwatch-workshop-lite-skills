@@ -70,10 +70,16 @@ def obfuscate_indexes(text):
     def repl(m):
         num = m.group(1)
         try:
-            factor = float(num) * 0.0000001
+            n = int(num)
         except ValueError:
             return m.group(0)
-        return "[乘(10000000, %s)]" % ("%f" % factor).rstrip("0")
+        if n == 0:
+            return m.group(0)                 # 0 用乘法藏不了，原样保留
+        factor = n * 0.0000001
+        txt = ("%.7f" % factor).rstrip("0")
+        if txt.endswith("."):
+            txt += "0"                        # 曾写出 "0." 这种非法数字，导致整行解析失败
+        return "[乘(10000000, %s)]" % txt
     return re.sub(r"\[(\d+)\]", repl, text)
 
 
@@ -89,10 +95,10 @@ def add_fake_rules(text, count=3, seed=20261020):
     return text.rstrip("\n") + "\n\n" + "\n".join(block)
 
 
-def lint_errors(path, sigs, labels, settings):
-    return [p for p in core.lint(path, sigs, labels, settings,
-                                  event_params=core.load_event_params(os.path.join(os.path.dirname(HERE), "data", "event-params.tsv")))
-            if p[1] == "error"]
+def lint_errors(path, sigs=None, labels=None, settings=None):
+    """走完整校验（与 ws.py check 同一套数据表），只返回 error。"""
+    data = os.path.normpath(os.path.join(HERE, "..", "data"))
+    return [p for p in core.full_lint(path, data) if p[1] == "error"]
 
 
 def main():
@@ -139,8 +145,8 @@ def main():
         return 1
     print("✓ 源码版：%s" % clean_path)
     try:
-        from element_count import estimate
-        _est_clean = estimate(clean_path)[0]
+        from element_count2 import estimate2 as estimate
+        _est_clean = estimate(clean_path)
     except Exception:
         _est_clean = None
 
@@ -192,13 +198,16 @@ def main():
         return 1
     print("✓ 混淆版：%s（用了：%s）" % (obf_path, ", ".join(sorted(picked))))
     try:
-        from element_count import estimate
-        _est_obf = estimate(obf_path)[0]
+        from element_count2 import estimate2 as estimate
+        _est_obf = estimate(obf_path)
         if _est_clean:
-            print("元素估算：源码版 %d / 混淆版 %d" % (_est_clean, _est_obf))
-            print("  注：混淆后代码的元素估算误差较大（实测 88→154），以游戏诊断为准")
+            delta = (_est_obf - _est_clean) / max(_est_clean, 1) * 100
+            print("元素数：源码版 %d → 混淆版 %d（%+.1f%%）" % (_est_clean, _est_obf, delta))
+            print("  注：numbers 混淆会把一个字面量拆成表达式，元素数会上升；模型对复杂表达式偏低 3% 左右")
             if _est_obf > 30000:
-                print("⚠ 接近 32768 上限，建议减少混淆项")
+                print("  ⚠ 接近 32768 上限，建议减少混淆项（尤其 numbers / rules）")
+            elif delta > 15:
+                print("  ⚠ 混淆让元素数涨了 %.0f%%，若离上限不远请改用 vars / indexes" % delta)
     except Exception:
         pass
     print("\n导入后看一眼诊断里的「总计元素数量」，混淆会增加额度消耗。")

@@ -1775,6 +1775,28 @@ def mask_text(text):
 
 
 
+def full_lint(path, data_dir, strict=False):
+    """统一的完整校验入口：加载全部数据表后跑 lint。
+
+    ws.py check 与 publish 都走这里，避免两处检查强度不一致
+    （历史上 publish 只传了 event_params，比 check 弱一大截）。
+    """
+    sigs, labels, settings = load_signatures(os.path.join(data_dir, "signatures.md"))
+    return lint(path, sigs, labels, settings,
+                event_params=load_event_params(os.path.join(data_dir, "event-params.tsv")),
+                bare_ok=load_bare_ok(os.path.join(data_dir, "bare-ok.tsv")),
+                kinds=load_element_kinds(os.path.join(data_dir, "element-kinds.tsv")),
+                event_param_words=load_event_param_words(os.path.join(data_dir, "event-param-words.tsv")),
+                setting_ranges=load_setting_ranges(os.path.join(data_dir, "setting-ranges.tsv")),
+                map_names=load_map_names(os.path.join(data_dir, "maps.tsv")),
+                dropdowns=load_dropdowns(os.path.join(data_dir, "param-docs.tsv")) if strict else None,
+                extensions=load_extensions(os.path.join(data_dir, "extensions.tsv"),
+                                           os.path.join(data_dir, "extension-values.tsv"))[0],
+                extension_values=load_extensions(os.path.join(data_dir, "extensions.tsv"),
+                                                 os.path.join(data_dir, "extension-values.tsv"))[1],
+                strict=strict)
+
+
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False,
               extensions=None, extension_values=None, base_options=None):
     problems = []

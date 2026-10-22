@@ -67,17 +67,7 @@ def cmd_check(args):
             print("[错误] 找不到 %s" % path)
             failed += 1
             continue
-        problems = core.lint(path, sigs, labels, settings,
-                             event_params=core.load_event_params(os.path.join(DATA, "event-params.tsv")),
-                             bare_ok=core.load_bare_ok(os.path.join(DATA, "bare-ok.tsv")),
-                             kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
-                             event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
-                             setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
-                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
-                             dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
-                             strict=getattr(args, "strict", False),
-                             extensions=_ext()[0], extension_values=_ext()[1],
-                             base_options=_base_options())
+        problems = core.full_lint(path, DATA, strict=getattr(args, "strict", False))
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:

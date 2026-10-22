@@ -77,43 +77,48 @@ def mask_strings(line):
     return "".join(out)
 
 
-def rewrite_line(line, labels, factor):
+def rewrite_line(line, labels, factor, passes=3):
     """把一行里的数值参数改成 (n * F / F)。返回 (新行, 改动数)。
 
     含字符串的行直接跳过：掩码回写会错位，把字符串内容抹成空格。
+
+    实现要点：mask_strings 是等长掩码，所以 code 与 line 的下标一一对应。
+    但替换后的文本比原文长，**必须从后往前替换**，否则前一次替换会让
+    后续 match 的位置全部错位——真实模式上曾因此把 全局.LifeguardX方向分量
+    切成了 全局.LifeX方向分量，产出无法导入的文件。
     """
     if '"' in line:
         return line, 0
-    code = mask_strings(line)
-    changed = 0
-
-    # 逐个函数调用处理，从内到外由 split_args 保证只切顶层
-    for m in re.finditer(r"([\u4e00-\u9fffA-Za-z_][\u4e00-\u9fffA-Za-z0-9_]*)\(([^()]*(?:\([^()]*\)[^()]*)*)\)", code):
-        name, inner = m.group(1), m.group(2)
-        if name not in labels:
-            continue
-        args = split_top_level_args(inner)
-        kinds = labels[name]
-        new_args = list(args)
-        for idx, arg in enumerate(args):
-            kind = kinds[idx] if idx < len(kinds) else ""
-            if not obfuscatable(kind):
+    changed_total = 0
+    for _ in range(passes):
+        code = mask_strings(line)
+        edits = []
+        for m in re.finditer(r"([\u4e00-\u9fffA-Za-z_][\u4e00-\u9fffA-Za-z0-9_]*)\(([^()]*(?:\([^()]*\)[^()]*)*)\)", code):
+            name, inner = m.group(1), m.group(2)
+            if name not in labels:
                 continue
-            if not re.fullmatch(r"\s*\d+(?:\.\d+)?\s*", arg):
-                continue
-            value = arg.strip()
-            if float(value) >= 1e6:          # 地图 GUID 之类，放过
-                continue
-            new_args[idx] = "(%s * %d / %d)" % (value, factor, factor)
-            changed += 1
-        if changed:
-            new_inner = ", ".join(new_args)
-            # 只替换这一处（在原始行上按位置替换，保留字符串不动）
-            start = m.start(2)
-            end = m.end(2)
-            line = line[:start] + new_inner + line[end:]
-            code = mask_strings(line)
-    return line, changed
+            args = split_top_level_args(inner)
+            kinds = labels[name]
+            new_args, hit = list(args), 0
+            for idx, arg in enumerate(args):
+                kind = kinds[idx] if idx < len(kinds) else ""
+                if not obfuscatable(kind):
+                    continue
+                if not re.fullmatch(r"\s*\d+(?:\.\d+)?\s*", arg):
+                    continue
+                value = arg.strip()
+                if float(value) >= 1e6:          # 地图 GUID 之类，放过
+                    continue
+                new_args[idx] = "(%s * %d / %d)" % (value, factor, factor)
+                hit += 1
+            if hit:
+                edits.append((m.start(2), m.end(2), ", ".join(new_args), hit))
+        if not edits:
+            break
+        for a, b, txt, hit in sorted(edits, key=lambda e: e[0], reverse=True):
+            line = line[:a] + txt + line[b:]
+            changed_total += hit
+    return line, changed_total
 
 
 def main():
