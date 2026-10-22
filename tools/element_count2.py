@@ -118,7 +118,10 @@ def parse_file(path):
         if head.startswith("规则"):
             m = re.search(r'规则\("(.*)"\)', head, re.S)
             rule = {"name": m.group(1) if m else "", "cond": [], "acts": []}
+            rule["is_sub"] = False
             for b in body:
+                if b[0] == "block" and b[1] == "事件":
+                    rule["is_sub"] = any(str(x[1]).strip() == "子程序" for x in b[2] if x[0] == "stmt")
                 if b[0] == "block" and b[1] == "条件":
                     rule["cond"] = [x[1] for x in b[2] if x[0] == "stmt"]
                 elif b[0] == "block" and b[1] == "动作":
@@ -359,6 +362,7 @@ W = {
     "blk_Else": 3,
     "blk_While": 5,
     "blk_For": 5,
+    "blk_ForPlayer": 5,   # 实测 K16：玩家域 For 整块 5（参数里的玩家/变量/边界不另计）
     "tern": 5,           # 三元表达式本体（实测 G3=1101 反推）
     "var_player": 2,
     "var_index": 2,      # 每个下标多算 2（实测 H1=501 反推）     # 事件玩家 / 本地玩家 取值比 全局 贵 1（实测 G2=301）
@@ -430,6 +434,14 @@ def stmt_cost(kind, payload):
         return 0
     if kind == "block":
         head, args = payload
+        if head == "For 玩家变量":
+            # 实测（K16=8 / K18=3）：玩家域 For 的整块只要 5，参数里的玩家/变量/边界不另计
+            # 实测 K16=8：玩家域 For 的「玩家 + 变量」不另计，但边界数字与表达式照常计费
+            total = W["blk_ForPlayer"]
+            for a in args:
+                if a and a[0] in ("call", "bin", "tern"):
+                    total += cost(a)
+            return total
         key = "blk_For" if head.startswith("For") else "blk_" + head
         total = W.get(key, 5)
         for a in args:
@@ -466,6 +478,9 @@ def estimate2(path, detail=False):
     total = W["rule"] * len(prog["rules"])
     parts = {"规则": total}
     for rule in prog["rules"]:
+        # 子程序体内的 If 块少 1 个元素（实测 K17a=13 / K17b=6）
+        is_sub = bool(rule.get("is_sub"))
+        sub_adj = 0      # 子程序规则整体少 1（实测 K17a=13，见 K20 验证）
         for st in rule["cond"]:
             kind, payload = parse_statement(st)
             c = stmt_cost(kind, payload)
@@ -474,6 +489,17 @@ def estimate2(path, detail=False):
         for st in rule["acts"]:
             kind, payload = parse_statement(st)
             c = stmt_cost(kind, payload)
+
             parts["动作"] = parts.get("动作", 0) + c
             total += c
+        if is_sub:
+            has_if = False
+            for st in rule["acts"]:
+                k, pl = parse_statement(st)
+                if k == "block" and pl and pl[0] == "If":
+                    has_if = True
+                    break
+            if has_if:
+                total -= 1                       # 实测：子程序体里有 If 时整条少 1（待 K20 确认是否按 If 计）
+                parts["动作"] = parts.get("动作", 0) - 1
     return (total, parts) if detail else total
