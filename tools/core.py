@@ -1186,6 +1186,34 @@ def check_bare_strings(text, problems):
                 break
 
 
+VICTORY_ACTIONS = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
+
+
+def check_victory_in_loop(text, problems):
+    """循环里宣告胜利后没有退出（中断/返回），会每秒重复宣告。
+
+    实测：抱团得分模式到 30 分后，日志里每秒都记一条「触发胜利」。
+    """
+    stack = []
+    lines = text.split("\n")
+    for i, raw in enumerate(lines):
+        s = strip_noise(raw).strip()
+        if not s or s.startswith("//"):
+            continue
+        if s.startswith("While(") or s.startswith("For "):
+            stack.append("loop")
+        elif s == "End;" or s.startswith("End;"):
+            if stack:
+                stack.pop()
+        if not stack:
+            continue
+        if any(a in s for a in VICTORY_ACTIONS):
+            ahead = "\n".join(lines[i + 1:i + 6])
+            if ("中断" not in ahead) and ("返回" not in ahead):
+                problems.append((i + 1, "warning",
+                                 "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
+
+
 def check_team_values(text, problems):
     """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
 
@@ -1214,33 +1242,98 @@ def check_team_values(text, problems):
 def check_game_end_actions(text, problems):
     """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
 
-    - 宣告玩家胜利：只在自由混战模式生效
-    - 宣告队伍胜利 / 宣布比赛为平局：在自由混战模式无效
+    - 宣告玩家胜利：只在自由混战（死斗）生效
+    - 宣告队伍胜利 / 宣布比赛为平局：在自由混战无效
 
-    实测踩坑：死斗里写「宣布比赛为平局」，查看器显示动作执行了，但比赛没结束。
-    只在**非注释行**里找，否则注释里提到动作名也会误报。
+    模式名必须取「模式」块里的第一个子块，不能取文件开头任意一行——
+    真实文件的 `设置` 里第一个块是「主程序」，曾经因此把模式误判成「主程序」。
     """
     lines = text.split("\n")
     code_lines = [(i, ln) for i, ln in enumerate(lines) if not ln.strip().startswith("//")]
     names = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
     if not any(n in ln for _i, ln in code_lines for n in names):
         return
-    mode = ""
-    for _i, ln in code_lines:
+    modes = []
+    try:
+        k = next(i for i, ln in code_lines if ln.strip() == "模式")
+    except StopIteration:
+        return
+    depth = 0
+    for i, ln in code_lines:
+        if i <= k:
+            continue
         t = ln.strip()
-        if t in ("死斗", "团队死斗") or (t and not t.startswith(("{", "}", "设置", "模式", "综合", "启用地图")) and ":" not in t and "：" not in t and _i < 12):
-            mode = t
-            break
-    ffa = ("死斗" in mode) and ("团队" not in mode)
+        if t == "{":
+            depth += 1
+            continue
+        if t == "}":
+            depth -= 1
+            if depth <= 0:
+                break
+            continue
+        if depth == 1 and t and ":" not in t and "：" not in t:
+            modes.append(t)
+    ffa = any(("死斗" in m) and ("团队" not in m) for m in modes)
+    mode_txt = "、".join(modes) or "该模式"
     bad = ("宣布比赛为平局", "宣告队伍胜利") if ffa else ("宣告玩家胜利",)
     for i, ln in code_lines:
         for name in bad:
             if name in ln:
                 problems.append((i + 1, "error",
                                  "「%s」在%s里无效（官方：%s）；%s" % (
-                                     name, mode or "该模式",
+                                     name, mode_txt,
                                      "此动作在自由混战模式中无效" if ffa else "此动作只在自由混战模式中生效",
                                      "死斗只能「宣告玩家胜利(某玩家)」" if ffa else "请改用「宣告队伍胜利(队伍)」或「宣布比赛为平局()」")))
+
+
+def check_victory_in_loop(text, problems):
+    """循环里宣告胜利后没有退出（中断/返回），会每秒重复宣告。
+
+    实测：抱团得分模式到 30 分后，日志里每秒都记一条「触发胜利」。
+    """
+    stack = []
+    lines = text.split("\n")
+    for i, raw in enumerate(lines):
+        s = strip_noise(raw).strip()
+        if not s or s.startswith("//"):
+            continue
+        if s.startswith("While(") or s.startswith("For "):
+            stack.append("loop")
+        elif s == "End;" or s.startswith("End;"):
+            if stack:
+                stack.pop()
+        if not stack:
+            continue
+        if any(a in s for a in VICTORY_ACTIONS):
+            ahead = "\n".join(lines[i + 1:i + 6])
+            if ("中断" not in ahead) and ("返回" not in ahead):
+                problems.append((i + 1, "warning",
+                                 "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
+
+
+def check_team_values(text, problems):
+    """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
+
+    实测：`范围内玩家(眼睛位置(事件玩家), 8, 双方, 关闭)` 游戏报
+    「第 44 行的"8,"之后应有一个值」——因为「双方」不是合法队伍值。
+    """
+    if "双方" not in text:
+        return
+    for m in re.finditer(r"(范围内玩家|范围内全部玩家|最近的玩家|玩家在范围内)\(", text):
+        i = m.end(); depth = 1
+        while i < len(text) and depth > 0:
+            if text[i] == "(":
+                depth += 1
+            elif text[i] == ")":
+                depth -= 1
+            i += 1
+        body = text[m.end():i - 1]
+        if "双方" not in body:
+            continue
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "%s 的队伍参数不能写「双方」（那是事件筛选词）；"
+                         "改用 所有队伍 / 队伍1 / 队伍2" % m.group(1)))
 
 
 def check_rule_semantics(text, problems):
@@ -2095,6 +2188,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
     check_bare_strings(text, problems)
+    check_victory_in_loop(text, problems)
     check_team_values(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
