@@ -1331,6 +1331,30 @@ def check_team_slots(text, problems, types=None):
                                  % (fn, i + 1, val)))
 
 
+def check_bare_var_assign(text, problems):
+    """裸变量名赋值：`i = 1;` 应为 `事件玩家.i = 1;` 或 `全局.i = 1;`。
+
+    实测：写成裸名字游戏报「'1);' 之后应有一个值」，指不到真正原因。
+    """
+    span = _var_block_span(text)
+    names = set()
+    if span:
+        body = text[span[0]:span[1]]
+        names = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*(?://.*)?$", body, re.M))
+    for i, raw in enumerate(text.split("\n"), 1):
+        st = strip_noise(raw).strip()
+        if not st or st.startswith("//"):
+            continue
+        m = re.match(r"^([A-Za-z_]\w*)\s*[-+*/]?=(?!=)", st)
+        if not m:
+            continue
+        name = m.group(1)
+        if name in ("真", "假") or name in names:
+            problems.append((i, "error",
+                             "变量 %s 不能裸写赋值；要写 事件玩家.%s = …（玩家变量）或 全局.%s = …（全局变量）"
+                             % (name, name, name)))
+
+
 def check_bare_strings(text, problems):
     """字符串作参数时必须包在 自定义字符串(...) 里；裸写 "文本" 游戏不认。
 
@@ -1393,6 +1417,30 @@ def load_setting_types(path=None):
     return out
 
 
+_COMPAT = {"set": None}
+
+
+def load_setting_compat(path=None):
+    """实测可用的 (层, 键) 组合，来自 data/setting-compat.tsv。
+
+    归属表是从 schema 推的，会缺；这里记「真实导入验证过」的组合，避免误报。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "setting-compat.tsv"))
+    if _COMPAT["set"] is not None:
+        return _COMPAT["set"]
+    out = set()
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            r = csv.DictReader(f, delimiter="\t")
+            for row in r:
+                lv = (row.get("层") or "").strip()
+                k = (row.get("key") or "").strip()
+                if lv and k:
+                    out.add((lv, k))
+    _COMPAT["set"] = out
+    return out
+
+
 def check_setting_belongs(text, problems, types=None):
     """设置键必须写在它所属的层里（模式名块 / 综合 / 英雄 / 武器）。
 
@@ -1437,6 +1485,8 @@ def check_setting_belongs(text, problems, types=None):
             continue
         if layer == "综合":
             continue          # 综合是通用层：实测 复生时间 写在 综合 是合法的
+        if (layer, key) in load_setting_compat():
+            continue          # 真实导入验证过的组合
         if layer in info["schemas"]:
             continue
         where = "、".join(sorted(x for x in info["schemas"] if x))
@@ -2480,7 +2530,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
                     problems.append((ln, "error", "子程序索引最大 127，这里是 %d" % sidx))
                 subroutines[stripped.split(":", 1)[1].strip()] = ln
             if not re.match(r"^\d+\s*:", stripped):
-                problems.append((ln, "error", "子程序块里只能写 `索引: 子程序名`：%s" % stripped))
+                problems.append((ln, "error",
+                                 "子程序块里只能写 `索引: 子程序名`（函数体写在规则里，事件用 `子程序;`）：%s"
+                                 % stripped))
             else:
                 name = stripped.split(":", 1)[1].strip()
                 if not IDENT.match(name):
@@ -2604,6 +2656,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
     check_team_slots(text, problems)
+    check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
