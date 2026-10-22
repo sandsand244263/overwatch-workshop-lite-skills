@@ -1153,6 +1153,38 @@ def _var_block_span(text):
 
 
 
+def check_game_end_actions(text, problems):
+    """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
+
+    - 宣告玩家胜利：只在自由混战模式生效
+    - 宣告队伍胜利 / 宣布比赛为平局：在自由混战模式无效
+
+    实测踩坑：死斗里写「宣布比赛为平局」，查看器显示动作执行了，但比赛没结束。
+    只在**非注释行**里找，否则注释里提到动作名也会误报。
+    """
+    lines = text.split("\n")
+    code_lines = [(i, ln) for i, ln in enumerate(lines) if not ln.strip().startswith("//")]
+    names = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
+    if not any(n in ln for _i, ln in code_lines for n in names):
+        return
+    mode = ""
+    for _i, ln in code_lines:
+        t = ln.strip()
+        if t in ("死斗", "团队死斗") or (t and not t.startswith(("{", "}", "设置", "模式", "综合", "启用地图")) and ":" not in t and "：" not in t and _i < 12):
+            mode = t
+            break
+    ffa = ("死斗" in mode) and ("团队" not in mode)
+    bad = ("宣布比赛为平局", "宣告队伍胜利") if ffa else ("宣告玩家胜利",)
+    for i, ln in code_lines:
+        for name in bad:
+            if name in ln:
+                problems.append((i + 1, "error",
+                                 "「%s」在%s里无效（官方：%s）；%s" % (
+                                     name, mode or "该模式",
+                                     "此动作在自由混战模式中无效" if ffa else "此动作只在自由混战模式中生效",
+                                     "死斗只能「宣告玩家胜利(某玩家)」" if ffa else "请改用「宣告队伍胜利(队伍)」或「宣布比赛为平局()」")))
+
+
 def check_rule_semantics(text, problems):
     """两条实测行为：`持续` 规则只跑一次（要循环必须 While + 等待）；While(真) 必须有退出手段。"""
     for m in re.finditer(r"^\s*规则\(\s*\"([^\"]*)\"\)", text, re.M):
@@ -2004,6 +2036,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
+    check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
     check_extensions(text, problems, extensions, extension_values, base_options)
