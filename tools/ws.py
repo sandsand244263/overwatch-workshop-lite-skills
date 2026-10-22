@@ -687,7 +687,11 @@ def cmd_calib(a):
     import csv as _csv
     import glob as _glob
     calib_dir = os.path.join(ROOT, "tools", "probes", "calib")
-    files = {os.path.basename(p).split("_")[0]: p for p in _glob.glob(os.path.join(calib_dir, "*.ow"))}
+    files = {}
+    for p in _glob.glob(os.path.join(calib_dir, "*.ow")):
+        stem = os.path.splitext(os.path.basename(p))[0]
+        files[stem.split("_")[0]] = p
+        files[stem] = p          # P1.ow 这种没有下划线的也要能查到
     from element_count import estimate
     total = bad = 0
     for manifest in ("measurements.csv", "measurements-k.csv"):
@@ -709,6 +713,24 @@ def cmd_calib(a):
             if est != real:
                 bad += 1
                 print("  ✗ %-4s 实测 %d 估算 %d（差 %+d）" % (key, real, est, est - real))
+    # 新模型专用标定（P 系列）：必须精确命中
+    v2 = os.path.join(calib_dir, "measurements-v2.csv")
+    if os.path.isfile(v2):
+        from element_count2 import estimate2
+        print("== measurements-v2.csv ==")
+        for r in _csv.DictReader(open(v2, encoding="utf-8-sig")):
+            key = (r["probe"] or "").strip()
+            f = files.get(key)
+            if not f:
+                print("  ? %s 找不到探针文件" % key)
+                continue
+            est = estimate2(f)
+            real = int(r["元素数"])
+            total += 1
+            if est != real:
+                bad += 1
+                print("  ✗ %-4s 实测 %d 估算 %d（差 %+d）" % (key, real, est, est - real))
+
     # 新模型（element_count2）同批对照：小样本允许 ±6，大文件另见 docs/limits.md
     try:
         from element_count2 import estimate2
