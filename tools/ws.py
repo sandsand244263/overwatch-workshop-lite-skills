@@ -117,7 +117,8 @@ def cmd_check_all(args):
                              strict=getattr(args, "strict", False),
                              extensions=_ext()[0], extension_values=_ext()[1],
                              base_options=_base_options())
-            errs = [p[2] for p in probs if p[1] == "error"]
+            # 反向用例只关心「能不能发现」，error 或 warning 都算
+            errs = [p[2] for p in probs]
             hit = any(r["expect"] in e for e in errs)
             print("%s %s：%s" % ("✓" if hit else "✗", r["file"],
                                 "已报出预期错误" if hit else "没报出「%s」（实际：%s）" % (r["expect"], errs[:2])))
@@ -414,6 +415,21 @@ def cmd_selftest(args):
     print("工具自检：%s" % ("通过" if bad == 0 else "%d 个文件有问题" % bad))
     return 0 if bad == 0 else 1
 
+
+def cmd_normalize(args):
+    """把导出的 .ow 修成编辑器能接受的形式（去掉导出失真）。"""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import normalize as nz
+    text = open(args.src, encoding="utf-8-sig", errors="replace").read()
+    new_text, merged, none_fixed = nz.normalize_text(text)
+    open(args.out, "w", encoding="utf-8", newline="\n").write(new_text)
+    print("输入 %d 行 -> 输出 %d 行（合并折行 %d 处，改「无」%d 处）"
+          % (len(text.split("\n")), len(new_text.split("\n")), merged, none_fixed))
+    probs = core.full_lint(args.out, DATA)
+    errs = [p for p in probs if p[1] == "error"]
+    print("修复后校验：%d error / %d warning" % (len(errs), len(probs) - len(errs)))
+    return 0
+
 def cmd_calib(a):
     """元素估算标定回归：全部实测样本必须精确命中。"""
     import csv as _csv
@@ -523,6 +539,11 @@ def main():
     p = sub.add_parser("defaults", help="查参数默认值")
     p.add_argument("funcs", nargs="+")
     p.set_defaults(func=cmd_defaults)
+
+    p = sub.add_parser("normalize", help="修复导出失真：合并折行、把「无」改成「全部禁用」")
+    p.add_argument("src")
+    p.add_argument("-o", "--out", required=True)
+    p.set_defaults(func=cmd_normalize)
 
     p = sub.add_parser("selftest", help="工具自身体检（重复定义等）")
     p.set_defaults(func=cmd_selftest)

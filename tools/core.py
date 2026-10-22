@@ -325,8 +325,10 @@ def scan_calls(text, sigs, labels, problems, options=None):
 
                 for slot in (VERIFIED_NO_SLOTS.get(name) or {}).get("slots", ()):
                     if len(arg_list) >= abs(slot) and arg_list[slot] == "无":
-                        problems.append((line, "error",
-                                         "%s 这个位置要写 全部禁用，写 无 导入会失败" % name))
+                        # 导出文本会把这个位置写成 无，编辑器里是 全部禁用
+                        problems.append((line, "warning",
+                                         "%s 这个位置导出后写作「无」，编辑器里是「全部禁用」；"
+                                         "手写或改导出文件时改成 全部禁用" % name))
                 if name in ("全局变量", "玩家变量") and "For" in text[max(0, start - 30):start]:
                     continue
                 if sigs and name not in sigs:
@@ -515,6 +517,12 @@ def check_element_kind(text, kinds, problems):
         if block == "动作" and depth == 1 and s.endswith(";"):
             if ASSIGNMENT.match(s):          # 玩家变量赋值：所有玩家(所有队伍).X = …
                 continue
+            # 任何 `.变量 = / += …` 都是赋值目标，不是「值函数当动作」
+            if re.search(r"\.\w+(?:\[[^\]]*\])*\s*[-+*/]?=(?!=)", s):
+                continue
+            # 折行续行（上一行没写完）
+            if _prev_continues(lines, idx) or _line_continues(lines[idx]):
+                continue
             m = re.match(r"^([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s)
             if m and kinds.get(m.group(1)) == "值":
                 _add(problems, text, offs[idx] + m.start(), "error",
@@ -552,6 +560,8 @@ def check_string_interp(text, problems):
                 depth -= 1
             i += 1
         body = text[m.end():i - 1]
+        if "\n" in body:      # 跨行调用：括号配对容易被嵌套字符串干扰，宁可不判
+            continue
         args = _top_level_args(body)
         if not args:
             continue
@@ -674,7 +684,10 @@ def check_event_params(text, event_params, problems, event_param_words=None):
                     break
                 if event_param_words:
                     for v in seen_vals:
-                        if v not in event_param_words:
+                        # 第 3 段是英雄限制：可以写 全部 / 某个英雄名（实测「卢西奥」「黑影」）
+                        if v in event_param_words or v in _hero_names():
+                            continue
+                        if True:
                             problems.append((j2, "warning",
                                              "事件参数「%s」不在已知取值里（已知：%s）"
                                              % (v, " / ".join(sorted(event_param_words)))))
@@ -793,8 +806,8 @@ def _looks_like_name(arg):
     return bool(re.match(r"^[\u4e00-\u9fffA-Za-z_][\u4e00-\u9fff\w·：:＋\- ]*$", a))
 
 
-def _unknown_name(kind, name, pos, problems, text, hint=""):
-    _add(problems, text, pos, "error",
+def _unknown_name(kind, name, pos, problems, text, hint="", level="error"):
+    _add(problems, text, pos, level,
          "%s「%s」不在当前版本数据表里（可能已改名或移除）%s" % (kind, name, hint))
 
 
@@ -851,6 +864,44 @@ def _line_offsets(lines):
     return offs
 
 
+_OFFICIAL_KEYS = {"set": None}
+
+
+_EXT_CACHE = {"set": None}
+
+
+def _extension_values():
+    """所有扩展解锁的下拉选项（data/extension-values.tsv 里的选项名）。"""
+    if _EXT_CACHE["set"] is None:
+        vals = set()
+        path = os.path.join(DATA_DIR, "extension-values.tsv")
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8-sig") as f:
+                r = csv.DictReader(f, delimiter="\t")
+                for row in r:
+                    v = (row.get("option") or row.get("value") or "").strip()
+                    if v:
+                        vals.add(v)
+        _EXT_CACHE["set"] = vals
+    return _EXT_CACHE["set"]
+
+
+def _official_hero_keys():
+    """data/hero-official-keys.tsv 里的英雄设置键（游戏自带的键名，最权威）。"""
+    if _OFFICIAL_KEYS["set"] is None:
+        path = os.path.join(DATA_DIR, "hero-official-keys.tsv")
+        keys = set()
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8-sig") as f:
+                r = csv.DictReader(f, delimiter="\t")
+                for row in r:
+                    k = (row.get("key") or "").strip()
+                    if k:
+                        keys.add(k)
+        _OFFICIAL_KEYS["set"] = keys
+    return _OFFICIAL_KEYS["set"]
+
+
 def check_ability_names(text, problems, abilities, hero_names):
     """英雄设置块里的技能名必须还在当前版本技能表里。
 
@@ -892,12 +943,15 @@ def check_ability_names(text, problems, abilities, hero_names):
         if hero is None or "英雄" not in stack:
             continue
         key = m.group(1).strip()
+        if key in _official_hero_keys():      # 官方导出的英雄键，括号里的词不一定是技能名
+            continue
         for cand in _ability_candidates(key):
             if cand in abilities:
                 continue
             pos = offs[idx] + raw.find(cand)
             _unknown_name("技能名", cand, pos, problems, text,
-                          "；英雄 %s 的设置键「%s」用到了它" % (hero, key))
+                          "；英雄 %s 的设置键「%s」用到了它（技能形态/武器名也会出现在括号里，可能是数据表缺项）"
+                          % (hero, key), level="warning")
 
 
 
@@ -946,6 +1000,45 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
             continue
         _unknown_name("设置键", key, offs[idx] + raw.find(key), problems, text,
                       "；用 ws.py settings --mode <模式> 生成合法的键")
+
+
+_HERO_CACHE = {"names": None}
+
+
+def _line_continues(line):
+    """这一行是否「还没写完」：以运算符 / 逗号 / 问号 等结尾。"""
+    s = strip_noise(line).strip()
+    if not s:
+        return False
+    return bool(re.search(r"(==|!=|&&|\|\||=|\?|\+|-|\*|/|,|!)$", s))
+
+
+def _prev_continues(lines, i):
+    """往上看第一条非空行，是否以运算符结尾（跨行语句）。"""
+    j = i - 1
+    while j >= 0:
+        if strip_noise(lines[j]).strip():
+            return _line_continues(lines[j])
+        j -= 1
+    return False
+
+
+def _hero_names():
+    """读 data/heroes.tsv 的英雄名（事件第 3 段可写英雄名）。"""
+    if _HERO_CACHE["names"] is None:
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "heroes.tsv")
+        names = set()
+        try:
+            with open(path, encoding="utf-8") as f:
+                next(f, None)
+                for line in f:
+                    c = line.split("\t")
+                    if c and c[0].strip():
+                        names.add(c[0].strip())
+        except OSError:
+            pass
+        _HERO_CACHE["names"] = names
+    return _HERO_CACHE["names"]
 
 
 def check_event_names(text, problems, event_names):
@@ -1166,6 +1259,12 @@ def check_bare_strings(text, problems):
         s = raw.strip()
         if not s or s.startswith("//") or not s.endswith(";"):
             continue
+        # 先把 自定义字符串("…") 里的字符串摘掉，否则内层引号会被当成裸字符串
+        for _ in range(3):
+            s2 = re.sub(r'(自定义字符串\()\s*"(?:[^"\\]|\\.)*"', r"\1", s)
+            if s2 == s:
+                break
+            s = s2
         if '"' not in s:
             continue
         for m in re.finditer(r"([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\(", s):
@@ -1334,7 +1433,7 @@ def load_dropdowns(path):
             c = line.rstrip("\n").split("\t")
             if len(c) <= max(ie, ii, it, io):
                 continue
-            if c[it].strip() != "Dropdown":
+            if c[it].strip() != "Dropdown" or not c[ie].strip():
                 continue
             opts = [x.strip() for x in c[io].split("|") if x.strip()]
             if not opts or any("共" in o for o in opts):
@@ -1465,7 +1564,7 @@ def check_dropdown_values(text, problems, dropdowns):
                 val = args[idx]
                 if not BARE_WORD.fullmatch(val):
                     continue
-                if val in ("真", "假", "空") or val in opts:
+                if val in ("真", "假", "空", "无") or val in opts or val in _extension_values():
                     continue
                 line = text.count("\n", 0, m.start()) + 1
                 problems.append((line, "error",
@@ -1540,7 +1639,7 @@ def check_map_names(text, problems, map_names):
         if name in map_names or re.fullmatch(r"[\d.]+", name):
             continue
         _add(problems, text, m.start(), "error",
-             "地图「%s」不在当前版本地图表里（可能已改名或移除）；"
+             "地图「%s」不在当前版本地图表里（可能已改名/移除，或是数据表未收录的变体）；"
              "游戏会报「\"地图(\"之后应有一个地图名称」。用 ws.py maps 查有效名" % name)
 
 
@@ -1580,13 +1679,12 @@ def check_var_refs(text, problems):
         pl = set(re.findall(r"\d+\s*:\s*(\w+)", seg))
     if not gl and not pl:
         return
-    for m in re.finditer(r"全局\.(\w+)", text):
-        if m.group(1) not in gl:
-            _add(problems, text, m.start(), "error", "全局.%s 没有在变量块里声明" % m.group(1))
+    # 未声明变量由调用方统一报 warning（这里不再重复报 error）
     for m in re.finditer(r"(?:事件玩家|本地玩家)\.(\w+)", text):
         if m.group(1) not in pl:
-            _add(problems, text, m.start(), "error",
-                 "%s.%s 没有声明为玩家变量" % (m.group(0).split(".")[0], m.group(1)))
+            _add(problems, text, m.start(), "warning",
+                 "%s.%s 没有在变量块「玩家:」段声明（导出文本可能丢了声明；手写时必须声明）"
+                 % (m.group(0).split(".")[0], m.group(1)))
 
 
 def check_unassigned(text, problems):
@@ -1632,7 +1730,7 @@ def check_types(text, problems, labels=None):
 
     覆盖两类高频错：For 控制变量必须先声明；变量当值要写 全局.X。
     """
-    declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", text, re.M))
+    declared = set(re.findall(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*(?://.*)?$", text, re.M))
     if not declared:
         return
     # 这些函数的某个参数类型是「变量」，本来就要裸写变量名，不算「当值用」
@@ -2171,7 +2269,11 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             continue
 
         if block in ("动作", "子程序"):
-            if not stripped.endswith(";") and not stripped.endswith("{") and opens <= 0:
+            # 跨行语句：本行以运算符结尾，或上一行是以运算符结尾（实测真实模式大量使用）
+            cont_end = bool(re.search(r"(=|==|!=|&&|\\|\\||\?|:|\+|-|\*|/|,|!)$", stripped))
+            prev_cont = _prev_continues(lines, ln - 1)
+            if (not stripped.endswith(";") and not stripped.endswith("{") and opens <= 0
+                    and not cont_end and not prev_cont):
                 problems.append((ln, "error", "语句缺少分号"))
             if re.search(r",\s*\)", stripped):
                 problems.append((ln, "error", "不允许尾逗号"))
