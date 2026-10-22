@@ -807,7 +807,7 @@ def cmd_calib(a):
                 d = estimate2(f) - int(r["元素数"])
                 _max = max(_max, abs(d))
                 _ok += (d == 0)
-        print("元素计数新模型（逆向版）：%d/%d 精确，最大偏差 %d" % (_ok, _n, _max))
+        print("元素计数新模型（实测推导版）：%d/%d 精确，最大偏差 %d" % (_ok, _n, _max))
     except Exception as e:
         print("新模型对照跳过：%s" % e)
     print("\n标定样本 %d 个，偏差 %d 个" % (total, bad))

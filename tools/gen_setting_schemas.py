@@ -21,7 +21,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(os.path.dirname(HERE), "data")
-DEFAULT_SRC = r"C:/owdump/export-154504/ruleset_schemas.json"
+DEFAULT_SRC = r"导出目录/export-154504/ruleset_schemas.json"
 
 
 def main():

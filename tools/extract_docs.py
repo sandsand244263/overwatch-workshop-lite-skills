@@ -7,8 +7,8 @@
   - dropdown-options.tsv  下拉选项说明：dropdown / option / description
 
 用法：
-  python tools/extract_docs.py --export C:/owdump/export-154504
-  python tools/extract_docs.py --export C:/owdump/export-154504 --data-dir data
+  python tools/extract_docs.py --export 导出目录/export-154504
+  python tools/extract_docs.py --export 导出目录/export-154504 --data-dir data
 """
 import argparse
 import ast

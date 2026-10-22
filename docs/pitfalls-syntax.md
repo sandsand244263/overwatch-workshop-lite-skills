@@ -78,7 +78,7 @@
 
 > 之前把 `全局.V` 判成「未声明」，是我漏了这条常识。
 
-## 设置键的「层」是权威数据，不用逆向（2026-10-22）
+## 设置键的「层」是权威数据，不用实测推导（2026-10-22）
 
 `ruleset_schemas.json` 里 32 个 schema 的 Entries 就是归属表，`tools/gen_setting_schemas.py`
 生成 `data/setting-schemas.tsv`（474 行 / 268 个键）。

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """两个导出目录的全量对照：动作 / 值函数 / 参数 / 下拉选项 / 字符串 / 英雄 / 地图。
 
-用法：python tools/ws.py diff --prev C:/owdump/export-旧 --cur C:/owdump/export-新
+用法：python tools/ws.py diff --prev 导出目录/export-旧 --cur 导出目录/export-新
 
 有任何差异就以退出码 1 结束，方便挂进更新流程。
 """

@@ -159,7 +159,7 @@ workshop-lite/
 │   ├── samples.md                 三个可运行样例的适用与不适用
 │   ├── validator-coverage.md      校验器覆盖清单与已知盲区
 │   ├── extensions.md              扩展系统：写法、成本、上限
-│   ├── element-reverse.md         元素计数逆向记录
+│   ├── element-count.md         元素计数推导记录
 │   ├── syntax.md                  语法参考
 │   ├── pitfalls.md                执行机制陷阱：循环、等待、数组、事件
 │   ├── patterns.md                设计模式与可套用骨架
@@ -175,7 +175,7 @@ workshop-lite/
 │   ├── ws.py                      唯一入口（见下）
 │   ├── core.py                    解析与校验引擎
 │   ├── publish.py                 出发布文件（源码版 / 混淆版）
-│   ├── element_count2.py          元素数模型（逆向版，37 个标定）
+│   ├── element_count2.py          元素数模型（实测标定版）
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   └── probes/                    65 正样本 + 21 反向用例 + 3 个可运行样例

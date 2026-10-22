@@ -7,7 +7,7 @@ InputType == Dropdown 的参数带 DropdownId，指向 Dropdowns 表的选项列
 
 用法：
     python tools/gen_param_options.py [workshop_zhCN.json 路径]
-默认读 C:/owdump/export-154504/workshop_zhCN.json。
+默认读 导出目录/export-154504/workshop_zhCN.json。
 """
 import json
 import os
@@ -15,7 +15,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(os.path.dirname(HERE), "data")
-DEFAULT_SRC = r"C:/owdump/export-154504/workshop_zhCN.json"
+DEFAULT_SRC = r"导出目录/export-154504/workshop_zhCN.json"
 
 
 def main():

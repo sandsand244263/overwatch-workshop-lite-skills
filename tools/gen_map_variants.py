@@ -5,7 +5,7 @@
 实测依据：用户手动导出的「占领要点 6v6」文件里的编号，与本表 100% 吻合。
 
 用法：
-    python tools/gen_map_variants.py --src C:/owdump/wslist/maps_new.json --out data/map-variants.tsv
+    python tools/gen_map_variants.py --src 导出目录/wslist/maps_new.json --out data/map-variants.tsv
 """
 import argparse, collections, json, os
 

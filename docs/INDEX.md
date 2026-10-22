@@ -22,7 +22,7 @@
 | [extensions.md](./extensions.md) | 11 个扩展与副作用 | 要开扩展 |
 | [hero-stats.md](./hero-stats.md) | 54 英雄面板数值 | 调英雄数值 |
 | [hero-quickref.md](./hero-quickref.md) | 英雄速查 | 只想看一两个英雄 |
-| [element-reverse.md](./element-reverse.md) | 元素计数的逆向记录（历史） | 想改估算模型 |
+| [element-reverse.md](./element-reverse.md) | 元素计数的实测推导记录（历史） | 想改估算模型 |
 | [validator-coverage.md](./validator-coverage.md) | 校验器覆盖范围与漏报率测试 | 想改校验器 / 判断可信度 |
 | [diagnostics.md](./diagnostics.md) | 实机诊断方法（查看器日志等） | 要定位运行时问题 |
 | [samples.md](./samples.md) | 可运行样例清单 | 想找现成例子 |

@@ -4,8 +4,8 @@ import os
 """派生数据生成器：从已有导出产出 data/ 下的增强表。
 
 用法：
-  python tools/enrich.py events       --src C:/owdump/export-20261020 --out data/events.tsv
-  python tools/enrich.py maps         --src C:/owdump/export-20261020 --out data/maps.tsv
+  python tools/enrich.py events       --src 导出目录/export-20261020 --out data/events.tsv
+  python tools/enrich.py maps         --src 导出目录/export-20261020 --out data/maps.tsv
 
 所有产物都是 TSV，UTF-8 无 BOM，\\n 换行，首行表头。禁止手改。
 """

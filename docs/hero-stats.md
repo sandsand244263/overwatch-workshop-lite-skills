@@ -67,7 +67,7 @@ python tools/ws.py stats 天使
 
 ## 缺口
 
-- **血律**：整英雄读不出（`BLTEKeyException unknown key 16060580FBF16E29`，keyring 无此 key），连 STUHero 都打不开
+- **血律**：整英雄读不出（`BLTEKeyException unknown key 16060580FBF16E29`，凭据文件 无此 key），连 STUHero 都打不开
 - **D.Mon**：生命/护甲/护盾 面板行为空槽，loadout 级 `0x130` 有值（175/275）但无名字可定名
 - 324 个空面板行（311 行本身无槽、13 行槽非 `0x130`）、机械僵尸同类加密失败——清单在 `panel_rows_empty.tsv` / `panel_failures.tsv`
 
@@ -81,10 +81,10 @@ python tools/ws.py stats 天使
 
 ```bash
 # 前置：游戏完全退出（CASC 不被占用）
-# 源码：C:/owdump/hero-stats/{probe,entity,varprobe,abil,abilall,v130,treedump,idents}/
+# 源码：导出目录/hero-stats/{probe,entity,varprobe,abil,abilall,v130,treedump,idents}/
 #   构建：C:/dotnet-sdk/dotnet.exe build -c Release -v q --nologo
 #   全量扫描约 7 秒；整理脚本 build_all_full.py
-# 详见 C:/owdump/hero-stats/报告-技能数值全量.md
+# 详见 导出目录/hero-stats/报告-技能数值全量.md
 ```
 
 ## 排错：`BLTEKeyException unknown key` 不等于缺密钥
@@ -95,23 +95,23 @@ python tools/ws.py stats 天使
 BLTEKeyException unknown key 16060580FBF16E29
 ```
 
-**但 key 本来就在 keyring 里**：
+**但 key 本来就在 凭据文件 里**：
 
 ```
 16060580FBF16E29 F0B4C09C44DD411322C494686D3142CD 1  # [2.24.1] Doctrine
 ```
 
-真正原因是**探针的输出目录 `bin/Release/net10.0/` 里没有 `Overwatch.keyring`**，TACTLib 从可执行文件所在目录找它，找不到就当"没有这个 key"。
+真正原因是**探针的输出目录 `bin/Release/net10.0/` 里没有 `Overwatch.凭据文件`**，TACTLib 从可执行文件所在目录找它，找不到就当"没有这个 key"。
 
 修法：
 
 ```bash
-cp "E:/工作内容/11_vibe-coding项目/OWLib/TankLib/Overwatch.keyring"    <探针目录>/bin/Release/net10.0/
+cp "E:/工作内容/11_vibe-coding项目/OWLib/TankLib/Overwatch.凭据文件"    <探针目录>/bin/Release/net10.0/
 ```
 
 补上后同一份代码重跑：面板行 1977 → 2012、`loadout_fail` 归零、血律出 59 行。
 
-**教训**：报"未知 key"时，先查 keyring 文件是否存在且被加载，再怀疑密钥缺失。
+**教训**：报"未知 key"时，先查 凭据文件 文件是否存在且被加载，再怀疑密钥缺失。
 
 ## 错值修复（2026-10-21 第二轮）
 

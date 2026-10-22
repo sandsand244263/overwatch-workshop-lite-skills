@@ -2,7 +2,7 @@
 """从 DataTool 导出四份 JSON（工坊/英雄/地图/设置 schema）。
 
 用法：
-  python tools/export_data.py --datatool "E:/.../DataTool.dll" --out C:/owdump/export-154504
+  python tools/export_data.py --datatool "E:/.../DataTool.dll" --out 导出目录/export-154504
   python tools/export_data.py --datatool ... --out ... --lang zhCN --game E:/Overwatch
 
 设计要点：

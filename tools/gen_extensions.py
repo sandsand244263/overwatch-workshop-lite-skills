@@ -8,7 +8,7 @@ import json
 import os
 import sys
 
-SRC_DEFAULT = r"C:/owdump/export-154504/workshop_zhCN.json"
+SRC_DEFAULT = r"导出目录/export-154504/workshop_zhCN.json"
 DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 

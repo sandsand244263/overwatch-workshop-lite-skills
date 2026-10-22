@@ -3,7 +3,7 @@
 """从游戏导出生成 data/ 下的全部数据表。禁止手改产物。
 
 用法：
-  python gen_data.py --src C:/owdump/export-20261020 --out ../data
+  python gen_data.py --src 导出目录/export-20261020 --out ../data
 
 产物（每个文件头都带 build / 导出时间 / 生成脚本）：
   signatures.md   动作 + 值函数参数，下拉参数直接标出可选值

@@ -1148,7 +1148,7 @@ def check_limits(path, text, problems, sigs=None, labels=None):
                  "游戏会报「每条规则长度不得超过98KB」，拆成多条规则"
                  % (nm.group(1) if nm else "?", size, RULE_BYTE_LIMIT))
     try:
-        import element_count2 as _ec2          # 逆向模型：真实文件精度 -3%，旧模型会漏报
+        import element_count2 as _ec2          # 实测推导模型：真实文件精度 -3%，旧模型会漏报
         est = _ec2.estimate2(path)
     except Exception:
         try:
