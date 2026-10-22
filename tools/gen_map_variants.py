@@ -30,12 +30,14 @@ def main():
                 if gid not in [x for x, _ in ids]:
                     ids.append((gid, var.get("Name") or "默认"))
 
-    rows = ["zh\tvariant\tid"]
+    rows = ["zh\tvariant\tid\tverified"]
     for name, ids in table.items():
         for gid, vname in ids:
-            rows.append("%s\t%s\t%d" % (name, vname, gid))
+            rows.append("%s\t%s\t%d\tno" % (name, vname, gid))
     open(a.out, "w", encoding="utf-8", newline="\n").write("\n".join(rows) + "\n")
-    print("%s：%d 张图 / %d 条时段" % (a.out, len(table), len(rows) - 1))
+    print("%s：%d 张图 / %d 条时段（verified 全为 no）" % (a.out, len(table), len(rows) - 1))
+    print("提示：`Variations` 里混着季节/天气等**不能写进 .ow** 的变体；")
+    print("      只有实测导出确认过的时段才能写编号，其余一律只写地图名。")
 
 
 if __name__ == "__main__":
