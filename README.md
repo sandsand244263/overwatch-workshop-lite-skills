@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v2.84.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.85.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -90,7 +90,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 ## 校验器查什么
 
-三层，35 个检查函数。
+三层，37 个检查函数。
 
 **第一层 格式**：括号配对、分号、块结构、函数名、参数个数、变量名只能用英文、变量声明与引用、子程序声明、事件参数行数。
 

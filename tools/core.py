@@ -1264,6 +1264,73 @@ def _var_block_span(text):
 STRING_WRAPPERS = {"自定义字符串", "字符串"}
 
 
+TEAM_WORDS = {"所有队伍", "队伍1", "队伍2", "双方", "全部", "队伍"}
+
+
+_PARAM_TYPES = {"map": None}
+
+
+def load_param_types(path=None):
+    """{元素: {参数序号: 输入类型}}，来自 data/param-options.tsv（权威顺序）。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "param-options.tsv"))
+    if _PARAM_TYPES["map"] is not None:
+        return _PARAM_TYPES["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                el = (row.get("element") or "").strip()
+                if not el:
+                    continue
+                try:
+                    idx = int(row.get("index") or -1)
+                except ValueError:
+                    continue
+                out.setdefault(el, {})[idx] = (row.get("input_type") or "").strip()
+    _PARAM_TYPES["map"] = out
+    return out
+
+
+def check_team_slots(text, problems, types=None):
+    """类型是 Team 的参数只能填队伍词（实测 所有队伍→全部队伍 整类漏报）。
+
+    参数类型来自 data/param-options.tsv（signatures 里很多元素只存了参数个数）。
+    """
+    types = types or load_param_types()
+    if not types:
+        return
+    for fn, imap in types.items():
+        slots = [i for i, t in imap.items() if t == "Team"]
+        if not slots:
+            continue
+        for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(fn) + r"\(", text):
+            depth, j = 0, m.end() - 1
+            while j < len(text):
+                if text[j] == "(":
+                    depth += 1
+                elif text[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            args = _top_level_args(text[m.end():j])
+            for i in slots:
+                if i >= len(args):
+                    continue
+                val = args[i].strip()
+                if val in TEAM_WORDS:
+                    continue
+                # 只抓「裸词写成队伍词的样子」；表达式（对方队伍(…)）是合法的
+                if any(ch in val for ch in "()[]."):
+                    continue
+                if not (("队伍" in val) or val.startswith(("全部", "双方"))):
+                    continue
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append((line, "error",
+                                 "%s 第 %d 个参数是队伍，只能写 所有队伍 / 队伍1 / 队伍2；这里写的是「%s」"
+                                 % (fn, i + 1, val)))
+
+
 def check_bare_strings(text, problems):
     """字符串作参数时必须包在 自定义字符串(...) 里；裸写 "文本" 游戏不认。
 
@@ -1434,6 +1501,46 @@ def check_empty_setting_values(text, problems):
             problems.append((i, "error",
                              "设置项「%s」没有值（导出会把某些值吞掉）；游戏会报「之后应有一个数字 / 一个设置选项」"
                              % m.group(1).strip()))
+
+
+def check_balance(text, problems, strict=False):
+    """全局括号配对 + 每条规则里 While/If/For 与 End; 的配对。
+
+    实测：删掉一个右括号或一个 End;，绝大多数校验器抓不到，但游戏直接报错。
+    """
+    strict_balance = [strict]
+    masked = mask_text(text)
+    opens, closes = masked.count("("), masked.count(")")
+    if opens != closes:
+        problems.append((0, "error",
+                         "括号不配对：左括号 %d 个、右括号 %d 个（删掉一个就会这样）" % (opens, closes)))
+
+    # 逐块检查 End; 数量（深度从规则自己的 { 开始算，否则会误以为动作块结束就是规则结束）
+    lines = text.split("\n")
+    masked_lines = mask_text(text).split("\n")
+    inside = seen = False
+    depth = start_ln = openers = ends = 0
+    for i, raw in enumerate(lines, 1):
+        st = masked_lines[i - 1].strip()      # 用屏蔽了字符串的行，避免 "{0}" 干扰括号计数
+        if not inside:
+            if re.match(r"^(规则\(|子程序)", st):
+                inside, seen, depth, start_ln, openers, ends = True, False, 0, i, 0, 0
+            continue
+        d = st.count("{") - st.count("}")
+        if d:
+            seen = True
+        depth += d
+        openers += st.count("While(")
+        openers += len(re.findall(r"(?<!Else )If\(", st))   # Else If 不需要自己的 End
+        openers += st.count("For 全局变量(") + st.count("For 玩家变量(")
+        if "End;" in st:
+            ends += st.count("End;")
+        if seen and depth <= 0:
+            inside = False
+            if openers != ends and strict_balance[0]:
+                problems.append((start_ln, "warning",
+                                 "（strict）这条规则里 If/While/For 开头 %d 个，End; 只有 %d 个"
+                                 % (openers, ends)))
 
 
 def check_victory_in_loop(text, problems):
@@ -1829,9 +1936,11 @@ def check_var_refs(text, problems):
         return
     # 未声明变量由调用方统一报 warning（这里不再重复报 error）
     for m in re.finditer(r"(?:事件玩家|本地玩家)\.(\w+)", text):
+        if _is_default_var(m.group(1)):
+            continue          # A~Z 内置变量
         if m.group(1) not in pl:
-            _add(problems, text, m.start(), "warning",
-                 "%s.%s 没有在变量块「玩家:」段声明（导出文本可能丢了声明；手写时必须声明）"
+            _add(problems, text, m.start(), "error",
+                 "%s.%s 没有在变量块「玩家:」段声明（A~Z 之外的变量必须先声明）"
                  % (m.group(0).split(".")[0], m.group(1)))
 
 
@@ -2476,7 +2585,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         if name not in declared[section]:
             pos = text.find("%s.%s" % (owner, name))
             line_no = text.count("\n", 0, pos) + 1 if pos >= 0 else 0
-            problems.append((line_no, "warning",
+            problems.append((line_no, "error",
                              "变量 %s.%s 未声明（应在 `%s:` 段里）" % (owner, name, section)))
 
     all_vars = declared["全局"] | declared["玩家"]
@@ -2494,10 +2603,12 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
+    check_team_slots(text, problems)
     check_bare_strings(text, problems)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
     check_empty_setting_values(text, problems)
+    check_balance(text, problems, strict=strict)
     check_victory_in_loop(text, problems)
     check_team_values(text, problems)
     check_game_end_actions(text, problems)

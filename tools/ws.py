@@ -457,6 +457,19 @@ def cmd_selftest(args):
 
 
 
+
+def cmd_fuzz(args):
+    import subprocess as sp
+    cmd = [sys.executable, os.path.join(ROOT, "tools", "fuzz_check.py")]
+    if args.file:
+        cmd.append(args.file)
+    if args.corpus:
+        cmd.append("--corpus")
+    cmd += ["--rounds", str(args.rounds)]
+    if args.verbose:
+        cmd.append("-v")
+    return sp.call(cmd)
+
 def cmd_corpus(args):
     """转调 tools/corpus_check.py。"""
     import subprocess as sp
@@ -790,6 +803,13 @@ def main():
     p.set_defaults(func=cmd_report)
 
     sub.add_parser("doctor", help="环境自检").set_defaults(func=cmd_doctor)
+
+    p = sub.add_parser("fuzz", help="漏报率测试：随机改坏文件看能不能抓到")
+    p.add_argument("file", nargs="?")
+    p.add_argument("--corpus", action="store_true")
+    p.add_argument("--rounds", type=int, default=10)
+    p.add_argument("-v", "--verbose", action="store_true")
+    p.set_defaults(func=cmd_fuzz)
 
     p = sub.add_parser("corpus", help="跑真实模式语料回归（语料在私有仓）")
     p.add_argument("dir", nargs="?")
