@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.67.0
+version: 2.67.1
 author: 用户
 platforms: [windows]
 metadata:
@@ -12,6 +12,12 @@ metadata:
 # Overwatch Workshop Lite
 
 写 `.ow` 工坊代码。用户只负责导入和试玩，语法、参数、设置项、元素预算、混淆、交付文件由本技能兜底。
+
+### 生成类工具的纪律
+
+- 混淆/批量生成之后，产物要用 `ws.py check` 再验一遍；`publish` 已内置这一步（校验不过会停下并保留源码版）
+- 不要相信生成器自己的自检：历史上两处混淆 bug（切碎变量名、写出 `0.` 非法数字）都逃过了它
+- 回归：`python tools/selfcheck_publish.py`
 
 ## 扩展（编辑扩展）
 
