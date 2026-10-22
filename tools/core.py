@@ -1153,6 +1153,31 @@ def _var_block_span(text):
 
 
 
+def check_team_values(text, problems):
+    """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
+
+    实测：`范围内玩家(眼睛位置(事件玩家), 8, 双方, 关闭)` 游戏报
+    「第 44 行的"8,"之后应有一个值」——因为「双方」不是合法队伍值。
+    """
+    if "双方" not in text:
+        return
+    for m in re.finditer(r"(范围内玩家|范围内全部玩家|最近的玩家|玩家在范围内)\(", text):
+        i = m.end(); depth = 1
+        while i < len(text) and depth > 0:
+            if text[i] == "(":
+                depth += 1
+            elif text[i] == ")":
+                depth -= 1
+            i += 1
+        body = text[m.end():i - 1]
+        if "双方" not in body:
+            continue
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "%s 的队伍参数不能写「双方」（那是事件筛选词）；"
+                         "改用 所有队伍 / 队伍1 / 队伍2" % m.group(1)))
+
+
 def check_game_end_actions(text, problems):
     """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
 
@@ -2036,6 +2061,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
+    check_team_values(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)

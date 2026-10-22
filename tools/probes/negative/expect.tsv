@@ -17,3 +17,4 @@ rule-too-long.ow	超过单条规则 98KB
 element-over-limit.ow	超过 32768 上限
 bad-dropdown-value.ow	第 5 个参数只能填
 ffa-draw.ow	在死斗里无效
+team-param-shuangfang.ow	的队伍参数不能写

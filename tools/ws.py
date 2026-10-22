@@ -356,8 +356,13 @@ def cmd_scaffold(a):
         # 在模式子块开头插入地图
         for i, ln in enumerate(lines):
             if ln.strip() == mode:
-                lines[i + 1:i + 1] = ["\t\t\t启用地图", "\t\t\t{",
-                                      "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}"]
+                # 模式名下一行是 "{"，地图块要插在它之后
+                j = i + 1
+                while j < len(lines) and lines[j].strip() == "":
+                    j += 1
+                at = (j + 1) if (j < len(lines) and lines[j].strip() == "{") else (i + 1)
+                lines[at:at] = ["\t\t\t启用地图", "\t\t\t{",
+                                "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}"]
                 break
     lines += ["", "变量", "{", "\t全局:", "\t\t0: g", "}", ""]
     lines += ['规则("%s")' % a.rule, "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
