@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.2.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.2.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -47,7 +47,7 @@
 npx skills add sandsand244263/overwatch-workshop-lite-skills
 ```
 
-2. **导出你的模式**：游戏里工坊编辑器 → `Ctrl+A` → `Ctrl+C` → 粘到记事本 → 存成 `.ow`
+2. **导出你的模式**：游戏里工坊编辑器 → `Ctrl+A` → `Ctrl+C` → 粘到记事本 → 存成 `.txt`（`.ow` 也行，是插件习惯）
 
 > 编码随意：UTF-8、记事本默认的 ANSI(GBK) 都能读。
 
