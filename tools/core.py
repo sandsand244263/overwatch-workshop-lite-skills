@@ -1315,7 +1315,7 @@ def check_dropdown_values(text, problems, dropdowns):
                 elif ch == ")":
                     d -= 1
                     cur += ch
-                elif ch in ",，" and d == 0:
+                elif ch == "," and d == 0:
                     args.append(cur.strip())
                     cur = ""
                 else:
@@ -1350,7 +1350,7 @@ def check_arg_count(text, problems):
                     if depth == 0:
                         break
                 j += 1
-            args = [a for a in re.split(r"[，,]", text[m.end():j]) if a.strip()]
+            args = [a for a in text[m.end():j].split(",") if a.strip()]
             if len(args) < need:
                 line = text.count(chr(10), 0, m.start()) + 1
                 problems.append((line, "error",
@@ -1789,7 +1789,7 @@ def full_lint(path, data_dir, strict=False):
                 event_param_words=load_event_param_words(os.path.join(data_dir, "event-param-words.tsv")),
                 setting_ranges=load_setting_ranges(os.path.join(data_dir, "setting-ranges.tsv")),
                 map_names=load_map_names(os.path.join(data_dir, "maps.tsv")),
-                dropdowns=load_dropdowns(os.path.join(data_dir, "param-docs.tsv")) if strict else None,
+                dropdowns=load_dropdowns(os.path.join(data_dir, "param-docs.tsv")),
                 extensions=load_extensions(os.path.join(data_dir, "extensions.tsv"),
                                            os.path.join(data_dir, "extension-values.tsv"))[0],
                 extension_values=load_extensions(os.path.join(data_dir, "extensions.tsv"),
@@ -2003,8 +2003,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
-    if strict:                            # 数据未经充分验证的检查，默认关闭（避免误报）
-        check_dropdown_values(text, problems, dropdowns)
+    check_dropdown_values(text, problems, dropdowns)
+    if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
     check_extensions(text, problems, extensions, extension_values, base_options)
     check_map_names(text, problems, map_names)
