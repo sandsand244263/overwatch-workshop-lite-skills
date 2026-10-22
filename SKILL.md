@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.81.0
+version: 2.82.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -18,6 +18,15 @@ metadata:
 `tools/probes/samples/` 里有三个完整可导入的最小模式：全局心跳、事件驱动、条件等待。
 写类似逻辑时先复制最接近的那个改参数，别从零拼规则；每个样例的注释都写了「适用 / 不要用」。
 详见 `docs/samples.md`。
+
+## 三条面向用户的命令
+
+- `ws.py doctor`：环境自检（Python 版本、数据表、编码、写权限）——用户报「一运行就错」时先跑这个
+- `ws.py fix 文件`：检查 + 自动修（合并折行、「无」→「全部禁用」、删空值行、可选布尔词）+ 复校，输出 `.fixed.ow`
+- `ws.py report 文件`：用户认为误报时，生成脱敏的最小复现片段（环境 + 问题行 + 上下文），直接贴 issue
+
+`check` 输出分两段：**必改**（会挡导入）/ **提示**（多半不用改）；`--json` 给编辑器与 CI。
+读文件用 `core.read_text()`，自动识别 UTF-8 / GBK / UTF-16——中文用户记事本默认存 ANSI。
 
 ## 生成类工具的纪律
 

@@ -63,32 +63,68 @@ def _base_options():
 
 
 def cmd_check(args):
+    """校验。默认输出分两段：必改（会挡导入）/ 提示（多数可忽略）。
+
+    --json 时只输出结构化结果，供编辑器与 CI 使用。
+    """
     sigs, labels, settings = load()
     failed = 0
+    report = []
     for path in args.files:
+        name = os.path.basename(path)
         if not os.path.isfile(path):
-            print("[错误] 找不到 %s" % path)
+            if getattr(args, "json", False):
+                report.append({"file": path, "error": "找不到文件"})
+            else:
+                print("[错误] 找不到 %s" % path)
             failed += 1
             continue
         problems = core.full_lint(path, DATA, strict=getattr(args, "strict", False))
         errors = [p for p in problems if p[1] == "error"]
-        name = os.path.basename(path)
+        warns = [p for p in problems if p[1] != "error"]
         if errors:
             failed += 1
-            print("✗ %s：%d 个 error，%d 个 warning" % (name, len(errors), len(problems) - len(errors)))
-            for ln, level, msg in problems:
-                print("   %s %s：%s" % ("第 %d 行" % ln if ln else "全文", level, msg))
+
+        if getattr(args, "json", False):
+            report.append({
+                "file": path,
+                "ok": not errors,
+                "errors": [{"line": p[0], "level": p[1], "message": p[2],
+                            "fix": core.suggest(p[2])} for p in errors],
+                "warnings": [{"line": p[0], "level": p[1], "message": p[2],
+                              "fix": core.suggest(p[2])} for p in warns],
+            })
+            continue
+
+        if errors:
+            print("✗ %s：%d 个问题会导致导入失败（另有 %d 条提示，可以先不管）"
+                  % (name, len(errors), len(warns)))
+            print("\n  ── 必改 ──")
+            for ln, level, msg in errors:
+                print("  第 %s 行：%s" % (ln if ln else "?", msg))
                 tip = core.suggest(msg)
                 if tip:
-                    print("        → 改法：%s" % tip)
+                    print("      → %s" % tip)
+            if warns:
+                print("\n  ── 提示（多半不用改） ──")
+                for ln, level, msg in warns[:args.max_warn]:
+                    print("  第 %s 行：%s" % (ln if ln else "?", msg))
+                if len(warns) > args.max_warn:
+                    print("  …还有 %d 条，用 --max-warn 调大或 --json 看全部" % (len(warns) - args.max_warn))
         else:
-            print("✓ %s：通过（warning %d）" % (name, len(problems)))
-            for ln, level, msg in problems[:5]:
-                print("   %s %s：%s" % ("第 %d 行" % ln if ln else "全文", level, msg))
+            print("✓ %s：可以导入%s"
+                  % (name, "" if not warns else "（%d 条提示，不影响导入）" % len(warns)))
+            for ln, level, msg in warns[:args.max_warn]:
+                print("  第 %s 行：%s" % (ln if ln else "?", msg))
                 tip = core.suggest(msg)
                 if tip:
-                    print("        → 改法：%s" % tip)
+                    print("      → %s" % tip)
+            if len(warns) > args.max_warn:
+                print("  …还有 %d 条提示" % (len(warns) - args.max_warn))
         _print_update_hint()
+
+    if getattr(args, "json", False):
+        print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if failed else 0
 
 
@@ -689,7 +725,9 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("check", help="校验 .ow")
-    p.add_argument("--strict", action="store_true", help="额外跑数据未验证的检查（下拉值、持续规则语义），会有误报")
+    p.add_argument("--strict", action="store_true", help="额外跑数据未验证的检查，会有误报")
+    p.add_argument("--json", action="store_true", help="输出结构化结果（给编辑器/CI）")
+    p.add_argument("--max-warn", type=int, default=5, help="最多显示几条提示（默认 5）")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
 
