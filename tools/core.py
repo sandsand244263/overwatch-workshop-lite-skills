@@ -1441,6 +1441,80 @@ def load_setting_compat(path=None):
     return out
 
 
+_MAP_TRAITS = {"map": None}
+
+# 这些模式必须有目标点（占领 / 推车 / 攻防 / 推进 / 闪点 / 竞速）
+OBJECTIVE_MODES = ("占领要点", "运载目标", "攻击/护送", "攻防作战", "攻防阵线",
+                   "机动推进", "闪点作战", "运载竞速", "勇夺锦旗")
+
+
+def load_map_traits(path=None):
+    """{地图名: '有'|'无'} —— 来自 data/map-traits.tsv（只收已确认的）。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "map-traits.tsv"))
+    if _MAP_TRAITS["map"] is not None:
+        return _MAP_TRAITS["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                name = (row.get("map") or "").strip()
+                obj = (row.get("objective") or "").strip()
+                if name and obj:
+                    out[name] = obj
+    _MAP_TRAITS["map"] = out
+    return out
+
+
+def check_map_mode(text, problems, traits=None):
+    """需要目标点的模式不能配「没有目标点」的地图。
+
+    实测：工坊室内 + 占领要点 → 游戏报「无效的地图设置」，不说是哪张图。
+    模式必须按「块栈」跟踪：`禁用 占领要点 { }` 这类块不是当前模式。
+    """
+    traits = traits or load_map_traits()
+    if not traits:
+        return
+    stack = []            # [(标签, 是否模式块)]
+    pending = None
+    for i, raw in enumerate(text.split("\n"), 1):
+        st = strip_noise(raw).strip()
+        if not st or st.startswith("//"):
+            continue
+        if st.startswith("}"):
+            if stack:
+                stack.pop()
+            continue
+        if st.endswith("{") or st.startswith("{"):
+            label = st.rstrip("{").strip()
+            if not label:
+                label = pending or (stack[-1][0] if stack else "")
+            parent = stack[-1][0] if stack else None
+            is_mode = bool(parent == "模式" and label and not label.startswith("禁用"))
+            stack.append((label, is_mode))
+            pending = None
+            continue
+        # 裸标签行（模式名 / 启用地图 …）后面跟的是 {
+        if (":" not in st and "：" not in st and ";" not in st and "(" not in st
+                and not re.search(r"\s\d{3,}$", st)):
+            pending = st
+            continue
+        # 普通行：只有处在某个模式块内、且处在「启用地图」块内才判断
+        labels = [l for l, _m in stack]
+        if "启用地图" in labels:
+            modes = [l for l, m in stack if m]
+            if not modes:
+                continue
+            mode = modes[-1]
+            m = re.match(r"^([^\s]+)(?:\s+\d{6,})?$", st)
+            if not m:
+                continue
+            mp = m.group(1).strip()
+            if traits.get(mp) == "无" and mode in OBJECTIVE_MODES:
+                problems.append((i, "error",
+                                 "「%s」没有目标点，不能用于「%s」（游戏会报「无效的地图设置」）；"
+                                 "改用该模式的默认地图，或换一张有目标点的图" % (mp, mode)))
+
+
 def check_setting_belongs(text, problems, types=None):
     """设置键必须写在它所属的层里（模式名块 / 综合 / 英雄 / 武器）。
 
@@ -2658,6 +2732,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_team_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
+    check_map_mode(text, problems)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
     check_empty_setting_values(text, problems)
