@@ -12,6 +12,7 @@
 数据永远从 data/ 读；docs/ 里是数据里没有的规则。
 """
 import argparse
+import csv
 import os
 import sys
 import tempfile
@@ -208,6 +209,23 @@ def cmd_defaults(args):
 
 # 用 235 KB 真实模式反推：实测 16918 / 估 7668
 REAL_WORLD_FACTOR = 2.12
+
+def cmd_map_code(args):
+    """查地图的工坊编号（写进 .ow 用）：等于 0xD8<<52 | 变体编号。"""
+    rows = []
+    with open(os.path.join(DATA, "map-codes.tsv"), encoding="utf-8-sig") as f:
+        rows = [x for x in csv.DictReader(f, delimiter="\t")]
+    kw = (args.name or "").strip()
+    hit = [x for x in rows if kw in x["name"]] if kw else rows
+    if not hit:
+        print("map-codes.tsv 里没有包含「%s」的地图（目前只收了真实文件里出现过的）" % kw); return 1
+    seen = set()
+    for x in hit:
+        if x["name"] in seen: continue
+        seen.add(x["name"])
+        print("%-22s %s" % (x["name"], x["code"]))
+    return 0
+
 
 def cmd_count(args):
     """元素数估算：给出区间而不是单值（实测偏差 -4% ~ -19%）。"""
@@ -830,7 +848,7 @@ def main():
 
     p = sub.add_parser("scaffold", help="生成最小测试骨架（默认死斗，可用 --mode 换模式）")
     p.add_argument("--mode", default="死斗", help="模式名，见 ws.py modes")
-    p.add_argument("--map", default=None, help="地图名 GUID，例如「地图工坊室内 972777519512064577」；不给则死斗用工坊室内、其它模式不写地图")
+    p.add_argument("--map", default=None, help="地图名 编号，例如「地图工坊室内 972777519512064577」；编号用 ws.py map-code 查；不给则死斗用工坊室内、其它模式不写地图")
     p.add_argument("--rule", default="测试", help="规则名")
     p.add_argument("--out", default=None, help="输出文件，不给则打印")
     p.set_defaults(func=cmd_scaffold)
@@ -898,6 +916,10 @@ def main():
 
     p = sub.add_parser("calib", help="元素估算标定回归（全部实测样本）")
     p.set_defaults(func=cmd_calib)
+
+    p = sub.add_parser("map-code", help="查地图的工坊编号（写进 .ow 用）")
+    p.add_argument("name", nargs="?", default=None, help="地图名，支持部分匹配；不给则列全部")
+    p.set_defaults(func=cmd_map_code)
 
     p = sub.add_parser("count", help="元素数估算")
     p.add_argument("--legacy", action="store_true", help="用旧的经验模型（小样本 37/37，大文件偏低一半）")

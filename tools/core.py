@@ -1485,6 +1485,22 @@ def load_map_pools(path=None):
     return out
 
 
+def check_map_codes(text, problems):
+    """启用地图 里写的第二列必须是 0xD8 前缀的 64 位编号（972777519512...）。
+
+    资源路径（如 00000000068D.09F）是内部 ID，写进 .ow 会报地图不存在。
+    """
+    for i, raw in enumerate(text.split("\n"), 1):
+        m = re.match(r"^\s*(\S+)\s+(\d{10,})\s*$", raw)
+        if not m:
+            continue
+        num = int(m.group(2))
+        if (num >> 52) != 0xD8:
+            problems.append((i, "error",
+                             "地图编号 %s 不是工坊编号（应以 9727775195 开头）；"
+                             "资源路径或十六进制 ID 不能直接写进 .ow，用 ws.py map-code 查" % m.group(2)))
+
+
 def check_map_mode(text, problems, traits=None, pools=None, strict=False):
     """地图是否属于该模式的地图池。
 
@@ -2768,6 +2784,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_team_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
+    check_map_codes(text, problems)
     check_map_mode(text, problems, strict=strict)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
