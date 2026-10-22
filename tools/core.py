@@ -1257,12 +1257,10 @@ def check_extensions(text, problems, costs, unlocked=None, base_options=None):
             enabled.append(nm)
         used = sum(costs[n] for n in enabled)
         line = text.count("\n", 0, m.start()) + 1
-        robots = 14 if "生成更多机器人" in enabled else 2
-        skin = 12 - (used + 3) // 4          # 推定：12 - ceil(已用/4)
         problems.append((line, "warning",
-                         "已用扩展点数 %d（基础可用 8，移除非游玩栏位或禁用非工坊地图可增加）；"
-                         "机器人上限 %d；独特英雄皮肤组合上限约 %d（推定）"
-                         % (used, robots, skin)))
+                         "已用扩展点数 %d（可用点数取决于大厅设置：模式数、地图数、玩家栏位，"
+                         "单模式+单地图曾见 16，多模式多地图为 8）；"
+                         "皮肤组合上限与机器人上限同样随大厅变化，请以面板「编辑扩展」为准" % used))
     if not unlocked or base_options is None:
         return
     for val, exts in unlocked.items():
