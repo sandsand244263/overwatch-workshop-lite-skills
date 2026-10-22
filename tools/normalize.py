@@ -21,8 +21,8 @@ import core  # noqa: E402
 
 NO_TO_DISABLED = {
     "设置不可见": (1,),
-    "追踪全局变量频率": (1,),
-    "追踪玩家变量频率": (1,),
+    "追踪全局变量频率": (3,),
+    "追踪玩家变量频率": (4,),
     "创建地图文本": (5,),
     "创建HUD文本": (9,),
 }
@@ -148,10 +148,45 @@ def fix_none_args(text):
     return text, changes
 
 
-def normalize_text(text):
+def fix_bool_words(text):
+    """布尔项里的 禁用/启用 改成 关闭/开启（数据来自 data/setting-schemas.tsv）。
+
+    实测：目标点决胜机制 / 推进背包 / 尖刺墙 写「禁用」导入失败；
+    而 Enum 项（重装职责被动生命值加成）写「禁用」是合法的 —— 所以必须按类型判断。
+    """
+    types = core.load_setting_types()
+    changes = 0
+    out = []
+    for line in text.split(chr(10)):
+        st = line.strip()
+        m = re.match(r"^([^:：]{1,40})\s*[:：]\s*([^\s]+)\s*$", st)
+        if m and types:
+            key, val = m.group(1).strip(), m.group(2).strip()
+            info = types.get(key)
+            if info and "Bool" in info["type"] and val in ("禁用", "启用"):
+                newval = "关闭" if val == "禁用" else "开启"
+                line = line.replace(": " + val, ": " + newval).replace("：" + val, "：" + newval)
+                changes += 1
+        out.append(line)
+    return chr(10).join(out), changes
+
+
+def normalize_text(text, fix_bools=False, drop_empty=False):
     joined, merged = join_folded_lines(text.split(chr(10)))
-    new_text, none_fixed = fix_none_args(chr(10).join(joined))
-    return new_text, merged, none_fixed
+    out = chr(10).join(joined)
+    out, none_fixed = fix_none_args(out)
+    bool_fixed = 0
+    if fix_bools:
+        out, bool_fixed = fix_bool_words(out)
+    if drop_empty:
+        keep = []
+        for line in out.split(chr(10)):
+            st = line.strip()
+            if re.match(r"^[^:：]+:\s*$", st) and st not in ("全局:", "玩家:"):
+                continue
+            keep.append(line)
+        out = chr(10).join(keep)
+    return out, merged, none_fixed, bool_fixed
 
 
 def main():

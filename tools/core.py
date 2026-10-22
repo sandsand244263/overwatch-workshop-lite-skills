@@ -1302,6 +1302,137 @@ def check_bare_strings(text, problems):
 VICTORY_ACTIONS = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
 
 
+_SETTING_TYPES = {"map": None}
+
+
+def load_setting_types(path=None):
+    """{键: {type, on, off, schemas}} —— 来自 data/setting-schemas.tsv。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "setting-schemas.tsv"))
+    if _SETTING_TYPES["map"] is not None:
+        return _SETTING_TYPES["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            r = csv.DictReader(f, delimiter="\t")
+            for row in r:
+                key = (row.get("key") or "").strip()
+                if not key:
+                    continue
+                info = out.setdefault(key, {"type": set(), "schemas": set()})
+                info["type"].add((row.get("type") or "").strip())
+                info["schemas"].add((row.get("schema") or "").strip())
+    _SETTING_TYPES["map"] = out
+    return out
+
+
+def check_setting_belongs(text, problems, types=None):
+    """设置键必须写在它所属的层里（模式名块 / 综合 / 英雄 / 武器）。
+
+    实测：复生时间属于「英雄」层，丧尸把 复生时间 写进「决斗先锋」块 → 导入报
+    「之后应有一个游戏模式设置」。决斗先锋里对应的是「复生时间倍率」。
+    """
+    types = types or load_setting_types()
+    if not types:
+        return
+    all_schemas = {sc for info in types.values() for sc in info["schemas"] if sc}
+    lines = text.split("\n")
+    stack, pending = [], None
+    for i, raw in enumerate(lines, 1):
+        st = strip_noise(raw).strip()
+        if not st:
+            continue
+        if st in BLOCK_KEYWORDS or st.startswith("规则("):
+            pending = "规则" if st.startswith("规则(") else st
+            if st.endswith("{"):
+                stack.append(pending)
+                pending = None
+            continue
+        if st.startswith("{"):
+            stack.append(pending if pending else (stack[-1] if stack else None))
+            pending = None
+            continue
+        if st.startswith("}"):
+            if stack:
+                stack.pop()
+            continue
+        m = re.match(r"^([^:：]{1,40})\s*[:：]\s*\S", st)
+        if not m:
+            if st not in BLOCK_KEYWORDS and not st.startswith("{"):
+                pending = st
+            continue
+        key = m.group(1).strip()
+        info = types.get(key)
+        if not info:
+            continue
+        layer = stack[-1] if stack else None
+        if layer not in all_schemas:
+            continue
+        if layer in info["schemas"]:
+            continue
+        where = "、".join(sorted(x for x in info["schemas"] if x))
+        problems.append((i, "warning",
+                         "「%s」属于「%s」层，这里写在「%s」里；导入会报「之后应有一个游戏模式设置」"
+                         % (key, where, layer)))
+
+
+def check_setting_bools(text, problems, types=None):
+    """布尔项在 .ow 里只能写 开启 / 关闭（或 是 / 否）；「禁用」是界面词，导入会失败。
+
+    实测：目标点决胜机制 / 推进背包 / 尖刺墙 写成「禁用」都被拒。
+    """
+    types = types or load_setting_types()
+    if not types:
+        return
+    for i, raw in enumerate(text.split("\n"), 1):
+        st = strip_noise(raw).strip()
+        m = re.match(r"^([^:：]{1,40})\s*[:：]\s*([^\s]+)\s*$", st)
+        if not m:
+            continue
+        key, val = m.group(1).strip(), m.group(2).strip()
+        info = types.get(key)
+        if not info or "Bool" not in info["type"]:
+            continue
+        if val in ("禁用", "启用"):
+            problems.append((i, "warning",
+                             "「%s」是布尔项，这里写的是「%s」；多数情况要写 开启/关闭，"
+                             "但个别模式接受 禁用（实测：目标点决胜机制/推进背包 写禁用被拒）"
+                             % (key, val)))
+
+
+def check_empty_setting_values(text, problems):
+    """设置行写成 `键:` 但值为空——游戏会报「之后应有一个数字/选项」。
+
+    实测：导出会把某些值吞掉（招架姿态恢复倍率:）。
+    """
+    in_settings = False
+    depth = 0
+    for i, raw in enumerate(text.split("\n"), 1):
+        st = strip_noise(raw).strip()
+        if not st:
+            continue
+        if st == "设置":
+            in_settings = True
+            depth = 0
+            continue
+        if not in_settings:
+            continue
+        if st == "{":
+            depth += 1
+            continue
+        if st == "}":
+            depth -= 1
+            if depth <= 0:
+                in_settings = False
+            continue
+        if st in ("全局:", "玩家:"):
+            continue
+        m = re.match(r"^([^:：]{1,40})\s*[:：]\s*$", st)
+        if m:
+            problems.append((i, "error",
+                             "设置项「%s」没有值（导出会把某些值吞掉）；游戏会报「之后应有一个数字 / 一个设置选项」"
+                             % m.group(1).strip()))
+
+
 def check_victory_in_loop(text, problems):
     """循环里宣告胜利后没有退出（中断/返回），会每秒重复宣告。
 
@@ -2339,6 +2470,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
     check_bare_strings(text, problems)
+    check_setting_belongs(text, problems)
+    check_setting_bools(text, problems)
+    check_empty_setting_values(text, problems)
     check_victory_in_loop(text, problems)
     check_team_values(text, problems)
     check_game_end_actions(text, problems)

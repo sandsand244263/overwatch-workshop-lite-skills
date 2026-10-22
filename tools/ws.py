@@ -421,10 +421,12 @@ def cmd_normalize(args):
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import normalize as nz
     text = open(args.src, encoding="utf-8-sig", errors="replace").read()
-    new_text, merged, none_fixed = nz.normalize_text(text)
+    new_text, merged, none_fixed, bool_fixed = nz.normalize_text(
+        text, fix_bools=getattr(args, "fix_bools", False),
+        drop_empty=getattr(args, "drop_empty", False))
     open(args.out, "w", encoding="utf-8", newline="\n").write(new_text)
-    print("输入 %d 行 -> 输出 %d 行（合并折行 %d 处，改「无」%d 处）"
-          % (len(text.split("\n")), len(new_text.split("\n")), merged, none_fixed))
+    print("输入 %d 行 -> 输出 %d 行（合并折行 %d，改「无」%d，改布尔词 %d）"
+          % (len(text.split("\n")), len(new_text.split("\n")), merged, none_fixed, bool_fixed))
     probs = core.full_lint(args.out, DATA)
     errs = [p for p in probs if p[1] == "error"]
     print("修复后校验：%d error / %d warning" % (len(errs), len(probs) - len(errs)))
@@ -543,6 +545,8 @@ def main():
     p = sub.add_parser("normalize", help="修复导出失真：合并折行、把「无」改成「全部禁用」")
     p.add_argument("src")
     p.add_argument("-o", "--out", required=True)
+    p.add_argument("--drop-empty", action="store_true", help="删掉「键:」后面没值的行（导出会把值吞掉）")
+    p.add_argument("--fix-bools", action="store_true", help="把布尔项的 禁用/启用 改成 关闭/开启（实测对部分模式必要）")
     p.set_defaults(func=cmd_normalize)
 
     p = sub.add_parser("selftest", help="工具自身体检（重复定义等）")
