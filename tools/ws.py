@@ -29,6 +29,36 @@ def load():
     return sigs, labels, settings
 
 
+def _ext():
+    """扩展成本表 + 解锁选项表（缓存，避免每次 check 重读）。"""
+    global _EXT_CACHE
+    try:
+        return _EXT_CACHE
+    except NameError:
+        pass
+    _EXT_CACHE = core.load_extensions(os.path.join(DATA, "extensions.tsv"),
+                                      os.path.join(DATA, "extension-values.tsv"))
+    return _EXT_CACHE
+
+
+def _base_options():
+    global _OPT_CACHE
+    try:
+        return _OPT_CACHE
+    except NameError:
+        pass
+    _OPT_CACHE = set()
+    p = os.path.join(DATA, "dropdown-options.tsv")
+    if os.path.isfile(p):
+        with open(p, encoding="utf-8") as f:
+            next(f, None)
+            for line in f:
+                c = line.rstrip("\n").split("\t")
+                if len(c) > 1:
+                    _OPT_CACHE.add(c[1].strip())
+    return _OPT_CACHE
+
+
 def cmd_check(args):
     sigs, labels, settings = load()
     failed = 0
@@ -45,7 +75,9 @@ def cmd_check(args):
                              setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
                              map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
                              dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
-                             strict=getattr(args, "strict", False))
+                             strict=getattr(args, "strict", False),
+                             extensions=_ext()[0], extension_values=_ext()[1],
+                             base_options=_base_options())
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:
@@ -85,7 +117,9 @@ def cmd_check_all(args):
                              setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
                              map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
                              dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
-                             strict=getattr(args, "strict", False))
+                             strict=getattr(args, "strict", False),
+                             extensions=_ext()[0], extension_values=_ext()[1],
+                             base_options=_base_options())
             errs = [p[2] for p in probs if p[1] == "error"]
             hit = any(r["expect"] in e for e in errs)
             print("%s %s：%s" % ("✓" if hit else "✗", r["file"],

@@ -901,6 +901,9 @@ def check_ability_names(text, problems, abilities, hero_names):
 
 
 
+SETTING_KEY_WHITELIST = {"鸣谢"}
+
+
 def check_setting_keys(text, problems, setting_keys, hero_names=None):
     """设置块里的键必须还在当前版本设置键表里。
 
@@ -939,7 +942,7 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
         if not m:
             continue
         key = m.group(1)
-        if key in setting_keys:
+        if key in setting_keys or key in SETTING_KEY_WHITELIST:
             continue
         _unknown_name("设置键", key, offs[idx] + raw.find(key), problems, text,
                       "；用 ws.py settings --mode <模式> 生成合法的键")
@@ -1209,6 +1212,71 @@ def load_dropdowns(path):
 
 
 BARE_WORD = re.compile(r"^[\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5\w]*$")
+
+
+def load_extensions(path, values_path=None):
+    """扩展名 -> 成本；以及 扩展名 -> 解锁的选项集合。"""
+    costs, unlocked = {}, {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            next(f, None)
+            for line in f:
+                c = line.rstrip("\n").split("\t")
+                if len(c) >= 2 and c[0].strip():
+                    try:
+                        costs[c[0].strip()] = int(c[1])
+                    except ValueError:
+                        pass
+    if values_path and os.path.isfile(values_path):
+        with open(values_path, encoding="utf-8") as f:
+            next(f, None)
+            for line in f:
+                c = line.rstrip("\n").split("\t")
+                if len(c) >= 3 and c[2].strip():
+                    unlocked.setdefault(c[2].strip(), set()).add(c[0].strip())
+    return costs, unlocked
+
+
+def check_extensions(text, problems, costs, unlocked=None, base_options=None):
+    """扩展块：名字合法性、点数合计、派生上限；以及「用了扩展效果却没开扩展」。"""
+    if not costs:
+        return
+    m = re.search(r"^\s*扩展\s*\n\s*\{", text, re.M)
+    enabled = []
+    if m:
+        ob = text.find("{", m.start())
+        cb = text.find("}", ob)
+        for raw in text[ob + 1:cb].split("\n"):
+            nm = raw.strip()
+            if not nm or nm.startswith("//"):
+                continue
+            if nm not in costs:
+                _add(problems, text, text.find(nm, ob), "error",
+                     "扩展「%s」不存在；可选：%s" % (nm, "、".join(sorted(costs))))
+                continue
+            enabled.append(nm)
+        used = sum(costs[n] for n in enabled)
+        line = text.count("\n", 0, m.start()) + 1
+        robots = 14 if "生成更多机器人" in enabled else 2
+        skin = 12 - (used + 3) // 4          # 推定：12 - ceil(已用/4)
+        problems.append((line, "warning",
+                         "已用扩展点数 %d（基础可用 8，移除非游玩栏位或禁用非工坊地图可增加）；"
+                         "机器人上限 %d；独特英雄皮肤组合上限约 %d（推定）"
+                         % (used, robots, skin)))
+    if not unlocked or base_options is None:
+        return
+    for val, exts in unlocked.items():
+        if val in base_options:
+            continue                          # 基础游戏也有同名选项，不判
+        pos = text.find(val + ")")
+        if pos < 0:
+            continue
+        missing = [e for e in exts if e not in enabled]
+        if missing and len(missing) == len(exts):
+            line = text.count("\n", 0, pos) + 1
+            problems.append((line, "error",
+                             "用到「%s」，但它属于扩展「%s」，未在「扩展」块里启用"
+                             % (val, "、".join(sorted(exts)))))
 
 
 def check_dropdown_values(text, problems, dropdowns):
@@ -1709,7 +1777,8 @@ def mask_text(text):
 
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False,
+              extensions=None, extension_values=None, base_options=None):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -1917,6 +1986,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     if strict:                            # 数据未经充分验证的检查，默认关闭（避免误报）
         check_dropdown_values(text, problems, dropdowns)
         check_rule_semantics(text, problems)
+    check_extensions(text, problems, extensions, extension_values, base_options)
     check_map_names(text, problems, map_names)
     check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)

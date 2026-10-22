@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.65.0
+version: 2.66.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -12,6 +12,12 @@ metadata:
 # Overwatch Workshop Lite
 
 写 `.ow` 工坊代码。用户只负责导入和试玩，语法、参数、设置项、元素预算、混淆、交付文件由本技能兜底。
+
+## 扩展（编辑扩展）
+
+「设置」里和 `地图工坊` 同级可以有 `扩展 { }` 块，一行一个扩展名，用来解锁额外效果/声音/弹道。
+代价是占扩展点数（基础 8 点），并压低皮肤组合上限。11 个扩展、成本、解锁关系见 `docs/extensions.md`。
+校验器会查扩展名拼写，并按已用点数推算机器人上限与皮肤上限。
 
 ## 校验器现在查三层
 
