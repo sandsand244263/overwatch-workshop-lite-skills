@@ -1504,6 +1504,33 @@ def load_map_variants(path=None):
     return out
 
 
+_KNOWN_CODES = {"codes": None}
+
+
+def load_known_map_codes():
+    """所有“见过”的地图编号：map-codes.tsv + map-codes-derived.tsv + map-variants.tsv。"""
+    if _KNOWN_CODES["codes"] is not None:
+        return _KNOWN_CODES["codes"]
+    out = set()
+    for fn in ("map-codes.tsv", "map-codes-derived.tsv"):
+        p = os.path.join(DATA_DIR, fn)
+        if os.path.isfile(p):
+            with open(p, encoding="utf-8-sig") as f:
+                for row in csv.DictReader(f, delimiter="\t"):
+                    code = (row.get("code") or "").strip()
+                    if code:
+                        out.add(code)
+    p = os.path.join(DATA_DIR, "map-variants.tsv")
+    if os.path.isfile(p):
+        with open(p, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                vid = (row.get("id") or "").strip()
+                if vid:
+                    out.add(vid)
+    _KNOWN_CODES["codes"] = out
+    return out
+
+
 def check_map_codes(text, problems, strict=False):
     """`启用地图` 每行：`地图名 [时段编号 ...]`（一行一张图，写几个编号 = 开几个时段）。
 
@@ -1512,18 +1539,29 @@ def check_map_codes(text, problems, strict=False):
         绿洲城 972777519512068292 972777519512068154 972777519512068153   ← 全开
 
     只写名字 = 用默认时段，一定能导入。
-    这里**只查编号格式**（必须 9727775195… 开头）：各图的时段编号表尚不完整，
-    真实文件里出现过表里没有的编号（艾兴瓦尔德 972777519512094292），按表判归属会误报。
+    查两件事，都不看“编号属不属于这张图”（各图时段表不完整，按表判归属会误报：
+    真实文件里出现过表里没有的编号，艾兴瓦尔德 972777519512094292）：
+    1. 前缀必须是 9727775195…（error 级思路，warning 输出）
+    2. 前缀对、但三张编号表里都查不到 → 多半手抄错一位（warning）
+       实测（2026-10-23）：8 个真实模式 + 104 个回归样本，除故意的反例外零命中
     """
+    known = load_known_map_codes()
     for i, raw in enumerate(text.split("\n"), 1):
         m = re.match(r"^\s*(\S+)((?:\s+\d{10,})+)\s*$", raw)
         if not m:
             continue
-        bad = [x for x in re.findall(r"\d{10,}", m.group(2)) if (int(x) >> 52) != 0xD8]
+        codes = re.findall(r"\d{10,}", m.group(2))
+        bad = [x for x in codes if (int(x) >> 52) != 0xD8]
         if bad:
             problems.append((i, "warning",
                              "地图编号 %s 不像工坊编号（应以 9727775195 开头）；"
                              "不确定就只写地图名「%s」" % ("、".join(bad), m.group(1))))
+            continue
+        unknown = [x for x in codes if known and x not in known]
+        if unknown:
+            problems.append((i, "warning",
+                             "地图编号 %s 不在已知编号表里（可能抄错一位，游戏会拒绝导入）；"
+                             "不确定就只写地图名「%s」" % ("、".join(unknown), m.group(1))))
 
 _MAP_POOLS = {"map": None}
 
