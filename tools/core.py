@@ -1465,16 +1465,41 @@ def load_map_traits(path=None):
     return out
 
 
-def check_map_mode(text, problems, traits=None):
-    """需要目标点的模式不能配「没有目标点」的地图。
+_MAP_POOLS = {"map": None}
 
-    实测：工坊室内 + 占领要点 → 游戏报「无效的地图设置」，不说是哪张图。
-    模式必须按「块栈」跟踪：`禁用 占领要点 { }` 这类块不是当前模式。
+
+def load_map_pools(path=None):
+    """{模式名: set(地图名)} —— 来自 data/map-pools.tsv（游戏「设置/地图」页截图整理）。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "map-pools.tsv"))
+    if _MAP_POOLS["map"] is not None:
+        return _MAP_POOLS["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                m = (row.get("mode") or "").strip()
+                mp = (row.get("map") or "").strip()
+                if m and mp:
+                    out.setdefault(m, set()).add(mp)
+    _MAP_POOLS["map"] = out
+    return out
+
+
+def check_map_mode(text, problems, traits=None, pools=None, strict=False):
+    """地图是否属于该模式的地图池。
+
+    数据来源：游戏「设置 / 地图」页，每个模式一组，列出该模式可用的图（用户逐组截图）。
+    有池子 → 不在池子里：默认 warning（截图可能漏行），`--strict` 升 error。
+    没池子 → 退回已验证的硬规则：无目标点的图（工坊空图/训练靶场）不能配目标类模式（error）。
+
+    模式必须按「块栈」跟踪：`禁用 占领要点 { }` 不是当前模式；裸标签行（模式名、`启用地图`）
+    与 `{` 分两行，需要 pending 缓冲。
     """
-    traits = traits or load_map_traits()
-    if not traits:
+    traits = traits if traits is not None else load_map_traits()
+    pools = pools if pools is not None else load_map_pools()
+    if not traits and not pools:
         return
-    stack = []            # [(标签, 是否模式块)]
+    stack = []
     pending = None
     for i, raw in enumerate(text.split("\n"), 1):
         st = strip_noise(raw).strip()
@@ -1493,26 +1518,36 @@ def check_map_mode(text, problems, traits=None):
             stack.append((label, is_mode))
             pending = None
             continue
-        # 裸标签行（模式名 / 启用地图 …）后面跟的是 {
         if (":" not in st and "：" not in st and ";" not in st and "(" not in st
                 and not re.search(r"\s\d{3,}$", st)):
             pending = st
             continue
-        # 普通行：只有处在某个模式块内、且处在「启用地图」块内才判断
         labels = [l for l, _m in stack]
-        if "启用地图" in labels:
-            modes = [l for l, m in stack if m]
-            if not modes:
+        if "启用地图" not in labels:
+            continue
+        modes = [l for l, m in stack if m]
+        if not modes:
+            continue
+        mode = modes[-1]
+        m = re.match(r"^([^\s]+)(?:\s+\d{6,})?$", st)
+        if not m:
+            continue
+        mp = m.group(1).strip()
+        # 已验证的硬规则优先：无目标点的图 + 目标类模式 = 一定失败（实测报「无效的地图设置」）
+        if traits.get(mp) == "无" and mode in OBJECTIVE_MODES:
+            problems.append((i, "error",
+                             "「%s」没有目标点，不能用于「%s」（游戏会报「无效的地图设置」）；"
+                             "改用该模式的默认地图，或换一张有目标点的图" % (mp, mode)))
+            continue
+        if mode in pools:
+            if mp in pools[mode]:
                 continue
-            mode = modes[-1]
-            m = re.match(r"^([^\s]+)(?:\s+\d{6,})?$", st)
-            if not m:
-                continue
-            mp = m.group(1).strip()
-            if traits.get(mp) == "无" and mode in OBJECTIVE_MODES:
-                problems.append((i, "error",
-                                 "「%s」没有目标点，不能用于「%s」（游戏会报「无效的地图设置」）；"
-                                 "改用该模式的默认地图，或换一张有目标点的图" % (mp, mode)))
+            shown = "、".join(sorted(pools[mode])[:6])
+            more = "…" if len(pools[mode]) > 6 else ""
+            sev = "error" if strict else "warning"
+            problems.append((i, sev,
+                             "「%s」不在「%s」的地图池里，导入时可能报「无效的地图设置」；"
+                             "该模式可用：%s%s" % (mp, mode, shown, more)))
 
 
 def check_setting_belongs(text, problems, types=None):
@@ -2732,7 +2767,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_team_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
-    check_map_mode(text, problems)
+    check_map_mode(text, problems, strict=strict)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
     check_empty_setting_values(text, problems)
