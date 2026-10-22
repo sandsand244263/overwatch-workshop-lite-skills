@@ -493,13 +493,10 @@ def estimate2(path, detail=False):
             parts["动作"] = parts.get("动作", 0) + c
             total += c
         if is_sub:
-            has_if = False
+            # 实测 K17a=13 / K20=22：子程序体里每个 If 少 1
             for st in rule["acts"]:
                 k, pl = parse_statement(st)
                 if k == "block" and pl and pl[0] == "If":
-                    has_if = True
-                    break
-            if has_if:
-                total -= 1                       # 实测：子程序体里有 If 时整条少 1（待 K20 确认是否按 If 计）
-                parts["动作"] = parts.get("动作", 0) - 1
+                    total -= 1
+                    parts["动作"] = parts.get("动作", 0) - 1
     return (total, parts) if detail else total
