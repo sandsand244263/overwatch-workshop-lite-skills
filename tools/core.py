@@ -2102,6 +2102,21 @@ def check_map_names(text, problems, map_names):
 
 
 
+def check_missing_settings_block(text, problems):
+    """只有工坊内容、没有「设置」块 —— 多半是从编辑器「全选复制」拿的。
+
+    房间设置页的「复制设置」才会连 设置块（模式/地图/英雄/大厅）一起导出。
+    少了设置块，导入后房间配置会丢，模式可能跑不起来。
+    """
+    if not re.search(r"^\s*规则\s*\(", text, re.M):
+        return
+    if re.search(r"^\s*设置\s*$", text, re.M) or re.search(r"^\s*设置\s*\{", text, re.M):
+        return
+    problems.append((1, "warning",
+                     "这份文件只有工坊内容、没有「设置」块——大概是从编辑器「全选复制」拿的；"
+                     "要完整模式请回「房间设置」点「复制设置」重新导出"))
+
+
 def check_missing_var_block(text, problems):
     """用了 全局.X / 玩家.X，但整个文件没有 变量 块。"""
     if re.search(r"^\s*变量\s*$", text, re.M):
@@ -2824,6 +2839,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         check_rule_semantics(text, problems)
     check_extensions(text, problems, extensions, extension_values, base_options)
     check_map_names(text, problems, map_names)
+    check_missing_settings_block(text, problems)
     check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
