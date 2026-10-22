@@ -1153,6 +1153,39 @@ def _var_block_span(text):
 
 
 
+STRING_WRAPPERS = {"自定义字符串", "字符串"}
+
+
+def check_bare_strings(text, problems):
+    """字符串作参数时必须包在 自定义字符串(...) 里；裸写 "文本" 游戏不认。
+
+    实测：`记入查看器("[测试] 开始")` 报「"记入查看器("之后应有一个值」。
+    单独成行的 "注释" 是合法写法，不受影响（那种行不以 ; 结尾）。
+    """
+    for line_no, raw in enumerate(text.split("\n"), 1):
+        s = raw.strip()
+        if not s or s.startswith("//") or not s.endswith(";"):
+            continue
+        if '"' not in s:
+            continue
+        for m in re.finditer(r"([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\(", s):
+            name = m.group(1)
+            if name in STRING_WRAPPERS:
+                continue
+            i = m.end(); depth = 1
+            while i < len(s) and depth > 0:
+                if s[i] == "(":
+                    depth += 1
+                elif s[i] == ")":
+                    depth -= 1
+                i += 1
+            body = s[m.end():i - 1]
+            if re.search(r"(^|,)\s*\"", body):
+                problems.append((line_no, "error",
+                                 "%s 的参数里不能直接写字符串，要包成 自定义字符串(\"…\")" % name))
+                break
+
+
 def check_team_values(text, problems):
     """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
 
@@ -2061,6 +2094,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
+    check_bare_strings(text, problems)
     check_team_values(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
