@@ -1,0 +1,48 @@
+name: 报错 / 误报
+description: 校验器报错但你认为是误报，或者导入时报的错误校验器没查出来
+title: "[误报] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先跑一次 `python tools/ws.py report 你的文件.ow`，
+        它会生成一份脱敏的最小复现（环境 + 问题行 + 上下文），贴到下面即可。
+  - type: textarea
+    id: report
+    attributes:
+      label: ws.py report 的输出
+      description: 直接粘贴，不要手工删减
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expect
+    attributes:
+      label: 你期望的结果 / 游戏里的实际情况
+      description: 例如「导入成功了」「游戏报的是另一句」「这一行其实合法」
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 技能版本
+      description: 在 VERSION 文件或 README 顶部
+      placeholder: "2.90.0"
+    validations:
+      required: true
+  - type: input
+    id: gamebuild
+    attributes:
+      label: 游戏版本
+      description: 可选，游戏主界面右下角
+      placeholder: "2.25.0.1.154504"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 自查
+      options:
+        - label: 我已经跑过 `ws.py doctor`，环境正常
+          required: false
+        - label: 这份片段里没有我不想公开的内容（report 已脱敏长字符串）
+          required: true

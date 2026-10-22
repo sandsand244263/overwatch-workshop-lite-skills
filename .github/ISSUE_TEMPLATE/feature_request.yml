@@ -1,0 +1,23 @@
+name: 功能建议
+description: 希望支持某种写法、某个模式、某类检查
+title: "[建议] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 你想要什么
+      description: 一句话说清
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 现在卡在哪
+      description: 例如「某种写法校验器报错，但游戏能导入」
+  - type: textarea
+    id: sample
+    attributes:
+      label: 相关片段（可选）
+      description: 能说明问题的几行 .ow，注意去掉不想公开的内容
+      render: text

@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 2.90.0
+version: 2.91.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -12,6 +12,11 @@ metadata:
 # Overwatch Workshop Lite
 
 写 `.ow` 工坊代码。用户只负责导入和试玩，语法、参数、设置项、元素预算、混淆、交付文件由本技能兜底。
+
+### 用户第一次用
+
+先带他走 `docs/quickstart.md` 的四步：装 → 导出（Ctrl+A / Ctrl+C → 存 .ow）→ 检查 → 修 → 导入。
+用户说「导不进去」时，先问有没有跑过 `ws.py doctor`，再要游戏报错原文（行号常指向上一行）。
 
 ### 可运行样例（先抄后改）
 

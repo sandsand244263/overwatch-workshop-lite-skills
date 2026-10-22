@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 5 分钟上手
+    url: https://github.com/sandsand244263/overwatch-workshop-lite-skills/blob/main/docs/quickstart.md
+    about: 先看这个，多数问题在这里能解决

@@ -1,0 +1,8 @@
+changelog:
+  categories:
+    - title: 校验器
+      labels: ["validator", "bug"]
+    - title: 数据与文档
+      labels: ["docs", "data"]
+    - title: 其它
+      labels: ["*"]
