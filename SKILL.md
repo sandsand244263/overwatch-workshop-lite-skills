@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.1.0
+version: 3.2.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -22,6 +22,7 @@ metadata:
 
 先带他走 `docs/quickstart.md` 的四步：装 → 导出（Ctrl+A / Ctrl+C → 存 .ow）→ 检查 → 修 → 导入。
 用户说「导不进去」时，先问有没有跑过 `ws.py doctor`，再要游戏报错原文（行号常指向上一行）。
+文档导航见 `docs/INDEX.md`。
 
 ### 可运行样例（先抄后改）
 
@@ -177,31 +178,28 @@ python tools/ws.py doc --search 数组       # 按关键词搜说明
 ```
 
 **用途**：判断某个动作能不能做到你想要的效果、某参数该填什么、某个选项是什么意思。
-**局限**：官方说明写的是"这个动作干什么"，**不写运行时行为**（数组下标从 1 开始、HUD 同 ID 覆盖、`等待` 会阻塞整条规则）。后者见 `docs/pitfalls.md`。
+**局限**：官方说明写的是"这个动作干什么"，**不写运行时行为**（数组下标从 1 开始、HUD 同 ID 覆盖、`等待` 会阻塞整条规则）。后者见 `docs/pitfalls-runtime.md`、`docs/pitfalls-syntax.md`。
 
 数据表：`data/element-docs.tsv`、`data/param-docs.tsv`、`data/dropdown-options.tsv`（由 `tools/extract_docs.py` 从导出重新生成）。
 
-## 参考索引
+## 路由（先看这张表，别整目录读）
 
-- `docs/hero-stats.md` — 英雄/技能数值（生命值、冷却、弹匣），查：`python tools/ws.py stats 半藏`
-- `docs/hero-quickref.md` — 54 英雄血量速查表（模式设计调平衡用）
+| 用户的话 / 你在做什么 | 跑什么 | 读什么 |
+|---|---|---|
+| 「这个导不进去」「帮我看看」 | `ws.py check 文件.ow` | 有问题再按 `suggest` 给的改法 |
+| 贴了一句游戏报错 | `ws.py check` + 查手册 | `docs/errors.md` |
+| 「写个 XX 模式」 | `ws.py scaffold` 起手 → 写完 `check` | `docs/patterns.md` |
+| 要动地图 / 时段 / 模式名 | `ws.py map-code`、查池子 | `docs/pitfalls-map.md` |
+| 写动作、字符串、变量、数组 | `ws.py doc <动作>` | `docs/pitfalls-syntax.md`、`docs/syntax.md` |
+| 规则不跑 / 计分不对 / 不结束 | 实机诊断 | `docs/pitfalls-runtime.md`、`docs/diagnostics.md` |
+| 怀疑导出失真 | `ws.py fix 文件.ow` | `docs/pitfalls-export.md` |
+| 「多少个元素」「快到上限了」 | `ws.py count 文件.ow` | `docs/limits.md`、`docs/cost-patterns.md` |
+| 调英雄数值 | `ws.py stats <英雄>` | `docs/hero-stats.md` |
+| 要开扩展（特效/机器人/弹道） | `ws.py settings` | `docs/extensions.md` |
+| 出发布版 | `ws.py publish 文件.ow --obf all` | 本文「混淆」节 |
 
-| 文件 | 用途 |
-|---|---|
-| `docs/basics.md` | 常识与已知 bug |
-| `docs/format-spec.md` | 骨架、硬规则、报错对照 |
-| `docs/syntax.md` | 语法细节 |
-| `docs/pitfalls.md` | 执行机制陷阱（循环、等待、数组、事件） |
-| `docs/patterns.md` | 可套用骨架 |
-| `docs/cost-patterns.md` | 省元素与省性能的手法 |
-| `docs/limits.md` | 容量上限 + 元素估算公式 |
-| `docs/settings-map.md` | 设置界面分区与层级来源 |
-| `docs/diagnostics.md` | 报错定位 |
-| `docs/ui-notes.md` | HUD 排版 |
-| `docs/ecosystem.md` | 周边工具 |
-| `docs/sources.md` | 资料可信度分级 |
-
-实测探针在 `tools/probes/`；改校验器后重跑 `ws.py check-all`（必须全过）。
+**全部文档的索引：`docs/INDEX.md`（24 篇，按“你在做什么”排）。**
+**不要读 `data/` 里的表**——那是工具的数据源，用命令查。
 
 ## 交付标准
 
