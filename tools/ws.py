@@ -43,7 +43,9 @@ def cmd_check(args):
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
                              event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
                              setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
-                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")))
+                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
+                             dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
+                             strict=getattr(args, "strict", False))
         errors = [p for p in problems if p[1] == "error"]
         name = os.path.basename(path)
         if errors:
@@ -81,7 +83,9 @@ def cmd_check_all(args):
                              kinds=core.load_element_kinds(os.path.join(DATA, "element-kinds.tsv")),
                              event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
                              setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
-                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")))
+                             map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
+                             dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
+                             strict=getattr(args, "strict", False))
             errs = [p[2] for p in probs if p[1] == "error"]
             hit = any(r["expect"] in e for e in errs)
             print("%s %s：%s" % ("✓" if hit else "✗", r["file"],
@@ -388,6 +392,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("check", help="校验 .ow")
+    p.add_argument("--strict", action="store_true", help="额外跑数据未验证的检查（下拉值、持续规则语义），会有误报")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_check)
 

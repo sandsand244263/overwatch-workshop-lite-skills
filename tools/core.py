@@ -1037,10 +1037,14 @@ def check_limits(path, text, problems, sigs=None, labels=None):
                  "游戏会报「每条规则长度不得超过98KB」，拆成多条规则"
                  % (nm.group(1) if nm else "?", size, RULE_BYTE_LIMIT))
     try:
-        import element_count
-        est = element_count.estimate(path, sigs, labels)[0]
+        import element_count2 as _ec2          # 逆向模型：真实文件精度 -3%，旧模型会漏报
+        est = _ec2.estimate2(path)
     except Exception:
-        return
+        try:
+            import element_count
+            est = element_count.estimate(path, sigs, labels)[0]
+        except Exception:
+            return
     if est > ELEMENT_LIMIT:
         problems.append((0, "error",
                          "预计元素数约 %d，超过 32768 上限（估算偏保守，按低估的值算也已经超了）；"
@@ -1144,6 +1148,127 @@ def _var_block_span(text):
     return ob, i
 
 
+
+
+def check_rule_semantics(text, problems):
+    """两条实测行为：`持续` 规则只跑一次（要循环必须 While + 等待）；While(真) 必须有退出手段。"""
+    for m in re.finditer(r"^\s*规则\(\s*\"([^\"]*)\"\)", text, re.M):
+        name = m.group(1)
+        ob = text.find("{", m.end())
+        if ob < 0:
+            continue
+        depth, i = 1, ob + 1
+        while i < len(text) and depth:
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+            i += 1
+        body = text[m.start():i]
+        ev = re.search(r"事件\s*\{([^}]*)\}", body, re.S)
+        acts = body[body.find("动作"):] if "动作" in body else ""
+        if ev and "持续" in ev.group(1) and "While(" not in acts.replace(" ", ""):
+            line = text.count("\n", 0, m.start()) + 1
+            problems.append((line, "warning",
+                             "规则「%s」是「持续」事件，但动作里没有 While——持续规则只触发一次，"
+                             "要循环必须 While(真) + 等待" % name))
+        for w in re.finditer(r"While\(\s*(真|1\s*==\s*1)\s*\)", acts):
+            seg = acts[w.start():w.start() + 3000]
+            if not re.search(r"(等待|中断|继续|返回|中止)", seg):
+                line = text.count("\n", 0, text.find(acts) + w.start()) + 1
+                problems.append((line, "warning",
+                                 "While(%s) 里没有 等待 / 中断 / 返回，会死循环" % w.group(1)))
+
+
+def load_dropdowns(path):
+    """(元素名, 参数序号) -> 合法选项列表；选项被截断（含「…共」）的不收。"""
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        head = f.readline().rstrip("\n").split("\t")
+        try:
+            ie, ii = head.index("element"), head.index("index")
+            it, io = head.index("input_type"), head.index("options")
+        except ValueError:
+            return out
+        for line in f:
+            c = line.rstrip("\n").split("\t")
+            if len(c) <= max(ie, ii, it, io):
+                continue
+            if c[it].strip() != "Dropdown":
+                continue
+            opts = [x.strip() for x in c[io].split("|") if x.strip()]
+            if not opts or any("共" in o for o in opts):
+                continue
+            try:
+                out[(c[ie].strip(), int(c[ii]))] = opts
+            except ValueError:
+                continue
+    return out
+
+
+BARE_WORD = re.compile(r"^[\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5\w]*$")
+
+
+def check_dropdown_values(text, problems, dropdowns):
+    """下拉参数的取值必须在该参数的可选项里（数据来自 param-docs.tsv）。"""
+    if not dropdowns:
+        return
+    by_elem = {}
+    for (elem, idx), opts in dropdowns.items():
+        by_elem.setdefault(elem, {})[idx] = opts
+    for elem, idx_map in by_elem.items():
+        for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(elem) + r"\(", text):
+            depth, j = 0, m.end() - 1
+            while j < len(text):
+                if text[j] == "(":
+                    depth += 1
+                elif text[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            body = text[m.end():j]
+            args, cur, d, ins = [], "", 0, False
+            k = 0
+            while k < len(body):
+                ch = body[k]
+                if ins:
+                    cur += ch
+                    if ch == '"' and body[k - 1] != "\\":
+                        ins = False
+                    k += 1
+                    continue
+                if ch == '"':
+                    ins = True
+                    cur += ch
+                elif ch == "(":
+                    d += 1
+                    cur += ch
+                elif ch == ")":
+                    d -= 1
+                    cur += ch
+                elif ch in ",，" and d == 0:
+                    args.append(cur.strip())
+                    cur = ""
+                else:
+                    cur += ch
+                k += 1
+            if cur.strip():
+                args.append(cur.strip())
+            for idx, opts in idx_map.items():
+                if idx >= len(args):
+                    continue
+                val = args[idx]
+                if not BARE_WORD.fullmatch(val):
+                    continue
+                if val in ("真", "假", "空") or val in opts:
+                    continue
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append((line, "error",
+                                 "%s 第 %d 个参数只能填 %s；这里写的是「%s」"
+                                 % (elem, idx + 1, " / ".join(opts), val)))
 
 
 def check_arg_count(text, problems):
@@ -1584,7 +1709,7 @@ def mask_text(text):
 
 
 
-def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None):
+def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False):
     problems = []
     settings = settings or {}
     with open(path, encoding="utf-8") as f:
@@ -1789,6 +1914,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_unassigned(masked, problems)
     check_lazy_display(masked, problems)
     check_local_values(text, problems)
+    if strict:                            # 数据未经充分验证的检查，默认关闭（避免误报）
+        check_dropdown_values(text, problems, dropdowns)
+        check_rule_semantics(text, problems)
     check_map_names(text, problems, map_names)
     check_missing_var_block(masked, problems)
     check_var_refs(masked, problems)
