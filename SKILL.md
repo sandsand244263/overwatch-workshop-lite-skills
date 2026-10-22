@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.2.2
+version: 3.3.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -186,6 +186,7 @@ python tools/ws.py doc --search 数组       # 按关键词搜说明
 
 | 用户的话 / 你在做什么 | 跑什么 | 读什么 |
 |---|---|---|
+| 不知道怎么导出/导入/分享 | — | `docs/ui-workflow.md` |
 | 「这个导不进去」「帮我看看」 | `ws.py check 文件.ow` | 有问题再按 `suggest` 给的改法 |
 | 贴了一句游戏报错 | `ws.py check` + 查手册 | `docs/errors.md` |
 | 「写个 XX 模式」 | `ws.py scaffold` 起手 → 写完 `check` | `docs/patterns.md` |

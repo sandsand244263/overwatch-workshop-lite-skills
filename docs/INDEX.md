@@ -5,6 +5,7 @@
 | 文档 | 讲什么 | 什么时候读 |
 |---|---|---|
 | [quickstart.md](./quickstart.md) | 新用户第一次用：装 → 导出 → 检查 → 修 → 导入 | 用户说「不会用」「怎么开始」 |
+| [ui-workflow.md](./ui-workflow.md) | 游戏界面操作：导出/导入/分享/预设/诊断 | 不知道怎么在游戏里点 |
 | [errors.md](./errors.md) | 报错原文 → 原因 → 改法（实测） | 手里有一句游戏报错 |
 | [pitfalls.md](./pitfalls.md) | 避坑总索引 + 必查清单 | 每次都该扫一眼 |
 | [pitfalls-map.md](./pitfalls-map.md) | 地图池、时段编号、模式名写法 | 动地图设置 |
