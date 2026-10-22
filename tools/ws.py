@@ -210,22 +210,21 @@ def cmd_defaults(args):
 REAL_WORLD_FACTOR = 2.12
 
 def cmd_count(args):
-    sigs, labels, settings = load()
-    from element_count import estimate, describe
+    """元素数估算：给出区间而不是单值（实测偏差 -4% ~ -19%）。"""
     from element_count2 import estimate2
+    from element_count import estimate, describe
     for path in args.files:
         if getattr(args, "legacy", False):
-            est, detail = estimate(path, sigs, labels)
+            est, detail = estimate(path, load()[0], load()[1])
+            print("%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail)))
+            continue
+        est = estimate2(path)
+        lo, hi = est, int(est * 1.35)
+        print("%s：约 %d 个元素（游戏里可能显示 %d ~ %d）" % (os.path.basename(path), est, lo, hi))
+        if hi >= 30000:
+            print("  ⚠ 已经接近 32768 上限，请进游戏看「显示诊断结果 → 总计元素数量」确认，别只信估算。")
         else:
-            est = estimate2(path)
-            detail = None
-        line = "%s：预计 %d 个元素" % (os.path.basename(path), est)
-        if detail is not None:
-            line += "（%s）" % describe(detail)
-        if est >= 1500:                      # 大文件：已知偏低约 3%，给校准值
-            line += "\n   └ 按真实模式校准约 %d 个（系数 %.2f；32,768 上限请按此值判断）" % (int(est * REAL_WORLD_FACTOR), REAL_WORLD_FACTOR)
-        print(line)
-        print("  上限 32768。估算仅供预警，最终以游戏「显示诊断结果 → 总计元素数量」为准。")
+            print("  上限 32768；离上限还远，估算误差不影响。")
     return 0
 
 
