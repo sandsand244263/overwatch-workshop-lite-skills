@@ -682,6 +682,45 @@ def cmd_normalize(args):
     print("修复后校验：%d error / %d warning" % (len(errs), len(probs) - len(errs)))
     return 0
 
+
+def cmd_totals(args):
+    """对比「模型估算」与「游戏实测元素数」，用来定位系统性偏差。"""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    from element_count2 import estimate2
+    import csv as _csv
+    path = args.table or os.path.join(
+        r"E:\工作内容\11_vibe-coding项目\workshop-lite-re", "corpus", "real-totals.tsv")
+    base = os.path.dirname(path)
+    if not os.path.isfile(path):
+        print("没有实测表：%s" % path)
+        return 2
+    rows = list(_csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"))
+    print("%-26s %8s %8s %8s" % ("文件", "实测", "估算", "偏差"))
+    tot_r = tot_e = 0
+    for r in rows:
+        name = (r.get("file") or "").strip()
+        if not name:
+            continue
+        try:
+            real = int((r.get("实测元素数") or "0").strip())
+        except ValueError:
+            continue
+        f = os.path.join(base, name)
+        if not os.path.isfile(f):
+            f = os.path.join(base, "real", name)
+        if not os.path.isfile(f):
+            print("%-26s %8d   找不到文件" % (name, real))
+            continue
+        est = estimate2(f)
+        tot_r += real
+        tot_e += est
+        print("%-26s %8d %8d %+8d (%+.1f%%)"
+              % (name, real, est, est - real, (est - real) * 100.0 / real))
+    if tot_r:
+        print("%-26s %8d %8d %+8d (%+.1f%%)"
+              % ("合计", tot_r, tot_e, tot_e - tot_r, (tot_e - tot_r) * 100.0 / tot_r))
+    return 0
+
 def cmd_calib(a):
     """元素估算标定回归：全部实测样本必须精确命中。"""
     import csv as _csv
@@ -854,6 +893,10 @@ def main():
 
     p = sub.add_parser("selftest", help="工具自身体检（重复定义等）")
     p.set_defaults(func=cmd_selftest)
+    p = sub.add_parser("totals", help="对比模型估算与游戏实测元素数（读私有实测表）")
+    p.add_argument("--table")
+    p.set_defaults(func=cmd_totals)
+
     p = sub.add_parser("calib", help="元素估算标定回归（全部实测样本）")
     p.set_defaults(func=cmd_calib)
 
