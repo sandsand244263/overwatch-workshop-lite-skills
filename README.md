@@ -2,11 +2,11 @@
 
 > 写守望先锋工坊模式，不用背 225 个动作函数的参数。
 
-`.ow` 脚本的参考知识库 —— 生成、审查、解释、调试，一个 skill 搞定。
+`.ow` 脚本的参考知识库 + 校验器 —— 生成、审查、解释、调试、发布，一个 skill 搞定。
 
 **仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适用。
 
-当前版本 **v2.22.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.75.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -14,13 +14,13 @@
 
 写过 `.ow` 的人都知道：
 
-- 225 个动作、267 个值函数，参数顺序错一个就报"应有一个关系运算子"
-- 615 条内置 `字符串(...)` 词条，编一个不存在的就导入失败
-- 54 个英雄、291 张地图、370 条房间设置项，写在哪一层全靠试
-- 元素预算 32768，超了才知道，而且不知道哪一步最贵
-- 代码能跑但就是不对，半天找不到坑
+- 225 个动作、266 个值函数，参数顺序错一个就报「应有一个关系运算子」
+- 54 个英雄、291 张地图、1208 个设置键，写在哪一层全靠试
+- 名字会**过期**：地图改名、技能删除，语法全对但游戏不认
+- 元素预算 32768，超了才知道
+- 代码能跑但行为不对，半天找不到坑
 
-遇到这些，不用切出去翻文档，直接问。
+这些不用切出去翻文档，直接问；写完再用校验器过一遍。
 
 ---
 
@@ -32,24 +32,60 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 装完对 AI 说：
 
-> 帮我生成一个钩子判定规则
+> 帮我写一个抢点模式，站在圈里每秒加 1 分，先到 30 分赢
 
 或者：
 
-> 审查这段 .ow 代码
+> 审查这个 `模式.ow`，看有什么问题
 
 ---
 
 ## 能做什么
 
-| 模式 | 说明 |
+| 能力 | 说明 |
 |---|---|
-| **生成** | 按需求出完整 `.ow`，沿用你已有的命名与结构 |
-| **审查** | 结构 → 条件写法 → 数组索引 → 逻辑时序，逐层过 |
-| **解释** | 逐条规则说明事件、关键条件、状态变量、可见效果 |
+| **生成** | 按玩法描述出完整 `.ow`，自带房间设置，可直接导入 |
+| **审查** | 三层检查：格式 → 数据 ID → 类型 |
+| **解释** | 逐条说明事件、条件、状态变量、可见效果 |
 | **调试** | 用 `记入查看器` 打点，按最小可疑点收敛，不盲改 |
 | **省元素** | 算出当前用量，给出更省的等价写法 |
-| **出发布文件** | 源码版，按需再出混淆版 |
+| **查数据** | 任意元素的官方说明、英雄数值、设置键范围、地图 GUID |
+| **出发布文件** | 源码版 + 混淆版，**产物自动复核一遍** |
+
+---
+
+## 校验器查什么
+
+三层，34 个检查函数。
+
+**第一层 格式**：括号配对、分号、块结构、函数名、参数个数、变量名只能用英文、变量声明与引用、子程序声明、事件参数行数。
+
+**第二层 数据 ID**（最容易踩的一层）——名字必须属于当前游戏版本：
+
+| 对象 | 数据源 |
+|---|---|
+| 地图 | 291 张 |
+| 英雄 | 54 个 |
+| 技能 | 196 个 |
+| 按钮 | 10 个 |
+| 设置键 | 757 个 |
+| 事件名 | 14 个 |
+| 扩展名 | 11 个 |
+| 下拉参数取值 | 按参数逐一对照 |
+
+> 游戏更新会删改名字，报错只说「"地图("之后应有一个地图名称」，不说是哪张图。校验器直接指出是哪个名字过期了。
+
+**第三层 类型与范围**：玩家槽塞数字、数值槽塞玩家、队伍参数写「双方」、裸字符串没包 `自定义字符串`、设置值越界、全局变量存局部值、结束比赛的动作与模式不匹配、循环里宣告胜负不退出。
+
+**查不出来的（诚实说明）**
+
+| 类型 | 为什么 |
+|---|---|
+| 行为对不对（循环、计分、HUD 刷新） | 代码里没有「你想干什么」这个信息 |
+| 地图与模式是否兼容 | 数据里没有「哪张图有目标点」的对应关系 |
+| 元素数精确值 | 差约 3.3%，只用于上限预警 |
+
+这类问题只能开一局验证，经验都在 `docs/pitfalls.md` 与 `data/behavior-notes.tsv`。
 
 ---
 
@@ -76,8 +112,12 @@ workshop-lite/
 │   ├── action-tags.tsv            484 个动作的功能分类
 │   ├── settings-blocks/           8 份实测导入成功的设置块模板
 │   └── meta.json                  数据基线：build、导出日期
-├── docs/                        数据里没有的知识，手写
+├── docs/                        数据里没有的知识，手写（18 篇）
 │   ├── format-spec.md             格式规范：骨架、硬规则、报错对照（先读这个）
+│   ├── samples.md                 三个可运行样例的适用与不适用
+│   ├── validator-coverage.md      校验器覆盖清单与已知盲区
+│   ├── extensions.md              扩展系统：写法、成本、上限
+│   ├── element-reverse.md         元素计数逆向记录
 │   ├── syntax.md                  语法参考
 │   ├── pitfalls.md                执行机制陷阱：循环、等待、数组、事件
 │   ├── patterns.md                设计模式与可套用骨架
@@ -93,12 +133,10 @@ workshop-lite/
 │   ├── ws.py                      唯一入口（见下）
 │   ├── core.py                    解析与校验引擎
 │   ├── publish.py                 出发布文件（源码版 / 混淆版）
-│   ├── element_count.py           元素数估算（25 个探针标定，25/25）
-│   ├── gen_data.py                从游戏导出重新生成 data/
-│   ├── enrich.py                  派生表：events / action-tags / maps
-│   ├── export_data.py             一条命令导出四份 JSON
-│   ├── data_diff.py               两版导出全量对照
-│   └── probes/                    44 个实测样本（改校验器后必跑）
+│   ├── element_count2.py          元素数模型（逆向版，37 个标定）
+│   ├── gen_*.py                   从游戏导出重新生成 data/
+│   ├── selfcheck_publish.py       混淆产物冒烟测试
+│   └── probes/                    65 正样本 + 20 反向用例 + 3 个可运行样例
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -109,15 +147,20 @@ workshop-lite/
 ## 命令
 
 ```bash
-python tools/ws.py check 模式.ow                        # 校验，交付前必跑，必须 0 error
-python tools/ws.py count 模式.ow                        # 元素数估算
-python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
-python tools/ws.py publish 模式.ow --outdir out          # 源码版
-python tools/ws.py publish 模式.ow --outdir out --obf numbers,vars   # 加一份混淆版
-python tools/ws.py baseline                             # 数据基线与游戏版本比一比
-python tools/ws.py check-all                            # 回归全部样本
-python tools/ws.py gen --src <导出目录>                  # 重新生成 data/
-python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量对照
+python tools/ws.py check 模式.ow                  # 校验，交付前必跑，必须 0 error
+python tools/ws.py check-all                      # 回归全部样本（65 正 + 20 反例）
+python tools/ws.py count 模式.ow                  # 元素数估算
+python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）
+python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架
+python tools/ws.py doc 创建HUD文本                  # 查官方说明
+python tools/ws.py doc --search 范围               # 按关键词搜
+python tools/ws.py stats 半藏                      # 查英雄数值
+python tools/ws.py settings --mode 死斗            # 生成该模式的设置块
+python tools/ws.py explain 应有一个关系运算子        # 报错文案反查
+python tools/ws.py publish 模式.ow --outdir out                # 源码版
+python tools/ws.py publish 模式.ow --outdir out --obf all      # 加混淆版
+python tools/ws.py baseline                       # 数据基线 vs 游戏版本
+python tools/ws.py update-check                   # 查是否有新版
 ```
 
 
@@ -145,7 +188,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 python tools/ws.py check 你的文件.ow
 ```
 
-只认 0 error。检查项：括号配对、语句分号、尾逗号、条件比较、变量名英文、变量声明与引用、未知函数名、参数个数、事件块行数（全局 1 / 其它 3 / 子程序 2）、子程序是否声明、地图 id 是否为 0、占位符是否超过 `{2}`、变量与子程序数量与索引上限、设置项的值是否合法。
+只认 0 error。详见上面「校验器查什么」三层。
 
 ### 回归自检
 
@@ -153,7 +196,12 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-44 个样本，全部 0 error。CI 在每次 push 与 PR 时自动跑。
+65 正样本 + 20 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
+
+```bash
+python tools/ws.py calib            # 37 个元素标定样本，偏差必须为 0
+python tools/selfcheck_publish.py   # 混淆产物冒烟测试
+```
 
 ### 已验证到什么程度
 
@@ -162,8 +210,33 @@ python tools/ws.py check-all
 | 格式（块结构、标点、变量两段、事件行数） | 实测导入通过 |
 | 名字与参数（动作 / 值 / 枚举 / 字符串） | 由游戏数据生成，校验器按表判 |
 | 设置项的词与归属 | `schema-keys.tsv` + 校验器 |
-| 元素数 | 25 个探针标定，估算与实测 **25/25 一致**；最终以游戏诊断为准 |
+| 数据 ID（地图/英雄/技能/按钮/设置键/事件/扩展） | 按当前版本表核对 |
+| 元素数 | 37 个探针标定；235 KB 真实模式误差 **-3.3%**，最终以游戏诊断为准 |
 | 运行时行为（HUD 刷新、计分、循环） | 部分实测（见 `docs/pitfalls.md`），其余需开一局验证 |
+
+**真实模式验证过**：235 KB 的实战模式（165 条规则）0 error；三个样例与一个从零写的模式实机跑通。
+
+### 可运行样例
+
+`tools/probes/samples/` 里三个完整可导入的最小模式，**先抄后改**：
+
+| 样例 | 覆盖 |
+|---|---|
+| `sample-periodic.ow` | 全局心跳（持续-全局 + `While(真)` + `等待`） |
+| `sample-event.ow` | 事件驱动（击杀计数 + 播报 + 宣告胜利） |
+| `sample-countdown.ow` | 条件等待（倒计时到 0 平局） |
+
+每个样例头部写了「适用 / 不要用」。同一件事在工坊里有好几种正确写法，所以给样例而不是单一模板，详见 `docs/samples.md`。
+
+### 已知限制
+
+| 项 | 现状 |
+|---|---|
+| 元素数 | 小样本精确（37 个标定）；真实模式 -3.3%，只用于上限预警 |
+| 语义层 | `持续` 规则不循环、`While(真)` 无退出等，噪声太大，只在 `check --strict` 提示 |
+| 地图 × 模式 | 数据里没有对应关系，地图选错只能靠实机导入发现 |
+| HUD 实时数值 | `大字体信息` 有动效，跟不上每秒刷新；测数值请用 `记入查看器` |
+| 扩展点数上限 | 取决于大厅配置，`.ow` 里常常不写，算不出来 |
 
 ### 人工验证 prompt
 
@@ -197,7 +270,7 @@ DataTool "<游戏目录>" list-workshop --language zhCN --rcn --json --out=works
 
 ### 元素成本
 
-不是暴雪公开常量，来自作者在工坊内的实测标定（25 个「同模板只改一处」探针，结果 25/25 命中）。
+不是暴雪公开常量。单价来自 37 个「同模板只改一处」的实机探针：动作 1、字符串 3、数组元素另计、`事件玩家.X` 比 `全局.X` 贵 1、变量下标 +2、三元表达式本体 5……完整表见 `docs/limits.md`。
 
 ---
 
