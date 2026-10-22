@@ -75,10 +75,16 @@ def cmd_check(args):
             print("✗ %s：%d 个 error，%d 个 warning" % (name, len(errors), len(problems) - len(errors)))
             for ln, level, msg in problems:
                 print("   %s %s：%s" % ("第 %d 行" % ln if ln else "全文", level, msg))
+                tip = core.suggest(msg)
+                if tip:
+                    print("        → 改法：%s" % tip)
         else:
             print("✓ %s：通过（warning %d）" % (name, len(problems)))
             for ln, level, msg in problems[:5]:
                 print("   %s %s：%s" % ("第 %d 行" % ln if ln else "全文", level, msg))
+                tip = core.suggest(msg)
+                if tip:
+                    print("        → 改法：%s" % tip)
         _print_update_hint()
     return 1 if failed else 0
 
@@ -107,7 +113,7 @@ def cmd_check_all(args):
                              event_param_words=core.load_event_param_words(os.path.join(DATA, "event-param-words.tsv")),
                              setting_ranges=core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv")),
                              map_names=core.load_map_names(os.path.join(DATA, "maps.tsv")),
-                             dropdowns=core.load_dropdowns(os.path.join(DATA, "param-docs.tsv")),
+                             dropdowns=core.load_dropdowns(os.path.join(DATA, "param-options.tsv")),
                              strict=getattr(args, "strict", False),
                              extensions=_ext()[0], extension_values=_ext()[1],
                              base_options=_base_options())

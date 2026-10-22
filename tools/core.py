@@ -1416,6 +1416,7 @@ def check_dropdown_values(text, problems, dropdowns):
     """下拉参数的取值必须在该参数的可选项里（数据来自 param-docs.tsv）。"""
     if not dropdowns:
         return
+    text = strip_comments(text)
     by_elem = {}
     for (elem, idx), opts in dropdowns.items():
         by_elem.setdefault(elem, {})[idx] = opts
@@ -1909,6 +1910,87 @@ def mask_text(text):
 
 
 
+SUGGESTIONS = [
+    (r"第 \d+ 个参数只能填 (.+?)；这里写的是「(.+?)」",
+     "把「{1}」换成列表里的一个合法值"),
+    (r"的队伍参数不能写「双方」",
+     "改成 所有队伍（或 队伍1 / 队伍2）；「双方」只能用在事件行"),
+    (r"参数里不能直接写字符串",
+     "包一层：自定义字符串(\"你的文字\")。注意 .ow 里没有裸字符串"),
+    (r"是动作，不能写在条件里",
+     "条件里只能写值函数；用 ws.py doc --search 关键词 找对应的值"),
+    (r"是值函数（返回一个值），不能单独当动作写",
+     "要么赋值给变量（全局.X = 它;），要么套进某个动作里用"),
+    (r"在.+里无效（官方",
+     "死斗用 宣告玩家胜利(玩家)；团队模式用 宣告队伍胜利(队伍) 或 宣布比赛为平局()"),
+    (r"While\(.+\) 里没有 等待",
+     "循环体第一行加 等待(0.016, 无视条件); 或 等待(1, 无视条件);，否则每帧空转"),
+    (r"声明了但从未赋值",
+     "给个初值（规则开头赋一次），或者删掉这个变量"),
+    (r"未声明（应在",
+     "在 `变量` 块对应段里加一行：`0: 变量名`，索引连续、不要跳号"),
+    (r"不在当前版本数据表里",
+     "先跑 python tools/ws.py baseline 看数据是否过期；确实改名了就换成本版本的等价名字"),
+    (r"变量名只差大小写",
+     "改名，工坊把大小写不同的名字当成同一个变量"),
+    (r"变量名超过 32 字符",
+     "缩短到 32 个字符以内"),
+    (r"变量最多 128 个",
+     "复用变量：把只在一个规则里用的临时变量合并"),
+    (r"超出范围（",
+     "改成范围内的值；默认值用 python tools/ws.py defaults 设置键名 查"),
+    (r"是布尔项，只能写 开启 / 关闭",
+     "写成 开启 或 关闭，不要写 是/否/true"),
+    (r"这个位置要写 全部禁用",
+     "写 全部禁用；写「无」导入会失败"),
+    (r"至少要 \d+ 个参数|至少需要 1 个参数",
+     "参数不够；签名查 python tools/ws.py doc 函数名"),
+    (r"参数过多：最多 \d+ 个",
+     "删掉多余的参数；下拉类参数通常只有 1-3 个"),
+    (r"不接受参数",
+     "删掉括号里的内容，写成 函数名()"),
+    (r"需要 \d+ 个参数",
+     "事件行固定三段：事件名; 队伍; 英雄限制;（全局事件只有一段）"),
+    (r"模板里有 \{\d+\}，但只给了",
+     "补齐 自定义字符串 后面的值，或者删掉多余的 {n}"),
+    (r"没有声明为玩家变量",
+     "在 `玩家:` 段声明它，或者改用 全局.变量名"),
+    (r"但它属于扩展",
+     "在 `设置` 里加一个扩展块：扩展 { 扩展名 }，一行一个、不带冒号"),
+    (r"循环里宣告胜负后没有",
+     "在宣告动作的下一行加 中断;"),
+    (r"要的是「数值」，这里填的是玩家",
+     "换成数值表达式，例如 事件玩家.生命值、总计消耗时间、数量(玩家列表)"),
+    (r"要的是「玩家」",
+     "换成玩家表达式：事件玩家 / 本地玩家 / 所有玩家(所有队伍) / 空"),
+    (r"是函数，必须写成",
+     "补上括号：名字(...)"),
+    (r"超过上限|元素",
+     "省元素：publish --obf all 压缩，或把重复写法换成数组 + 循环"),
+    (r"规则里不能用 事件玩家",
+     "这条规则没有事件上下文：想按玩家算就换成「持续 - 每名玩家」；只想引用某个玩家就用 所有玩家(所有队伍) 或 本地玩家"),
+    (r"文件里没有「变量」块", "在文件里加一段：变量 { 全局: 0: 名字 }"),
+    (r"不在当前版本地图表里", "用 python tools/ws.py maps 查现行地图名，或跑 baseline 看数据是否过期"),
+    (r"超过单条规则 98KB", "拆成多条规则：每条负责一件事，状态用全局变量传递"),
+    (r"找不到对应的子程序声明", "在 子程序 块里定义它：子程序 { 名字 { 动作 { … } } }"),
+    (r"循环里宣告胜负后没有", "在宣告动作的下一行加 中断;"),
+]
+
+
+def suggest(msg):
+    """给报错配一句「怎么改」。查不到就返回 None，不硬编。"""
+    import re as _re
+    for pat, tip in SUGGESTIONS:
+        m = _re.search(pat, msg)
+        if m:
+            try:
+                return tip.format(*m.groups()) if "{" in tip else tip
+            except (IndexError, KeyError, ValueError):
+                # 文案里本身带花括号（如 变量 { … }）时不要 format
+                return tip
+    return None
+
+
 def full_lint(path, data_dir, strict=False):
     """统一的完整校验入口：加载全部数据表后跑 lint。
 
@@ -1923,7 +2005,7 @@ def full_lint(path, data_dir, strict=False):
                 event_param_words=load_event_param_words(os.path.join(data_dir, "event-param-words.tsv")),
                 setting_ranges=load_setting_ranges(os.path.join(data_dir, "setting-ranges.tsv")),
                 map_names=load_map_names(os.path.join(data_dir, "maps.tsv")),
-                dropdowns=load_dropdowns(os.path.join(data_dir, "param-docs.tsv")),
+                dropdowns=load_dropdowns(os.path.join(data_dir, "param-options.tsv")),
                 extensions=load_extensions(os.path.join(data_dir, "extensions.tsv"),
                                            os.path.join(data_dir, "extension-values.tsv"))[0],
                 extension_values=load_extensions(os.path.join(data_dir, "extensions.tsv"),

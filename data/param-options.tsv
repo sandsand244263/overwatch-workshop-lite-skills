@@ -1,0 +1,835 @@
+element	kind	index	name	input_type	options
+持续 - 每名玩家	Events	0		Player	
+持续 - 每名玩家	Events	1		Team	
+玩家参与消灭	Events	0		Player	
+玩家参与消灭	Events	1		Team	
+玩家造成最后一击	Events	0		Player	
+玩家造成最后一击	Events	1		Team	
+玩家造成伤害	Events	0		Player	
+玩家造成伤害	Events	1		Team	
+玩家受到伤害	Events	0		Player	
+玩家受到伤害	Events	1		Team	
+玩家阵亡	Events	0		Player	
+玩家阵亡	Events	1		Team	
+玩家造成治疗	Events	0		Player	
+玩家造成治疗	Events	1		Team	
+玩家受到治疗	Events	0		Player	
+玩家受到治疗	Events	1		Team	
+玩家加入比赛	Events	0		Player	
+玩家加入比赛	Events	1		Team	
+玩家离开比赛	Events	0		Player	
+玩家离开比赛	Events	1		Team	
+子程序	Events	0		SubroutineEvent	
+玩家造成击退	Events	0		Player	
+玩家造成击退	Events	1		Team	
+玩家受到击退	Events	0		Player	
+玩家受到击退	Events	1		Team	
+设置全局变量	Actions	0		Variable	
+设置全局变量	Actions	1		Generic	
+设置玩家变量	Actions	0	玩家	Player	
+设置玩家变量	Actions	1		Variable	
+设置玩家变量	Actions	2		Generic	
+修改全局变量	Actions	0		Variable	
+修改全局变量	Actions	1	操作	Dropdown	加|减|乘|除|余数|乘方|最小|最大|添加至数组|根据值从数组中移除|根据索引从数组中移除
+修改全局变量	Actions	2		Generic	
+修改玩家变量	Actions	0	玩家	Player	
+修改玩家变量	Actions	1		Variable	
+修改玩家变量	Actions	2	操作	Dropdown	加|减|乘|除|余数|乘方|最小|最大|添加至数组|根据值从数组中移除|根据索引从数组中移除
+修改玩家变量	Actions	3		Generic	
+等待	Actions	0	时间	Float	
+等待	Actions	1		WaitBehaviour	
+修改玩家分数	Actions	0	玩家	Player	
+修改玩家分数	Actions	1	得分	Integer	
+治疗	Actions	0	玩家	Player	
+治疗	Actions	1	治疗者	Player	
+治疗	Actions	2	治疗量	Float	
+伤害	Actions	0	玩家	Player	
+伤害	Actions	1	伤害者	Player	
+伤害	Actions	2	伤害量	Float	
+击杀	Actions	0	玩家	Player	
+击杀	Actions	1	击杀者	Player	
+复活	Actions	0	玩家	Player	
+施加推力	Actions	0	玩家	Player	
+施加推力	Actions	1	方向	Vector	
+施加推力	Actions	2	速度	Float	
+施加推力	Actions	3	相对	Dropdown	至地图|至玩家
+施加推力	Actions	4	运动	Dropdown	取消相反运动|取消相反运动XYZ|合并相反运动
+设置最大生命值	Actions	0	玩家	Player	
+设置最大生命值	Actions	1	生命百分比	Float	
+按下按键	Actions	0	玩家	Player	
+按下按键	Actions	1	按钮	ButtonConstant	
+复生	Actions	0	玩家	Player	
+宣告队伍胜利	Actions	0	队伍	Team	
+开始强制玩家选择英雄	Actions	0	玩家	Player	
+开始强制玩家选择英雄	Actions	1	英雄	Hero	
+停止强制玩家选择英雄	Actions	0	玩家	Player	
+创建图标	Actions	0	可见	Player	
+创建图标	Actions	1	位置	Generic	
+创建图标	Actions	2	图标	Dropdown	箭头：向下|箭头：向左|箭头：向右|箭头：向上|星形|箭矢|对号|圆圈|梅花|方块|晕眩|感叹号|眼睛|火焰|旗帜|光晕|高兴|红桃|满月|拒绝|加号|剧毒|剧毒2|问号|辐射|回收|宽环|细环|难过|骷髅|黑桃|螺旋|停止|垃圾箱|警告|X
+创建图标	Actions	3	重新赋值	Dropdown	可见和位置|位置|可见|无|可见，位置和颜色|位置和颜色|可见和颜色|颜色
+创建图标	Actions	4	图标颜色	Generic	
+创建图标	Actions	5	离开屏幕后显示	Boolean	
+宣告玩家胜利	Actions	0	玩家	Player	
+设置比赛时间	Actions	0	时间	Float	
+消除图标	Actions	0	实体	Player	
+开始强制重生室	Actions	0	队伍	Team	
+开始强制重生室	Actions	1	室内	Integer	
+停止强制重生室	Actions	0	队伍	Team	
+设置状态	Actions	0	玩家	Player	
+设置状态	Actions	1	助攻者	Player	
+设置状态	Actions	2	状态	Dropdown	被入侵|燃烧|击倒|沉睡|冰冻|无法杀死|无敌|相移|定身|击晕
+设置状态	Actions	3	持续时间	Float	
+清除状态	Actions	0	玩家	Player	
+清除状态	Actions	1	状态	Dropdown	被入侵|燃烧|击倒|沉睡|冰冻|无法杀死|无敌|相移|定身|击晕
+持续追踪全局变量	Actions	0		Variable	
+持续追踪全局变量	Actions	1	最终值	Generic	
+持续追踪全局变量	Actions	2	持续时间	Float	
+持续追踪全局变量	Actions	3	重新赋值	Dropdown	终点及持续时间|全部禁用
+持续追踪玩家变量	Actions	0	玩家	Player	
+持续追踪玩家变量	Actions	1		Variable	
+持续追踪玩家变量	Actions	2	最终值	Generic	
+持续追踪玩家变量	Actions	3	持续时间	Float	
+持续追踪玩家变量	Actions	4	重新赋值	Dropdown	终点及持续时间|全部禁用
+追踪全局变量频率	Actions	0		Variable	
+追踪全局变量频率	Actions	1	最终值	Generic	
+追踪全局变量频率	Actions	2	频率	Float	
+追踪全局变量频率	Actions	3	重新赋值	Dropdown	速率及最终值|全部禁用
+追踪玩家变量频率	Actions	0	玩家	Player	
+追踪玩家变量频率	Actions	1		Variable	
+追踪玩家变量频率	Actions	2	最终值	Generic	
+追踪玩家变量频率	Actions	3	频率	Float	
+追踪玩家变量频率	Actions	4	重新赋值	Dropdown	速率及最终值|全部禁用
+停止追踪全局变量	Actions	0		Variable	
+停止追踪玩家变量	Actions	0	玩家	Player	
+停止追踪玩家变量	Actions	1		Variable	
+开启游戏预设复生模式	Actions	0	玩家	Generic	
+关闭游戏预设复生模式	Actions	0	玩家	Generic	
+创建效果	Actions	0	可见	Player	
+创建效果	Actions	1	类型	Dropdown	球体|光柱|球|环|云|火花|有益光环|有害光环|能量声音|拾取音效|有益光环声音|负面光环音效|火花声音|烟雾声音|诱饵声音|信标声音
+创建效果	Actions	2	颜色	Generic	
+创建效果	Actions	3	位置	Generic	
+创建效果	Actions	4	半径 / 音量	Float	
+创建效果	Actions	5	重新赋值	Dropdown	可见，位置和半径|位置和半径|可见|无|可见，位置，半径和颜色|位置，半径和颜色|可见和颜色|颜色
+消除效果	Actions	0	实体	Player	
+设置造成治疗	Actions	0	玩家	Player	
+设置造成治疗	Actions	1	造成治疗百分比	Float	
+设置受到治疗	Actions	0	玩家	Player	
+设置受到治疗	Actions	1	受到治疗百分比	Float	
+设置造成伤害	Actions	0	玩家	Player	
+设置造成伤害	Actions	1	造成伤害百分比	Float	
+设置受到伤害	Actions	0	玩家	Player	
+设置受到伤害	Actions	1	受到伤害百分比	Float	
+设置移动速度	Actions	0	玩家	Player	
+设置移动速度	Actions	1	移动速度百分比	Float	
+设置引力	Actions	0	玩家	Player	
+设置引力	Actions	1	引力百分比	Float	
+设置弹道引力	Actions	0	玩家	Player	
+设置弹道引力	Actions	1	弹道引力百分比	Float	
+设置弹道速度	Actions	0	玩家	Player	
+设置弹道速度	Actions	1	弹道速度百分比	Float	
+对所有玩家启用死亡回放	Actions	0	玩家	Player	
+预加载英雄	Actions	0	玩家	Player	
+预加载英雄	Actions	1	英雄	Hero	
+对所有玩家禁用死亡回放	Actions	0	玩家	Player	
+启用死亡回放时目标的HUD	Actions	0	玩家	Player	
+禁用死亡回放时目标的HUD	Actions	0	玩家	Player	
+设置启用技能 1	Actions	0	玩家	Player	
+设置启用技能 1	Actions	1	启用	Boolean	
+设置启用技能 2	Actions	0	玩家	Player	
+设置启用技能 2	Actions	1	启用	Boolean	
+设置启用终极技能	Actions	0	玩家	Player	
+设置启用终极技能	Actions	1	启用	Boolean	
+传送	Actions	0	玩家	Player	
+传送	Actions	1	位置	Vector	
+开始持续伤害	Actions	0	玩家	Player	
+开始持续伤害	Actions	1	伤害者	Player	
+开始持续伤害	Actions	2	持续时间	Float	
+开始持续伤害	Actions	3	每秒伤害	Float	
+停止持续伤害	Actions	0	持续伤害ID	Integer	
+停止所有持续伤害	Actions	0	玩家	Player	
+开始持续治疗	Actions	0	玩家	Player	
+开始持续治疗	Actions	1	治疗者	Player	
+开始持续治疗	Actions	2	持续时间	Float	
+开始持续治疗	Actions	3	每秒治疗	Float	
+停止持续治疗	Actions	0	持续治疗ID	Integer	
+停止所有持续治疗	Actions	0	玩家	Player	
+设置最大复生时间	Actions	0	玩家	Player	
+设置最大复生时间	Actions	1	时间	Float	
+可用按钮	Actions	0	玩家	Player	
+可用按钮	Actions	1	按钮	ButtonConstant	
+禁用按钮	Actions	0	玩家	Player	
+禁用按钮	Actions	1	按钮	ButtonConstant	
+开始按下按钮	Actions	0	玩家	Player	
+开始按下按钮	Actions	1	按钮	ButtonConstant	
+停止按下按钮	Actions	0	玩家	Player	
+停止按下按钮	Actions	1	按钮	ButtonConstant	
+交流	Actions	0	玩家	Player	
+交流	Actions	1	类型	Dropdown	语音（上）|语音（左）|语音（右）|语音（下）|表情（上）|表情（左）|表情（右）|表情（下）|终极技能状态|问候|需要治疗|集合|感谢|收到|继续攻击|不用谢|好的|不行|再见|前进|做好准备|撤退|推进|敌人来袭|我跟着你|我上了|正在赶来|正在进攻|正在防守|需要帮助|抱歉|倒计时|喷漆上|喷漆左|喷漆右|喷漆下
+设置不可见	Actions	0	玩家	Player	
+设置不可见	Actions	1	不可见	Dropdown	全部|敌人|全部禁用
+设置慢动作	Actions	0	速度百分比	Float	
+设置玩家可选的英雄	Actions	0	玩家	Player	
+设置玩家可选的英雄	Actions	1	英雄	Hero	
+重置玩家英雄可选状态	Actions	0	玩家	Player	
+大字体信息	Actions	0	可见	Player	
+大字体信息	Actions	1	标题	Generic	
+小字体信息	Actions	0	可见	Player	
+小字体信息	Actions	1	标题	Generic	
+设置目标点描述	Actions	0	可见	Player	
+设置目标点描述	Actions	1	标题	Generic	
+设置目标点描述	Actions	2	重新赋值	Dropdown	可见和字符串|字符串|可见性，排序规则和字符串|排序规则和字符串|可见性和排序|可见|排序|全部禁用|可见，字符串和颜色|字符串和颜色|可见，排序规则，字符串和颜色|排序规则，字符串和颜色|可见，排序规则和颜色|可见和颜色|排序规则和颜色|颜色
+创建HUD文本	Actions	0	可见	Player	
+创建HUD文本	Actions	1	标题	Generic	
+创建HUD文本	Actions	2	子标题	Generic	
+创建HUD文本	Actions	3	文本	Generic	
+创建HUD文本	Actions	4	坐标	Dropdown	左边|顶部|右边
+创建HUD文本	Actions	5	排序	Generic	
+创建HUD文本	Actions	6	标题颜色	Generic	
+创建HUD文本	Actions	7	子标题颜色	Generic	
+创建HUD文本	Actions	8	文本颜色	Generic	
+创建HUD文本	Actions	9	重新赋值	Dropdown	可见和字符串|字符串|可见性，排序规则和字符串|排序规则和字符串|可见性和排序|可见|排序|全部禁用|可见，字符串和颜色|字符串和颜色|可见，排序规则，字符串和颜色|排序规则，字符串和颜色|可见，排序规则和颜色|可见和颜色|排序规则和颜色|颜色
+创建HUD文本	Actions	10	无队伍观战者	Dropdown	默认可见度|始终可见|始终不可见
+消除HUD文本	Actions	0	文本ID	Integer	
+创建地图文本	Actions	0	可见	Player	
+创建地图文本	Actions	1	标题	Generic	
+创建地图文本	Actions	2	位置	Generic	
+创建地图文本	Actions	3	大小	Float	
+创建地图文本	Actions	4	截取	Dropdown	根据表面截取|不要截取
+创建地图文本	Actions	5	重新赋值	Dropdown	可见，位置和字符串|可见和字符串|字符串|可见和位置|可见|全部禁用|可见，位置，字符串和颜色|可见，字符串和颜色|字符串和颜色|可见，位置和颜色|可见和颜色|颜色
+创建地图文本	Actions	6	文本颜色	Generic	
+创建地图文本	Actions	7	无队伍观战者	Dropdown	默认可见度|始终可见|始终不可见
+消除地图文本	Actions	0	文本ID	Integer	
+根据条件循环	Actions	0	条件	Boolean	
+根据条件中止	Actions	0	条件	Boolean	
+跳过	Actions	0	动作数量	Integer	
+根据条件跳过	Actions	0	条件	Boolean	
+根据条件跳过	Actions	1	动作数量	Integer	
+开始限制阈值	Actions	0	玩家	Player	
+开始限制阈值	Actions	1	向前最小	Float	
+开始限制阈值	Actions	2	向前最大	Float	
+开始限制阈值	Actions	3	向后最小	Float	
+开始限制阈值	Actions	4	向后最大	Float	
+开始限制阈值	Actions	5	侧向最小	Float	
+开始限制阈值	Actions	6	侧向最大	Float	
+停止限制阈值	Actions	0	玩家	Player	
+开始加速	Actions	0	玩家	Player	
+开始加速	Actions	1	方向	Vector	
+开始加速	Actions	2	速率	Float	
+开始加速	Actions	3	最大速度	Float	
+开始加速	Actions	4	相对	Dropdown	至地图|至玩家
+开始加速	Actions	5	重新赋值	Dropdown	方向，速率，及最大速度|无
+停止加速	Actions	0	玩家	Player	
+设置终极技能充能	Actions	0	玩家	Player	
+设置终极技能充能	Actions	1	充能百分比	Float	
+开始朝向	Actions	0	玩家	Player	
+开始朝向	Actions	1	方向	Vector	
+开始朝向	Actions	2	角速率	Float	
+开始朝向	Actions	3	相对	Dropdown	至地图|至玩家
+开始朝向	Actions	4	重新赋值	Dropdown	方向及角速率|无
+停止朝向	Actions	0	玩家	Player	
+设置玩家分数	Actions	0	玩家	Player	
+设置玩家分数	Actions	1	分数	Integer	
+设置队伍分数	Actions	0	队伍	Team	
+设置队伍分数	Actions	1	分数	Integer	
+修改队伍分数	Actions	0	队伍	Team	
+修改队伍分数	Actions	1	分数	Integer	
+播放效果	Actions	0	可见	Player	
+播放效果	Actions	1	类型	Dropdown	有益爆炸|有害爆炸|环状爆炸|有益选择效果 |有害选择效果 |负面状态施加声音|正面状态施加声音|环状爆炸声音|状态爆炸声音|爆炸声音
+播放效果	Actions	2	颜色	Generic	
+播放效果	Actions	3	位置	Generic	
+播放效果	Actions	4	半径 / 音量	Float	
+设置朝向	Actions	0	玩家	Player	
+设置朝向	Actions	1	方向	Vector	
+设置朝向	Actions	2	相对	Dropdown	至地图|至玩家
+在索引处设置全局变量	Actions	0		Variable	
+在索引处设置全局变量	Actions	1	索引	Integer	
+在索引处设置全局变量	Actions	2		Generic	
+在索引处设置玩家变量	Actions	0	玩家	Player	
+在索引处设置玩家变量	Actions	1		Variable	
+在索引处设置玩家变量	Actions	2	索引	Integer	
+在索引处设置玩家变量	Actions	3		Generic	
+宣告回合胜利	Actions	0	本回合获胜队伍	Team	
+设置瞄准速度	Actions	0	玩家	Player	
+设置瞄准速度	Actions	1	转向速度百分比	Float	
+开始镜头	Actions	0	玩家	Player	
+开始镜头	Actions	1	眼睛位置	Vector	
+开始镜头	Actions	2	望向位置	Vector	
+开始镜头	Actions	3	转动速度	Float	
+停止镜头	Actions	0	玩家	Player	
+开始伤害调整	Actions	0	受伤害者	Player	
+开始伤害调整	Actions	1	伤害者	Player	
+开始伤害调整	Actions	2	伤害百分比	Float	
+开始伤害调整	Actions	3	重新赋值	Dropdown	受伤害者，伤害者及伤害百分比|受伤害者和伤害者|无
+停止伤害调整	Actions	0	伤害调整ID	Integer	
+设置主要攻击模式启用	Actions	0	玩家	Player	
+设置主要攻击模式启用	Actions	1	启用	Boolean	
+设置辅助攻击模式启用	Actions	0	玩家	Player	
+设置辅助攻击模式启用	Actions	1	启用	Boolean	
+在索引处修改玩家变量	Actions	0	玩家	Player	
+在索引处修改玩家变量	Actions	1		Variable	
+在索引处修改玩家变量	Actions	2	索引	Integer	
+在索引处修改玩家变量	Actions	3	操作	Dropdown	加|减|乘|除|余数|乘方|最小|最大|添加至数组|根据值从数组中移除|根据索引从数组中移除
+在索引处修改玩家变量	Actions	4		Generic	
+在索引处修改全局变量	Actions	0		Variable	
+在索引处修改全局变量	Actions	1	索引	Integer	
+在索引处修改全局变量	Actions	2	操作	Dropdown	加|减|乘|除|余数|乘方|最小|最大|添加至数组|根据值从数组中移除|根据索引从数组中移除
+在索引处修改全局变量	Actions	3		Generic	
+生成机器人	Actions	0	英雄	Hero	
+生成机器人	Actions	1	队伍	Team	
+生成机器人	Actions	2	栏位	Integer	
+生成机器人	Actions	3	位置	Vector	
+生成机器人	Actions	4	方向	Vector	
+移除机器人	Actions	0	队伍	Team	
+移除机器人	Actions	1	栏位	Integer	
+开始转换阈值	Actions	0	玩家	Player	
+开始转换阈值	Actions	1	X轴缩放	Float	
+开始转换阈值	Actions	2	Y轴缩放	Float	
+开始转换阈值	Actions	3	相对方向	Vector	
+停止转换阈值	Actions	0	玩家	Player	
+创建光束效果	Actions	0	可见	Player	
+创建光束效果	Actions	1	光束类型	Dropdown	有益光束|有害光束|抓钩光束
+创建光束效果	Actions	2	开始位置	Generic	
+创建光束效果	Actions	3	结束位置	Generic	
+创建光束效果	Actions	4	颜色	Generic	
+创建光束效果	Actions	5	重新赋值	Dropdown	可见，位置和半径|位置和半径|可见|无|可见，位置，半径和颜色|位置，半径和颜色|可见和颜色|颜色
+开始定向阈值	Actions	0	玩家	Player	
+开始定向阈值	Actions	1	方向	Vector	
+开始定向阈值	Actions	2	幅度	Float	
+开始定向阈值	Actions	3	相对	Dropdown	至地图|至玩家
+开始定向阈值	Actions	4	行为	Dropdown	替换现有阈值|添加至现有阈值
+开始定向阈值	Actions	5	重新赋值	Dropdown	方向和幅度|无
+停止定向阈值	Actions	0	玩家	Player	
+If	Actions	0	条件	Boolean	
+Else If	Actions	0	条件	Boolean	
+While	Actions	0	条件	Boolean	
+开始治疗调整	Actions	0	受治疗者	Player	
+开始治疗调整	Actions	1	治疗者	Player	
+开始治疗调整	Actions	2	治疗百分比	Float	
+开始治疗调整	Actions	3	重新赋值	Dropdown	受治疗者，治疗者及治疗百分比|受治疗者和治疗者|全部禁用
+停止治疗调整	Actions	0	治疗调整ID	Integer	
+For 全局变量	Actions	0	控制变量	Variable	
+For 全局变量	Actions	1	起始值	Integer	
+For 全局变量	Actions	2	终止值	Integer	
+For 全局变量	Actions	3	步长	Integer	
+For 玩家变量	Actions	0	控制玩家	Player	
+For 玩家变量	Actions	1	控制变量	Variable	
+For 玩家变量	Actions	2	起始值	Integer	
+For 玩家变量	Actions	3	终止值	Integer	
+For 玩家变量	Actions	4	步长	Integer	
+调用子程序	Actions	0	子程序	SubroutineThing	
+开始规则	Actions	0	子程序	SubroutineThing	
+开始规则	Actions	1	是否正在执行	Dropdown	重新开始规则|无动作
+设置启用近战攻击	Actions	0	玩家	Player	
+设置启用近战攻击	Actions	1	启用	Boolean	
+设置启用蹲下	Actions	0	玩家	Player	
+设置启用蹲下	Actions	1	启用	Boolean	
+设置启用跳跃	Actions	0	玩家	Player	
+设置启用跳跃	Actions	1	启用	Boolean	
+设置技能冷却	Actions	0	玩家	Player	
+设置技能冷却	Actions	1	按钮	ButtonConstant	
+设置技能冷却	Actions	2	冷却时间	Float	
+取消主要动作	Actions	0	玩家	Player	
+绑定玩家	Actions	0	子玩家	Player	
+绑定玩家	Actions	1	父玩家	Player	
+绑定玩家	Actions	2	偏移	Vector	
+解除绑定	Actions	0	儿童	Player	
+开始强制设置玩家位置	Actions	0	玩家	Player	
+开始强制设置玩家位置	Actions	1	位置	Vector	
+开始强制设置玩家位置	Actions	2	重新赋值	Boolean	
+停止强制设置玩家位置	Actions	0	玩家	Player	
+设置武器	Actions	0	玩家	Player	
+设置武器	Actions	1	武器	Integer	
+设置启用装填	Actions	0	玩家	Player	
+设置启用装填	Actions	1	启用	Boolean	
+显示消灭提示	Actions	0	玩家	Player	
+隐藏消灭提示	Actions	0	玩家	Player	
+显示英雄HUD	Actions	0	玩家	Player	
+隐藏英雄HUD	Actions	0	玩家	Player	
+显示计分板	Actions	0	玩家	Player	
+隐藏计分板	Actions	0	玩家	Player	
+显示游戏模式HUD	Actions	0	玩家	Player	
+隐藏游戏模式HUD	Actions	0	玩家	Player	
+显示信息	Actions	0	玩家	Player	
+隐藏信息	Actions	0	玩家	Player	
+设置弹药	Actions	0	玩家	Player	
+设置弹药	Actions	1	弹夹	Integer	
+设置弹药	Actions	2	弹药	Integer	
+设置最大弹药	Actions	0	玩家	Player	
+设置最大弹药	Actions	1	弹夹	Integer	
+设置最大弹药	Actions	2	最大弹药	Integer	
+设置技能充能	Actions	0	玩家	Player	
+设置技能充能	Actions	1	按钮	ButtonConstant	
+设置技能充能	Actions	2	充能计数	Integer	
+设置技能资源	Actions	0	玩家	Player	
+设置技能资源	Actions	1	按钮	ButtonConstant	
+设置技能资源	Actions	2	资源百分比	Float	
+设置跳跃垂直速度	Actions	0	玩家	Player	
+设置跳跃垂直速度	Actions	1	垂直跳跃速度百分比	Float	
+显示游戏模式地图UI	Actions	0	玩家	Player	
+隐藏游戏模式地图UI	Actions	0	玩家	Player	
+显示姓名板	Actions	0	被观察的玩家	Player	
+显示姓名板	Actions	1	观察玩家	Player	
+隐藏姓名板	Actions	0	被观察的玩家	Player	
+隐藏姓名板	Actions	1	观察玩家	Player	
+开始调整玩家大小	Actions	0	玩家	Player	
+开始调整玩家大小	Actions	1	大小	Float	
+开始调整玩家大小	Actions	2	重新赋值	Boolean	
+停止调整玩家大小	Actions	0	玩家	Player	
+开始调整障碍大小	Actions	0	玩家	Player	
+开始调整障碍大小	Actions	1	大小	Float	
+开始调整障碍大小	Actions	2	重新赋值	Boolean	
+停止调整障碍大小	Actions	0	玩家	Player	
+开启与环境的移动碰撞	Actions	0	玩家	Player	
+取消与环境的移动碰撞	Actions	0	玩家	Player	
+取消与环境的移动碰撞	Actions	1	包括地面	Boolean	
+开启与玩家的移动碰撞	Actions	0	玩家	Player	
+取消与玩家的移动碰撞	Actions	0	玩家	Player	
+开始强制设置玩家轮廓	Actions	0	被观察的玩家	Player	
+开始强制设置玩家轮廓	Actions	1	观察玩家	Player	
+开始强制设置玩家轮廓	Actions	2	可见	Boolean	
+开始强制设置玩家轮廓	Actions	3	颜色	Generic	
+开始强制设置玩家轮廓	Actions	4	类型	Dropdown	默认|遮蔽|总是
+停止强制设置玩家轮廓	Actions	0	被观察的玩家	Player	
+停止强制设置玩家轮廓	Actions	1	观察玩家	Player	
+开始修改英雄语音	Actions	0	玩家	Player	
+开始修改英雄语音	Actions	1	音调调整	Float	
+开始修改英雄语音	Actions	2	重新赋值	Boolean	
+停止修改英雄语音	Actions	0	玩家	Player	
+为玩家添加生命池	Actions	0	玩家	Player	
+为玩家添加生命池	Actions	1	生命值类型	Dropdown	生命值|护甲|护盾
+为玩家添加生命池	Actions	2	最大生命值	Float	
+为玩家添加生命池	Actions	3	可恢复	Boolean	
+为玩家添加生命池	Actions	4	重新赋值	Boolean	
+移除玩家的生命池	Actions	0	生命池ID	Integer	
+移除玩家的所有生命值	Actions	0	玩家	Player	
+设置玩家生命值	Actions	0	玩家	Player	
+设置玩家生命值	Actions	1	数值	Float	
+设置地形消灭者玩家	Actions	0	目标	Player	
+设置地形消灭者玩家	Actions	1	地形消灭者玩家	Player	
+设置造成的击退	Actions	0	玩家	Player	
+设置造成的击退	Actions	1	造成击退百分比	Float	
+设置受到的击退	Actions	0	玩家	Player	
+设置受到的击退	Actions	1	受到击退百分比	Float	
+等待直到 	Actions	0	继续条件	Boolean	
+等待直到 	Actions	1	超时	Float	
+开始助攻	Actions	0	助攻者	Player	
+开始助攻	Actions	1	目标	Player	
+开始助攻	Actions	2	重新赋值	Dropdown	助攻者和目标|无
+停止助攻	Actions	0	助攻ID	Integer	
+创建进度条HUD文本	Actions	0	可见	Player	
+创建进度条HUD文本	Actions	1	值	Float	
+创建进度条HUD文本	Actions	2	文本	Generic	
+创建进度条HUD文本	Actions	3	坐标	Dropdown	左边|顶部|右边
+创建进度条HUD文本	Actions	4	排序	Generic	
+创建进度条HUD文本	Actions	5	进度条颜色	Generic	
+创建进度条HUD文本	Actions	6	文本颜色	Generic	
+创建进度条HUD文本	Actions	7	重新赋值	Dropdown	可见，值和颜色|可见和值|可见和颜色|可见|值和颜色|值|颜色|全部禁用
+创建进度条HUD文本	Actions	8	无队伍观战者	Dropdown	默认可见度|始终可见|始终不可见
+消除进度条HUD文本	Actions	0	文本ID	Integer	
+创建进度条地图文本	Actions	0	可见	Player	
+创建进度条地图文本	Actions	1	值	Float	
+创建进度条地图文本	Actions	2	文本	Generic	
+创建进度条地图文本	Actions	3	位置	Generic	
+创建进度条地图文本	Actions	4	大小	Float	
+创建进度条地图文本	Actions	5	截取	Dropdown	根据表面截取|不要截取
+创建进度条地图文本	Actions	6	进度条颜色	Generic	
+创建进度条地图文本	Actions	7	文本颜色	Generic	
+创建进度条地图文本	Actions	8	重新赋值	Dropdown	可见，位置，值和颜色|可见，位置和值|可见，位置和颜色|可见，值和颜色|可见和位置|可见和值|可见和颜色|可见|位置，值和颜色|位置和颜色|位置和值|位置|值和颜色|值|颜色|全部禁用
+创建进度条地图文本	Actions	9	无队伍观战者	Dropdown	默认可见度|始终可见|始终不可见
+消除进度条地图文本	Actions	0	文本ID	Integer	
+记入查看器	Actions	0	文本	Generic	
+启用文字聊天	Actions	0	玩家	Player	
+禁用文字聊天	Actions	0	玩家	Player	
+启用语音聊天	Actions	0	玩家	Player	
+禁用语音聊天	Actions	0	玩家	Player	
+禁用语音聊天	Actions	1	队伍语音聊天	Boolean	
+禁用语音聊天	Actions	2	比赛语音聊天	Boolean	
+禁用语音聊天	Actions	3	小队语音聊天	Boolean	
+调整玩家队伍	Actions	0	玩家	Player	
+调整玩家队伍	Actions	1	队伍	Team	
+调整玩家队伍	Actions	2	栏位	Integer	
+移除玩家	Actions	0	玩家	Player	
+开始为机器人强制设置名称	Actions	0	玩家	Player	
+开始为机器人强制设置名称	Actions	1	名称	Generic	
+停止为机器人强制设置名称	Actions	0	玩家	Player	
+创建弹道	Actions	0	弹道类型	Dropdown	球弹道
+创建弹道	Actions	1	玩家	Player	
+创建弹道	Actions	2	开始位置	Vector	
+创建弹道	Actions	3	方向	Vector	
+创建弹道	Actions	4	相对	Dropdown	至地图|至玩家
+创建弹道	Actions	5	修改生命效果类型	Dropdown	伤害|治疗
+创建弹道	Actions	6	受影响的队伍	Team	
+创建弹道	Actions	7	数值	Float	
+创建弹道	Actions	8	数值缩放	Float	
+创建弹道	Actions	9	爆炸范围	Float	
+创建弹道	Actions	10	爆炸效果	Dropdown	有害爆炸|有益爆炸|环状爆炸
+创建弹道	Actions	11	爆炸声音效果	Dropdown	爆炸声音|状态爆炸声音|环状爆炸声音
+创建弹道	Actions	12	尺寸增幅	Float	
+创建弹道	Actions	13	速度	Float	
+创建弹道	Actions	14	存在时间	Float	
+创建弹道	Actions	15	推力	Float	
+创建弹道	Actions	16	弹射次数	Integer	
+创建弹道	Actions	17	引力	Float	
+创建追踪弹道	Actions	0	弹道类型	Dropdown	球弹道
+创建追踪弹道	Actions	1	玩家	Player	
+创建追踪弹道	Actions	2	开始位置	Vector	
+创建追踪弹道	Actions	3	方向	Vector	
+创建追踪弹道	Actions	4	相对	Dropdown	至地图|至玩家
+创建追踪弹道	Actions	5	修改生命效果类型	Dropdown	伤害|治疗
+创建追踪弹道	Actions	6	受影响的队伍	Team	
+创建追踪弹道	Actions	7	数值	Float	
+创建追踪弹道	Actions	8	数值缩放	Float	
+创建追踪弹道	Actions	9	爆炸范围	Float	
+创建追踪弹道	Actions	10	爆炸效果	Dropdown	有害爆炸|有益爆炸|环状爆炸
+创建追踪弹道	Actions	11	爆炸声音效果	Dropdown	爆炸声音|状态爆炸声音|环状爆炸声音
+创建追踪弹道	Actions	12	尺寸增幅	Float	
+创建追踪弹道	Actions	13	速度	Float	
+创建追踪弹道	Actions	14	存在时间	Float	
+创建追踪弹道	Actions	15	推力	Float	
+创建追踪弹道	Actions	16	追踪目标	Player	
+创建追踪弹道	Actions	17	追踪强度	Float	
+创建弹道效果	Actions	0	可见	Player	
+创建弹道效果	Actions	1	弹道类型	Dropdown	球弹道
+创建弹道效果	Actions	2	友善	Player	
+创建弹道效果	Actions	3	位置	Generic	
+创建弹道效果	Actions	4	方向	Vector	
+创建弹道效果	Actions	5	尺寸增幅	Float	
+创建弹道效果	Actions	6	重新赋值	Dropdown	友善，位置，方向和大小|位置，方向和大小|可见|无|可见，友善，位置，方向和大小|友善，位置，方向和大小|可见，友善|友善
+生命值	Values	0	玩家	Player	
+标准化生命值	Values	0	玩家	Player	
+最大生命值	Values	0	玩家	Player	
+终极技能充能百分比	Values	0	玩家	Player	
+数字	Values	0		NumberConstant	
+所用英雄	Values	0	玩家	Player	
+英雄	Values	0		HeroConstant	
+分数	Values	0	玩家	Player	
+矢量	Values	0	X	Float	
+矢量	Values	1	Y	Float	
+矢量	Values	2	Z	Float	
+已过滤的数组	Values	0	数组	Generic	
+已过滤的数组	Values	1	条件	Boolean	
+此栏位的玩家	Values	0	栏位	Integer	
+此栏位的玩家	Values	1	队伍	Team	
+队伍	Values	0		TeamConstant	
+全局变量	Values	0		Variable	
+玩家变量	Values	0	玩家	Player	
+玩家变量	Values	1		Variable	
+消灭数	Values	0	玩家	Player	
+最后一击数	Values	0	玩家	Player	
+死亡数	Values	0	玩家	Player	
+所选位置	Values	0	玩家	Player	
+高度	Values	0	玩家	Player	
+距离最近的玩家	Values	0	中间	Vector	
+距离最近的玩家	Values	1	队伍	Team	
+距离最远的玩家	Values	0	中间	Vector	
+距离最远的玩家	Values	1	队伍	Team	
+范围内玩家	Values	0	中间	Vector	
+范围内玩家	Values	1	半径	Float	
+范围内玩家	Values	2	队伍	Team	
+范围内玩家	Values	3	视线检测	Dropdown	关闭|表面|表面及敌方屏障|表面及全部屏障
+相距距离	Values	0	开始位置	Vector	
+相距距离	Values	1	结束位置	Vector	
+方向	Values	0	开始位置	Vector	
+方向	Values	1	结束位置	Vector	
+向量	Values	0	开始位置	Vector	
+向量	Values	1	结束位置	Vector	
+在视线内	Values	0	开始位置	Vector	
+在视线内	Values	1	结束位置	Vector	
+在视线内	Values	2	屏障	Dropdown	屏障不会阻挡视线|敌方屏障阻挡视线|所有屏障阻挡视线
+速率	Values	0	玩家	Player	
+速度	Values	0	玩家	Player	
+水平速度	Values	0	玩家	Player	
+垂直速度	Values	0	玩家	Player	
+指定方向速度	Values	0	玩家	Player	
+指定方向速度	Values	1	方向	Vector	
+所有玩家	Values	0	队伍	Team	
+所有存活玩家	Values	0	队伍	Team	
+所有死亡玩家	Values	0	队伍	Team	
+所有目标点内玩家	Values	0	队伍	Team	
+所有目标点外玩家	Values	0	队伍	Team	
+正在交流	Values	0	玩家	Player	
+正在交流	Values	1	类型	Dropdown	语音（上）|语音（左）|语音（右）|语音（下）|表情（上）|表情（左）|表情（右）|表情（下）|终极技能状态|问候|需要治疗|集合|感谢|收到|继续攻击|不用谢|好的|不行|再见|前进|做好准备|撤退|推进|敌人来袭|我跟着你|我上了|正在赶来|正在进攻|正在防守|需要帮助|抱歉|倒计时|喷漆上|喷漆左|喷漆右|喷漆下
+ 	Values	0		Generic	
+ 	Values	1	 	Dropdown	加|减|乘|除|余数|乘方|最小|最大|添加至数组|根据值从数组中移除|根据索引从数组中移除
+ 	Values	2		Generic	
+数量	Values	0	数组	Generic	
+X方向分量	Values	0		Vector	
+Y方向分量	Values	0		Vector	
+Z方向分量	Values	0		Vector	
+与	Values	0		Boolean	
+与	Values	1		Boolean	
+或	Values	0		Boolean	
+或	Values	1		Boolean	
+非	Values	0		Boolean	
+比较	Values	0		Generic	
+比较	Values	1		ComparisonThing	
+比较	Values	2		Generic	
+所在队伍	Values	0	玩家	Player	
+存活	Values	0	玩家	Player	
+死亡	Values	0	玩家	Player	
+水平方向夹角	Values	0	玩家	Player	
+水平方向夹角	Values	1	位置	Vector	
+垂直方向夹角	Values	0	玩家	Player	
+垂直方向夹角	Values	1	位置	Vector	
+水平朝向角度	Values	0	玩家	Player	
+垂直朝向角度	Values	0	玩家	Player	
+面朝方向	Values	0	玩家	Player	
+角度差	Values	0	角度	Float	
+角度差	Values	1	角度	Float	
+正在站立	Values	0	玩家	Player	
+正在移动	Values	0	玩家	Player	
+正在蹲下	Values	0	玩家	Player	
+正在空中	Values	0	玩家	Player	
+正在使用英雄	Values	0	英雄	Hero	
+正在使用英雄	Values	1	队伍	Team	
+玩家数量	Values	0	队伍	Team	
+英雄数量	Values	0	英雄	Hero	
+英雄数量	Values	1	队伍	Team	
+存活玩家数量	Values	0	队伍	Team	
+死亡玩家数量	Values	0	队伍	Team	
+目标点上玩家数量	Values	0	队伍	Team	
+按钮被按下	Values	0	玩家	Player	
+按钮被按下	Values	1	按钮	ButtonConstant	
+阈值	Values	0	玩家	Player	
+选择英雄的玩家	Values	0	英雄	Hero	
+选择英雄的玩家	Values	1	队伍	Team	
+地图矢量	Values	0	本地矢量	Vector	
+地图矢量	Values	1	相对玩家	Player	
+地图矢量	Values	2	转换	Dropdown	旋转|旋转并转换
+本地矢量	Values	0	地图矢量	Vector	
+本地矢量	Values	1	相对玩家	Player	
+本地矢量	Values	2	转换	Dropdown	旋转|旋转并转换
+团队得分	Values	0	队伍	Team	
+目标位置	Values	0	数字	Integer	
+目标是否完成	Values	0	数字	Integer	
+作为进攻队伍	Values	0	队伍	Team	
+正在防守	Values	0	队伍	Team	
+具有状态	Values	0	玩家	Player	
+具有状态	Values	1	状态	Dropdown	被入侵|燃烧|击倒|沉睡|冰冻|无法杀死|无敌|相移|定身|击晕
+占领要点模式得分百分比	Values	0	队伍	Team	
+旗帜位置	Values	0	队伍	Team	
+旗帜是否在基地中	Values	0	队伍	Team	
+是否有人携带旗帜	Values	0	队伍	Team	
+携带旗帜的玩家	Values	0	队伍	Team	
+头像火力全开	Values	0	玩家	Player	
+在目标点上	Values	0	玩家	Player	
+在重生室中	Values	0	玩家	Player	
+数组中的值	Values	0	数组	Generic	
+数组中的值	Values	1	索引	Integer	
+随机整数	Values	0	最小	Integer	
+随机整数	Values	1	最大	Integer	
+随机实数	Values	0	最小	Float	
+随机实数	Values	1	最大	Float	
+数组随机取值	Values	0	数组	Generic	
+随机数组	Values	0	数组	Generic	
+数组分割	Values	0	数组	Generic	
+数组分割	Values	1	开始索引	Integer	
+数组分割	Values	2	计数	Integer	
+对全部为“真”	Values	0	数组	Generic	
+对全部为“真”	Values	1	条件	Boolean	
+对任意为“真”	Values	0	数组	Generic	
+对任意为“真”	Values	1	条件	Boolean	
+首个	Values	0	数组	Generic	
+最后	Values	0	数组	Generic	
+已排序的数组	Values	0	数组	Generic	
+已排序的数组	Values	1	数值排序	Float	
+实体存在	Values	0	实体	Player	
+数组	Values	0	[%1$s]	ArrayThing	
+正在使用终极技能	Values	0	玩家	Player	
+正在与人交流	Values	0	玩家	Player	
+正在使用语音交流	Values	0	玩家	Player	
+正在使用表情交流	Values	0	玩家	Player	
+字符串	Values	0	字符串	CustomString	
+字符串	Values	1	 	Generic	
+字符串	Values	2	{0}	Generic	
+字符串	Values	3	{1}	Generic	
+字符串	Values	4	{2}	Generic	
+对方队伍	Values	0	队伍	Team	
+在墙上	Values	0	玩家	Player	
+与此角度的相对方向	Values	0	水平角度	Float	
+与此角度的相对方向	Values	1	垂直角度	Float	
+与此方向的水平角度	Values	0	方向	Vector	
+与此方向的垂直角度	Values	0	方向	Vector	
+栏位	Values	0	玩家	Player	
+可用英雄	Values	0	玩家	Player	
+在地面上	Values	0	玩家	Player	
+在视野内	Values	0	玩家	Player	
+在视野内	Values	1	坐标	Vector	
+在视野内	Values	2	视角	Float	
+已重生	Values	0	实体	Player	
+英雄图标字符串	Values	0		Hero	
+最近的可行走位置	Values	0	位置	Vector	
+距离准星最近的玩家	Values	0	玩家	Player	
+距离准星最近的玩家	Values	1	队伍	Team	
+视角中的玩家	Values	0	玩家	Player	
+视角中的玩家	Values	1	队伍	Team	
+视角中的玩家	Values	2	视角	Float	
+数组值的索引	Values	0	数组	Generic	
+数组值的索引	Values	1	值	Generic	
+数组包含	Values	0	数组	Generic	
+数组包含	Values	1	值	Generic	
+角度的正弦值	Values	0	角度	Float	
+角度的余弦值	Values	0	角度	Float	
+弧度的正弦值	Values	0	角度	Float	
+弧度的余弦值	Values	0	角度	Float	
+归一化	Values	0	矢量	Vector	
+平方根	Values	0		Float	
+绝对值	Values	0		Float	
+标量积	Values	0		Generic	
+标量积	Values	1		Generic	
+矢量积	Values	0		Generic	
+矢量积	Values	1		Generic	
+取整	Values	0	值	Float	
+取整	Values	1	取整方式	Dropdown	上|下|至最近
+正在使用主要武器	Values	0	玩家	Player	
+正在使用辅助武器	Values	0	玩家	Player	
+正在使用技能 1	Values	0	玩家	Player	
+正在使用技能 2	Values	0	玩家	Player	
+加	Values	0		Generic	
+加	Values	1		Generic	
+减	Values	0		Generic	
+减	Values	1		Generic	
+乘	Values	0		Generic	
+乘	Values	1		Generic	
+除	Values	0		Generic	
+除	Values	1		Generic	
+余数	Values	0		Float	
+余数	Values	1		Float	
+乘方	Values	0		Float	
+乘方	Values	1		Float	
+较小	Values	0		Float	
+较小	Values	1		Float	
+较大	Values	0		Float	
+较大	Values	1		Float	
+添加至数组	Values	0	数组	Generic	
+添加至数组	Values	1	值	Generic	
+从数组中移除	Values	0	数组	Generic	
+从数组中移除	Values	1	值	Generic	
+眼睛位置	Values	0	玩家	Player	
+射线命中位置	Values	0	开始位置	Vector	
+射线命中位置	Values	1	结束位置	Vector	
+射线命中位置	Values	2	包括玩家	Player	
+射线命中位置	Values	3	不包括玩家	Player	
+射线命中位置	Values	4	包括玩家拥有的物体	Boolean	
+射线命中法线	Values	0	开始位置	Vector	
+射线命中法线	Values	1	结束位置	Vector	
+射线命中法线	Values	2	包括玩家	Player	
+射线命中法线	Values	3	不包括玩家	Player	
+射线命中法线	Values	4	包括玩家拥有的物体	Boolean	
+射线命中玩家	Values	0	开始位置	Vector	
+射线命中玩家	Values	1	结束位置	Vector	
+射线命中玩家	Values	2	包括玩家	Player	
+射线命中玩家	Values	3	不包括玩家	Player	
+射线命中玩家	Values	4	包括玩家拥有的物体	Boolean	
+角度的正切值	Values	0	角度	Float	
+弧度的正切值	Values	0	角度	Float	
+以角度为单位的反余弦值	Values	0	值	Float	
+以弧度为单位的反余弦值	Values	0	值	Float	
+以角度为单位的反正弦值	Values	0	值	Float	
+以弧度为单位的反正弦值	Values	0	值	Float	
+以角度为单位的反正切值	Values	0	分子	Float	
+以角度为单位的反正切值	Values	1	分母	Float	
+以弧度为单位的反正切值	Values	0	分子	Float	
+以弧度为单位的反正切值	Values	1	分母	Float	
+矢量间夹角	Values	0	矢量	Vector	
+矢量间夹角	Values	1	矢量	Vector	
+图标字符串	Values	0	图标	Dropdown	箭头：向下|箭头：向左|箭头：向右|箭头：向上|星形|箭矢|对号|圆圈|梅花|方块|晕眩|感叹号|眼睛|火焰|旗帜|光晕|高兴|红桃|满月|拒绝|加号|剧毒|剧毒2|问号|辐射|回收|宽环|细环|难过|骷髅|黑桃|螺旋|停止|垃圾箱|警告|X
+自定义字符串	Values	0	字符串	CustomString2	
+自定义字符串	Values	1	{0}	Generic	
+自定义字符串	Values	2	{1}	Generic	
+自定义字符串	Values	3	{2}	Generic	
+是否是机器人	Values	0	玩家	Player	
+地图	Values	0		MapConstant	
+游戏模式	Values	0		GamemodeConstant	
+正在近战攻击	Values	0	玩家	Player	
+正在跳跃	Values	0	玩家	Player	
+按钮	Values	0		ButtonConstant	
+技能冷却时间	Values	0	玩家	Player	
+技能冷却时间	Values	1	按钮	ButtonConstant	
+技能图标字符串	Values	0	英雄	Hero	
+技能图标字符串	Values	1	按钮	ButtonConstant	
+If-Then-Else	Values	0	If	Boolean	
+If-Then-Else	Values	1	Then	Generic	
+If-Then-Else	Values	2	Else	Generic	
+处于非初始状态	Values	0	玩家	Player	
+正在人格复制	Values	0	玩家	Player	
+正在复制的英雄	Values	0	玩家	Player	
+武器	Values	0	玩家	Player	
+正在装填	Values	0	玩家	Player	
+弹药	Values	0	玩家	Player	
+弹药	Values	1	弹夹	Integer	
+最大弹药	Values	0	玩家	Player	
+最大弹药	Values	1	弹夹	Integer	
+输入绑定字符串	Values	0	按钮	ButtonConstant	
+技能充能	Values	0	玩家	Player	
+技能充能	Values	1	按钮	ButtonConstant	
+技能资源	Values	0	玩家	Player	
+技能资源	Values	1	按钮	ButtonConstant	
+映射的数组	Values	0	数组	Generic	
+映射的数组	Values	1	映射表达式	Generic	
+地图工坊设置开关	Values	0		WorkshopSettingParam	
+地图工坊设置开关	Values	1	类别	String	
+地图工坊设置开关	Values	2	名称	String	
+地图工坊设置开关	Values	3	默认	DefaultValue	
+地图工坊设置开关	Values	4	排序	WorkshopSettingParam	
+地图工坊设置整数	Values	0		WorkshopSettingParam	
+地图工坊设置整数	Values	1	类别	String	
+地图工坊设置整数	Values	2	名称	String	
+地图工坊设置整数	Values	3	默认	WorkshopSettingParam	
+地图工坊设置整数	Values	4	最小	WorkshopSettingParam	
+地图工坊设置整数	Values	5	最大	WorkshopSettingParam	
+地图工坊设置整数	Values	6	排序	WorkshopSettingParam	
+地图工坊设置实数	Values	0		WorkshopSettingParam	
+地图工坊设置实数	Values	1	类别	String	
+地图工坊设置实数	Values	2	名称	String	
+地图工坊设置实数	Values	3	默认	NumberConstant	
+地图工坊设置实数	Values	4	最小	NumberConstant	
+地图工坊设置实数	Values	5	最大	NumberConstant	
+地图工坊设置实数	Values	6	排序	WorkshopSettingParam	
+类型的生命值	Values	0	玩家	Player	
+类型的生命值	Values	1	生命值类型	Dropdown	生命值|护甲|护盾
+类型的最大生命值	Values	0	玩家	Player	
+类型的最大生命值	Values	1	生命值类型	Dropdown	生命值|护甲|护盾
+栏位数量	Values	0	队伍	Team	
+地图工坊设置英雄	Values	0		WorkshopSettingParam	
+地图工坊设置英雄	Values	1	类别	String	
+地图工坊设置英雄	Values	2	名称	String	
+地图工坊设置英雄	Values	3	默认	HeroConstant	
+地图工坊设置英雄	Values	4	排序	WorkshopSettingParam	
+地图工坊设置组合	Values	0		WorkshopSettingParam	
+地图工坊设置组合	Values	1	类别	String	
+地图工坊设置组合	Values	2	名称	String	
+地图工坊设置组合	Values	3	默认	WorkshopSettingParam	
+地图工坊设置组合	Values	4	选项	Generic	
+地图工坊设置组合	Values	5	排序	WorkshopSettingParam	
+颜色	Values	0	颜色	Dropdown	白色|黄色|绿色|亮紫色|红色|蓝色|队伍1|队伍2|水绿色|橙色|天蓝色|青绿色|灰绿色|黑色|玫红|紫色|灰色
+自定义颜色	Values	0	红色	Float	
+自定义颜色	Values	1	绿色	Float	
+自定义颜色	Values	2	蓝色	Float	
+自定义颜色	Values	3	不透明度	Float	
+幅值	Values	0		Generic	
+重生点	Values	0	队伍	Team	
+字符串包含	Values	0	字符串	String	
+字符串包含	Values	1	值	String	
+单次赋值	Values	0		WorkshopSettingParam	
+单次赋值	Values	1	输入值	Generic	
+正在使用喷漆交流	Values	0	玩家	Player	
+逐帧更新	Values	0	输入值	Generic	
+字符串长度	Values	0	字符串	String	
+截取字符串	Values	0	字符串	String	
+截取字符串	Values	1	开始字符索引	Integer	
+截取字符串	Values	2	字符数	Integer	
+玩家数据	Values	0	玩家	Player	
+玩家数据	Values	1	数据	Dropdown	所有造成伤害量|对屏障造成伤害量|阻挡伤害量|承受伤害量|阵亡|消灭|协助防守|最后一击|地形阵亡|地形消灭|对英雄造成伤害量|治疗量|最佳瞬间消灭|瞬间消灭|目标攻防消灭|协助进攻|单独消灭|获得终极技能|使用终极技能|武器命中率
+玩家英雄数据	Values	0	玩家	Player	
+玩家英雄数据	Values	1	英雄	Hero	
+玩家英雄数据	Values	2	数据	Dropdown	所有造成伤害量|对屏障造成伤害量|暴击命中率|暴击|阻挡伤害量|承受伤害量|阵亡|协助防守|消灭|地形阵亡|地形消灭|最后一击|治疗量|受到治疗量|对英雄造成伤害量|最佳瞬间消灭|瞬间消灭|目标攻防消灭|协助进攻|开镜命中率|开镜暴击率|开镜暴击消灭|开镜暴击|开镜命中|开镜射击|自我治疗量|射击次数|射击命中|射击未命中|单独消灭|获得终极技能|使用终极技能|武器命中率
+字符串中字符	Values	0	字符串	String	
+字符串中字符	Values	1	索引	Integer	
+字符串字符索引	Values	0	字符串	String	
+字符串字符索引	Values	1	字符	String	
+字符串分割	Values	0	字符串	String	
+字符串分割	Values	1	分隔符	String	
+字符串替换	Values	0	字符串	String	
+字符串替换	Values	1	模式	String	
+字符串替换	Values	2	替换	String	

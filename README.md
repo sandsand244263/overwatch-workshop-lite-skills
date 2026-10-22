@@ -6,7 +6,7 @@
 
 **仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适用。
 
-当前版本 **v2.75.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.77.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -45,7 +45,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 | 能力 | 说明 |
 |---|---|
 | **生成** | 按玩法描述出完整 `.ow`，自带房间设置，可直接导入 |
-| **审查** | 三层检查：格式 → 数据 ID → 类型 |
+| **审查** | 三层检查：格式 → 数据 ID → 类型，**每条报错附改法** |
 | **解释** | 逐条说明事件、条件、状态变量、可见效果 |
 | **调试** | 用 `记入查看器` 打点，按最小可疑点收敛，不盲改 |
 | **省元素** | 算出当前用量，给出更省的等价写法 |
@@ -56,7 +56,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 ## 校验器查什么
 
-三层，34 个检查函数。
+三层，32 个检查函数。
 
 **第一层 格式**：括号配对、分号、块结构、函数名、参数个数、变量名只能用英文、变量声明与引用、子程序声明、事件参数行数。
 
@@ -71,7 +71,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 | 设置键 | 757 个 |
 | 事件名 | 14 个 |
 | 扩展名 | 11 个 |
-| 下拉参数取值 | 按参数逐一对照 |
+| 下拉参数取值 | 74 个带选项的参数，逐一对照 |
 
 > 游戏更新会删改名字，报错只说「"地图("之后应有一个地图名称」，不说是哪张图。校验器直接指出是哪个名字过期了。
 
@@ -136,7 +136,7 @@ workshop-lite/
 │   ├── element_count2.py          元素数模型（逆向版，37 个标定）
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
-│   └── probes/                    65 正样本 + 20 反向用例 + 3 个可运行样例
+│   └── probes/                    65 正样本 + 21 反向用例 + 3 个可运行样例
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -196,7 +196,7 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-65 正样本 + 20 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
+65 正样本 + 21 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
 
 ```bash
 python tools/ws.py calib            # 37 个元素标定样本，偏差必须为 0
