@@ -86,7 +86,8 @@ def cmd_check(args):
 def cmd_check_all(args):
     import glob
     files = sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "*.ow"))) + \
-            sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow")))
+            sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow"))) + \
+            sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "samples", "*.ow")))
     rc = cmd_check(type("A", (), {"files": files})())
 
     # 反向用例：坏文件必须报出预期错误，没报出来就是校验器退化
@@ -345,8 +346,20 @@ SCAFFOLD_SETTINGS = [
 
 
 def cmd_scaffold(a):
-    """生成最小测试骨架：死斗 + 随机英雄复生 + 地图工坊室内 + 空规则。"""
-    lines = list(SCAFFOLD_SETTINGS) + ["", "变量", "{", "\t全局:", "\t\t0: g", "}", ""]
+    """生成最小测试骨架：默认死斗；--mode 可换其他模式（用该模式的默认设置块）。"""
+    mode = getattr(a, "mode", "死斗") or "死斗"
+    if mode == "死斗":
+        lines = list(SCAFFOLD_SETTINGS)
+    else:
+        block = build_settings_block(mode, hero=None, lobby=False, allow_all=False)
+        lines = block.replace("\r\n", "\n").rstrip("\n").split("\n")
+        # 在模式子块开头插入地图
+        for i, ln in enumerate(lines):
+            if ln.strip() == mode:
+                lines[i + 1:i + 1] = ["\t\t\t启用地图", "\t\t\t{",
+                                      "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}"]
+                break
+    lines += ["", "变量", "{", "\t全局:", "\t\t0: g", "}", ""]
     lines += ['规则("%s")' % a.rule, "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
               "\t动作", "\t{",
               '\t\t记入查看器("[%s] 开始");' % a.rule,
@@ -354,7 +367,7 @@ def cmd_scaffold(a):
     text = "\r\n".join(lines) + "\r\n"
     if a.out:
         open(a.out, "w", encoding="utf-8", newline="").write(text)
-        print("已写入 %s（%d 行）" % (a.out, text.count("\n")))
+        print("已写入 %s（%d 行，模式 %s）" % (a.out, text.count("\n"), mode))
     else:
         print(text)
     return 0
@@ -444,7 +457,8 @@ def main():
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_doc)
 
-    p = sub.add_parser("scaffold", help="生成最小测试骨架（死斗+随机复生+地图工坊室内）")
+    p = sub.add_parser("scaffold", help="生成最小测试骨架（默认死斗，可用 --mode 换模式）")
+    p.add_argument("--mode", default="死斗", help="模式名，见 ws.py modes")
     p.add_argument("--rule", default="测试", help="规则名")
     p.add_argument("--out", default=None, help="输出文件，不给则打印")
     p.set_defaults(func=cmd_scaffold)
