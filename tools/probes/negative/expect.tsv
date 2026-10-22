@@ -20,5 +20,5 @@ ffa-draw.ow	在死斗里无效
 team-param-shuangfang.ow	的队伍参数不能写
 bare-string-arg.ow	不能直接写字符串
 bad-dropdown.ow	只能填
-map-objective-mismatch.ow	error	没有目标点的地图配目标类模式
-map-pool-miss.ow	warning	地图不在该模式池里
+map-objective-mismatch.ow	没有目标点	没有目标点的地图配目标类模式
+map-pool-miss.ow	的地图池里	地图不在该模式池里

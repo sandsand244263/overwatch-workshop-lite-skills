@@ -134,7 +134,7 @@ def cmd_check_all(args):
     files = sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "*.ow"))) + \
             sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow"))) + \
             sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "samples", "*.ow")))
-    rc = cmd_check(type("A", (), {"files": files})())
+    rc = cmd_check(type("A", (), {"files": files, "max_warn": 20, "json": False})())
 
     # 反向用例：坏文件必须报出预期错误，没报出来就是校验器退化
     neg_dir = os.path.join(ROOT, "tools", "probes", "negative")

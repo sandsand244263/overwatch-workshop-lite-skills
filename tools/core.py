@@ -1467,9 +1467,6 @@ def load_map_traits(path=None):
     return out
 
 
-_MAP_POOLS = {"map": None}
-
-
 def load_map_pools(path=None):
     """{模式名: set(地图名)} —— 来自 data/map-pools.tsv（游戏「设置/地图」页截图整理）。"""
     path = os.path.abspath(path or os.path.join(DATA_DIR, "map-pools.tsv"))
@@ -1487,20 +1484,48 @@ def load_map_pools(path=None):
     return out
 
 
-def check_map_codes(text, problems):
-    """启用地图 里写的第二列必须是 0xD8 前缀的 64 位编号（972777519512...）。
+_MAP_VARIANTS = {"map": None}
 
-    资源路径（如 00000000068D.09F）是内部 ID，写进 .ow 会报地图不存在。
+
+def load_map_variants(path=None):
+    """{地图名: {编号: 时段名}} —— 来自 data/map-variants.tsv。"""
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "map-variants.tsv"))
+    if _MAP_VARIANTS["map"] is not None:
+        return _MAP_VARIANTS["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                zh = (row.get("zh") or "").strip()
+                vid = (row.get("id") or "").strip()
+                if zh and vid:
+                    out.setdefault(zh, {})[vid] = (row.get("variant") or "").strip()
+    _MAP_VARIANTS["map"] = out
+    return out
+
+
+def check_map_codes(text, problems, strict=False):
+    """`启用地图` 每行：`地图名 [时段编号 ...]`（一行一张图，写几个编号 = 开几个时段）。
+
+    实测（2026-10-22 用户手动导出确认）：
+        绿洲城 972777519512068154 972777519512068153                      ← 早晨 + 夜晚
+        绿洲城 972777519512068292 972777519512068154 972777519512068153   ← 全开
+
+    只写名字 = 用默认时段，一定能导入。
+    这里**只查编号格式**（必须 9727775195… 开头）：各图的时段编号表尚不完整，
+    真实文件里出现过表里没有的编号（艾兴瓦尔德 972777519512094292），按表判归属会误报。
     """
     for i, raw in enumerate(text.split("\n"), 1):
-        m = re.match(r"^\s*(\S+)\s+(\d{10,})\s*$", raw)
+        m = re.match(r"^\s*(\S+)((?:\s+\d{10,})+)\s*$", raw)
         if not m:
             continue
-        num = int(m.group(2))
-        if (num >> 52) != 0xD8:
-            problems.append((i, "error",
-                             "地图编号 %s 不是工坊编号（应以 9727775195 开头）；"
-                             "资源路径或十六进制 ID 不能直接写进 .ow，用 ws.py map-code 查" % m.group(2)))
+        bad = [x for x in re.findall(r"\d{10,}", m.group(2)) if (int(x) >> 52) != 0xD8]
+        if bad:
+            problems.append((i, "warning",
+                             "地图编号 %s 不像工坊编号（应以 9727775195 开头）；"
+                             "不确定就只写地图名「%s」" % ("、".join(bad), m.group(1))))
+
+_MAP_POOLS = {"map": None}
 
 
 def check_map_mode(text, problems, traits=None, pools=None, strict=False):
@@ -2786,7 +2811,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_team_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
-    check_map_codes(text, problems)
+    check_map_codes(text, problems, strict=strict)
     check_map_mode(text, problems, strict=strict)
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
