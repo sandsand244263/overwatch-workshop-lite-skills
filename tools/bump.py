@@ -48,7 +48,7 @@ def main():
         sys.exit("版本号格式应为 X.Y.Z")
     vp = os.path.join(ROOT, VERSION_FILE)
     with open(vp, "w", encoding="utf-8", newline="\n") as f:
-        f.write(new + "\n")
+        f.write(version + "\n")
 
     for rel, (pat, fmt) in FILES.items():
         p = os.path.join(ROOT, rel)
