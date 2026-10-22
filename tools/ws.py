@@ -213,8 +213,11 @@ REAL_WORLD_FACTOR = 2.12
 def cmd_map_code(args):
     """查地图的工坊编号（写进 .ow 用）：等于 0xD8<<52 | 变体编号。"""
     rows = []
-    with open(os.path.join(DATA, "map-codes.tsv"), encoding="utf-8-sig") as f:
-        rows = [x for x in csv.DictReader(f, delimiter="\t")]
+    for fn in ("map-codes.tsv", "map-codes-derived.tsv"):
+        fp = os.path.join(DATA, fn)
+        if os.path.isfile(fp):
+            with open(fp, encoding="utf-8-sig") as f:
+                rows += [x for x in csv.DictReader(f, delimiter="\t")]
     kw = (args.name or "").strip()
     hit = [x for x in rows if kw in x["name"]] if kw else rows
     if not hit:
