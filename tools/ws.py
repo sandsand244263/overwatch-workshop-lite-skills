@@ -346,24 +346,30 @@ SCAFFOLD_SETTINGS = [
 
 
 def cmd_scaffold(a):
-    """生成最小测试骨架：默认死斗；--mode 可换其他模式（用该模式的默认设置块）。"""
+    """生成最小测试骨架。
+
+    默认死斗 + 地图工坊室内；其它模式默认**不写地图**（工坊室内只适用于死斗，
+    占领要点会报「无效的地图设置」），需要时用 --map 指定。
+    """
     mode = getattr(a, "mode", "死斗") or "死斗"
-    if mode == "死斗":
+    want_map = getattr(a, "map", None)
+    if mode == "死斗" and not want_map:
+        want_map = "地图工坊室内 972777519512064577"
+    if mode == "死斗" and want_map == "地图工坊室内 972777519512064577":
         lines = list(SCAFFOLD_SETTINGS)
     else:
         block = build_settings_block(mode, hero=None, lobby=False, allow_all=False)
         lines = block.replace("\r\n", "\n").rstrip("\n").split("\n")
-        # 在模式子块开头插入地图
-        for i, ln in enumerate(lines):
-            if ln.strip() == mode:
-                # 模式名下一行是 "{"，地图块要插在它之后
-                j = i + 1
-                while j < len(lines) and lines[j].strip() == "":
-                    j += 1
-                at = (j + 1) if (j < len(lines) and lines[j].strip() == "{") else (i + 1)
-                lines[at:at] = ["\t\t\t启用地图", "\t\t\t{",
-                                "\t\t\t\t地图工坊室内 972777519512064577", "\t\t\t}"]
-                break
+        if want_map:
+            for i, ln in enumerate(lines):
+                if ln.strip() == mode:
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip() == "":
+                        j += 1
+                    at = (j + 1) if (j < len(lines) and lines[j].strip() == "{") else (i + 1)
+                    lines[at:at] = ["\t\t\t启用地图", "\t\t\t{",
+                                    "\t\t\t\t" + want_map, "\t\t\t}"]
+                    break
     lines += ["", "变量", "{", "\t全局:", "\t\t0: g", "}", ""]
     lines += ['规则("%s")' % a.rule, "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
               "\t动作", "\t{",
@@ -372,7 +378,8 @@ def cmd_scaffold(a):
     text = "\r\n".join(lines) + "\r\n"
     if a.out:
         open(a.out, "w", encoding="utf-8", newline="").write(text)
-        print("已写入 %s（%d 行，模式 %s）" % (a.out, text.count("\n"), mode))
+        print("已写入 %s（%d 行，模式 %s，地图 %s）"
+              % (a.out, text.count("\n"), mode, want_map or "未指定"))
     else:
         print(text)
     return 0
@@ -464,6 +471,7 @@ def main():
 
     p = sub.add_parser("scaffold", help="生成最小测试骨架（默认死斗，可用 --mode 换模式）")
     p.add_argument("--mode", default="死斗", help="模式名，见 ws.py modes")
+    p.add_argument("--map", default=None, help="地图名 GUID，例如「地图工坊室内 972777519512064577」；不给则死斗用工坊室内、其它模式不写地图")
     p.add_argument("--rule", default="测试", help="规则名")
     p.add_argument("--out", default=None, help="输出文件，不给则打印")
     p.set_defaults(func=cmd_scaffold)
