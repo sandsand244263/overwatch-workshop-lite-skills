@@ -91,29 +91,60 @@ def join_folded_lines(lines):
     return out, merged
 
 
+def _iter_calls(text, name):
+    """逐个找出 name(...) 的调用：返回 (起点, 括号内起点, 括号内终点, 右括号位置)。"""
+    for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(name) + r"\(", text):
+        i = m.end()
+        depth = 1
+        while i < len(text) and depth:
+            c = text[i]
+            if c == '"':
+                i += 1
+                while i < len(text):
+                    if text[i] == chr(92):
+                        i += 2
+                        continue
+                    if text[i] == '"':
+                        i += 1
+                        break
+                    i += 1
+                continue
+            if c == "(":
+                depth += 1
+            elif c == ")":
+                depth -= 1
+            i += 1
+        yield m.start(), m.end(), i - 1
+
+
 def fix_none_args(text):
-    """导出写「无」、编辑器要「全部禁用」的位置。返回 (新文本, 修改处数)。"""
+    """导出写「无」、编辑器要「全部禁用」的位置。返回 (新文本, 修改处数)。
+
+    要点：必须用括号配对找实参，不能靠正则——实参里常有 数组(颜色(...)) 这种嵌套。
+    """
     changes = 0
-
-    def make(name, slots):
-        def fix_one(m):
-            nonlocal changes
-            body = m.group(1)
-            parts = core._top_level_args(body)
-            touched = False
-            for s in slots:
-                if len(parts) > s and parts[s].strip() == "无":
-                    parts[s] = parts[s].replace("无", "全部禁用")
-                    touched = True
-            if not touched:
-                return name + "(" + body + ")"
-            changes += 1
-            return name + "(" + ",".join(parts) + ")"
-        return fix_one
-
     for name, slots in NO_TO_DISABLED.items():
-        pat = r"(?<![\w\u4e00-\u9fa5])" + name + r"\(((?:[^()]|\([^()]*\))*)\)"
-        text = re.sub(pat, make(name, slots), text)
+        while True:
+            hit = None
+            for start, body_start, close in _iter_calls(text, name):
+                body = text[body_start:close]
+                if any("(" in a or ")" in a for a in core._top_level_args(body)):
+                    parts = core._top_level_args(body)
+                else:
+                    parts = core._top_level_args(body)
+                changed = False
+                for s in slots:
+                    if len(parts) > s and parts[s].strip() == "无":
+                        parts[s] = parts[s].replace("无", "全部禁用")
+                        changed = True
+                if changed:
+                    hit = (start, body_start, close, ",".join(parts))
+                    break
+            if not hit:
+                break
+            s0, b0, c0, new_body = hit
+            text = text[:b0] + new_body + text[c0:]
+            changes += 1
     return text, changes
 
 

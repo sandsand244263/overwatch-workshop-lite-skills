@@ -48,7 +48,7 @@ ASSIGNMENT = re.compile(r"^.+?\.[A-Za-z_]\w*(?:\[[^\]]*\])?\s*=(?!=)")
 VAR_REF = re.compile(r"(全局|本地玩家|事件玩家|攻击方|被攻击方|主机玩家|本市玩家)\.([A-Za-z_][A-Za-z0-9_]*)")
 
 BLOCK_KEYWORDS = ("设置", "主程序", "大厅", "模式", "英雄", "地图工坊", "扩展",
-                  "变量", "子程序", "规则", "事件", "条件", "动作")
+                  "变量", "子程序", "规则", "事件", "条件", "动作", "禁用地图", "启用地图")
 CONTROL = ("While", "If", "Else If", "Else", "End", "For", "For 全局变量", "For 玩家变量",
            "如条件为“真”则循环", "如条件为“假”则循环",
            "如条件为“真”则中止", "如条件为“假”则中止")
@@ -990,6 +990,10 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
         block = stack[-1] if stack else None
         if block not in SETTINGS_BLOCKS:
             continue
+        if "地图工坊" in stack:             # 地图工坊块 = 作者自定义设置，键名随便起
+            continue
+        if "禁用地图" in stack or "启用地图" in stack:
+            continue          # 这两个块里是地图名列表，不是 键: 值
         if "英雄" in stack:                 # 英雄块里的键走 check_ability_names
             continue
         m = re.match(r"^([^\s:：]{1,40})\s*[:：]\s*\S", s)
@@ -1021,6 +1025,16 @@ def _prev_continues(lines, i):
             return _line_continues(lines[j])
         j -= 1
     return False
+
+
+def _is_default_var(name):
+    """工坊内置变量：全局/玩家的 A~Z 共 26 个（索引 0~25），不声明也存在。"""
+    return len(name) == 1 and "A" <= name <= "Z"
+
+
+def _is_default_sub(name):
+    """工坊内置子程序：Sub0~Sub7 共 8 个（索引 0~7）。"""
+    return bool(re.fullmatch(r"Sub[0-7]", name or ""))
 
 
 def _hero_names():
@@ -2300,6 +2314,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     for m in VAR_REF.finditer(masked):
         owner, name = m.group(1), m.group(2)
         section = "全局" if owner == "全局" else "玩家"
+        if _is_default_var(name):
+            continue          # A~Z 是内置的 26 个变量（索引 0~25），不需要声明
         if name not in declared[section]:
             pos = text.find("%s.%s" % (owner, name))
             line_no = text.count("\n", 0, pos) + 1 if pos >= 0 else 0
