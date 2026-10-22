@@ -416,6 +416,53 @@ def cmd_selftest(args):
     return 0 if bad == 0 else 1
 
 
+
+
+def cmd_corpus(args):
+    """转调 tools/corpus_check.py。"""
+    import subprocess as sp
+    cmd = [sys.executable, os.path.join(ROOT, "tools", "corpus_check.py")]
+    if getattr(args, "dir", None):
+        cmd.append(args.dir)
+    if getattr(args, "update", False):
+        cmd.append("--update")
+    return sp.call(cmd)
+
+def cmd_fix(args):
+    """检查 + 自动修：修出能导入的版本，再复校一遍。"""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import normalize as nz
+    text = open(args.src, encoding="utf-8-sig", errors="replace").read()
+    before = core.full_lint(args.src, DATA)
+    b_err = sum(1 for p in before if p[1] == "error")
+    b_warn = len(before) - b_err
+
+    new_text, merged, none_fixed, bool_fixed = nz.normalize_text(
+        text, fix_bools=args.fix_bools, drop_empty=not args.keep_empty)
+
+    out = args.out or (os.path.splitext(args.src)[0] + ".fixed.ow")
+    open(out, "w", encoding="utf-8", newline="\n").write(new_text)
+
+    after = core.full_lint(out, DATA)
+    a_err = sum(1 for p in after if p[1] == "error")
+    a_warn = len(after) - a_err
+
+    print("修复：合并折行 %d 处，「无」→「全部禁用」%d 处，删空值行%s，布尔词%s"
+          % (merged, none_fixed,
+             "已删" if not args.keep_empty else "未动",
+             ("%d 处" % bool_fixed) if args.fix_bools else "未动"))
+    print("校验：error %d → %d，warning %d → %d" % (b_err, a_err, b_warn, a_warn))
+    print("输出：%s" % out)
+    left = [p for p in after if p[1] == "error"]
+    if left:
+        print("\n还剩 %d 个 error（无法自动修）：" % len(left))
+        for ln, lv, msg in left[:10]:
+            print("   第 %s 行：%s" % (ln, msg))
+        tip = core.suggest(left[0][2])
+        if tip:
+            print("   第一条的改法：%s" % tip)
+    return 0 if a_err == 0 else 1
+
 def cmd_normalize(args):
     """把导出的 .ow 修成编辑器能接受的形式（去掉导出失真）。"""
     sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -541,6 +588,18 @@ def main():
     p = sub.add_parser("defaults", help="查参数默认值")
     p.add_argument("funcs", nargs="+")
     p.set_defaults(func=cmd_defaults)
+
+    p = sub.add_parser("corpus", help="跑真实模式语料回归（语料在私有仓）")
+    p.add_argument("dir", nargs="?")
+    p.add_argument("--update", action="store_true")
+    p.set_defaults(func=cmd_corpus)
+
+    p = sub.add_parser("fix", help="检查 + 自动修出可导入版本，再复校")
+    p.add_argument("src")
+    p.add_argument("-o", "--out")
+    p.add_argument("--fix-bools", action="store_true", help="布尔项的 禁用/启用 改成 关闭/开启")
+    p.add_argument("--keep-empty", action="store_true", help="保留「键:」后面没值的行（默认删掉）")
+    p.set_defaults(func=cmd_fix)
 
     p = sub.add_parser("normalize", help="修复导出失真：合并折行、把「无」改成「全部禁用」")
     p.add_argument("src")

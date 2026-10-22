@@ -6,7 +6,7 @@
 
 **仅支持中文。** 所有参考文档、函数名、示例均为中文，英文用户不适用。
 
-当前版本 **v2.77.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v2.81.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -157,6 +157,7 @@ python tools/ws.py doc --search 范围               # 按关键词搜
 python tools/ws.py stats 半藏                      # 查英雄数值
 python tools/ws.py settings --mode 死斗            # 生成该模式的设置块
 python tools/ws.py explain 应有一个关系运算子        # 报错文案反查
+python tools/ws.py fix 导出.txt                                # 修成可导入版本并复校
 python tools/ws.py publish 模式.ow --outdir out                # 源码版
 python tools/ws.py publish 模式.ow --outdir out --obf all      # 加混淆版
 python tools/ws.py baseline                       # 数据基线 vs 游戏版本
