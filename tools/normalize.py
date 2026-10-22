@@ -195,7 +195,7 @@ def main():
     ap.add_argument("-o", "--out", required=True)
     ap.add_argument("--report", action="store_true")
     a = ap.parse_args()
-    text = open(a.src, encoding="utf-8-sig", errors="replace").read()
+    text, _enc = core.read_text(a.src)
     new_text, merged, none_fixed = normalize_text(text)
     open(a.out, "w", encoding="utf-8", newline=chr(10)).write(new_text)
     print("输入 %d 行 -> 输出 %d 行（合并折行 %d 处，改「无」%d 处）"

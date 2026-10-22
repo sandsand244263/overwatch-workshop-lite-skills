@@ -14,6 +14,9 @@
 import argparse
 import os
 import sys
+import tempfile
+import json
+import re
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -428,11 +431,162 @@ def cmd_corpus(args):
         cmd.append("--update")
     return sp.call(cmd)
 
+
+
+def _mask_strings(line):
+    """脱敏：把长字符串内容换成 …，保留键名和结构。"""
+    def rep(m):
+        body = m.group(1)
+        return '"%s"' % ("…" if len(body) > 8 else body)
+    return re.sub(r'"([^"\\]*(?:\\.[^"\\]*)*)"', rep, line)
+
+
+def cmd_report(args):
+    """生成误报/漏报的最小复现片段，方便贴到 issue。"""
+    if not os.path.isfile(args.src):
+        print("[错误] 找不到 %s" % args.src)
+        return 1
+    text, enc = core.read_text(args.src)
+    problems = core.full_lint(args.src, DATA, strict=getattr(args, "strict", False))
+    if not problems:
+        print("没发现问题，不需要上报。")
+        return 0
+    errs = [p for p in problems if p[1] == "error"]
+    ln, level, msg = (errs or problems)[0][:3]
+
+    all_lines = text.replace("\r\n", "\n").split("\n")
+    total = len(all_lines)
+
+    # 优先取问题所在的规则/子程序块；不在块里就取问题行附近
+    head = None
+    for i in range(ln - 1, -1, -1):
+        if re.match(r"^\s*(规则\(|子程序)", all_lines[i]):
+            head = i
+            break
+    if head is not None:
+        depth, tail = 0, head
+        for i in range(head, total):
+            depth += all_lines[i].count("{") - all_lines[i].count("}")
+            if depth <= 0 and i > head:
+                tail = i
+                break
+        tail = min(tail, head + args.max_lines)
+        lo, hi = head, tail
+    else:
+        lo = max(0, ln - 1 - 12)
+        hi = min(total - 1, ln - 1 + 8)
+    snippet = "\n".join(_mask_strings(x) for x in all_lines[lo:hi + 1])
+
+    import platform
+    meta = {}
+    try:
+        meta = json.load(open(os.path.join(DATA, "meta.json"), encoding="utf-8"))
+    except Exception:
+        pass
+    ver = "?"
+    try:
+        ver = open(os.path.join(ROOT, "VERSION"), encoding="utf-8").read().strip() or "?"
+    except Exception:
+        pass
+    for cand in ("CHANGELOG.md", "SKILL.md", "README.md", os.path.join("..", "README.md")):
+        p = os.path.join(ROOT, cand)
+        if not os.path.isfile(p):
+            continue
+        try:
+            m = re.search(r"(v\d+\.\d+\.\d+)", open(p, encoding="utf-8").read()[:2000])
+            if m:
+                ver = m.group(1)
+                break
+        except Exception:
+            continue
+
+    out = []
+    out.append("## 环境")
+    out.append("- WorkshopLite %s，数据基线 %s" % (ver, meta.get("build", "未知")))
+    out.append("- %s / Python %s" % (platform.platform(), platform.python_version()))
+    out.append("- 文件编码 %s，%d 行，%d KB" % (enc, total, os.path.getsize(args.src) // 1024))
+    out.append("")
+    out.append("## 我认为有问题的地方")
+    out.append("第 %d 行（%s）：%s" % (ln, level, msg))
+    tip = core.suggest(msg)
+    if tip:
+        out.append("校验器给的改法：%s" % tip)
+    out.append("")
+    out.append("## 最小片段（字符串内容已脱敏；⚠ 是问题行）")
+    out.append("```ow")
+    for i in range(lo, hi + 1):
+        mark = "⚠ " if i == ln - 1 else "  "
+        out.append(mark + _mask_strings(all_lines[i]))
+    out.append("```")
+    out.append("")
+    out.append("## 我的判断")
+    out.append(args.note or "（导入时报什么错 / 为什么觉得这是误报）")
+    body = "\n".join(out)
+
+    path = args.out or (os.path.splitext(args.src)[0] + ".report.txt")
+    open(path, "w", encoding="utf-8", newline="\n").write(body)
+    print(body)
+    print("\n已保存：%s（可直接贴到 issue）" % path)
+    return 0
+
+
+def cmd_doctor(args):
+    """环境自检：出问题时先分清是「环境问题」还是「文件问题」。"""
+    import platform
+    ok, bad = [], []
+
+    def line(state, text):
+        print("%s %s" % ("✔" if state else "✗", text))
+        (ok if state else bad).append(text)
+
+    print("WorkshopLite 环境自检\n")
+    v = sys.version_info
+    line(v >= (3, 8), "Python %d.%d.%d（需要 3.8 以上）" % (v[0], v[1], v[2]))
+    line(sys.maxsize > 2**32, "64 位 Python（32 位也能用，但大文件慢）")
+
+    need = ["signatures.md", "settings.tsv", "maps.tsv", "heroes.tsv", "setting-keys.tsv",
+            "param-options.tsv", "setting-schemas.tsv", "event-params.tsv"]
+    missing = [f for f in need if not os.path.isfile(os.path.join(DATA, f))]
+    n_data = len([f for f in os.listdir(DATA) if f.endswith((".tsv", ".md", ".json"))]) if os.path.isdir(DATA) else 0
+    line(not missing, "数据表 %d 个%s" % (n_data, "" if not missing else "，缺：" + "、".join(missing)))
+
+    meta = {}
+    try:
+        meta = json.load(open(os.path.join(DATA, "meta.json"), encoding="utf-8"))
+    except Exception as e:
+        print("   （读 meta.json 失败：%s）" % e)
+    line(bool(meta.get("build")), "数据基线：%s（导出于 %s）" % (meta.get("build", "未知"), meta.get("exported", "未知")))
+
+    probe = os.path.join(tempfile.gettempdir(), "ws_doctor_probe.txt")
+    try:
+        open(probe, "w", encoding="utf-8").write("ok")
+        os.remove(probe)
+        line(True, "临时目录可写")
+    except OSError as e:
+        line(False, "临时目录不可写：%s" % e)
+
+    try:
+        import locale
+        enc = locale.getpreferredencoding(False)
+        line(True, "系统默认编码 %s（文件读取会自动识别 UTF-8 / GBK）" % enc)
+    except Exception:
+        pass
+
+    corpus = os.environ.get("WS_CORPUS", r"E:\工作内容\11_vibe-coding项目\workshop-lite-re\corpus\real")
+    n_corpus = len([f for f in os.listdir(corpus) if f.endswith((".ow", ".txt"))]) if os.path.isdir(corpus) else 0
+    if n_corpus:
+        line(True, "真实语料 %d 个（维护者用）" % n_corpus)
+
+    print("\n结论：%s" % ("环境正常，可以直接用" if not bad else "有 %d 项异常，先解决再校验文件" % len(bad)))
+    return 0 if not bad else 1
+
+
+
 def cmd_fix(args):
     """检查 + 自动修：修出能导入的版本，再复校一遍。"""
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import normalize as nz
-    text = open(args.src, encoding="utf-8-sig", errors="replace").read()
+    text, _enc = core.read_text(args.src)
     before = core.full_lint(args.src, DATA)
     b_err = sum(1 for p in before if p[1] == "error")
     b_warn = len(before) - b_err
@@ -467,7 +621,7 @@ def cmd_normalize(args):
     """把导出的 .ow 修成编辑器能接受的形式（去掉导出失真）。"""
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import normalize as nz
-    text = open(args.src, encoding="utf-8-sig", errors="replace").read()
+    text, _enc = core.read_text(args.src)
     new_text, merged, none_fixed, bool_fixed = nz.normalize_text(
         text, fix_bools=getattr(args, "fix_bools", False),
         drop_empty=getattr(args, "drop_empty", False))
@@ -588,6 +742,16 @@ def main():
     p = sub.add_parser("defaults", help="查参数默认值")
     p.add_argument("funcs", nargs="+")
     p.set_defaults(func=cmd_defaults)
+
+    p = sub.add_parser("report", help="生成误报/漏报的最小复现片段（脱敏）")
+    p.add_argument("src")
+    p.add_argument("-o", "--out")
+    p.add_argument("--note", help="我为什么觉得这是误报")
+    p.add_argument("--max-lines", type=int, default=40)
+    p.add_argument("--strict", action="store_true")
+    p.set_defaults(func=cmd_report)
+
+    sub.add_parser("doctor", help="环境自检").set_defaults(func=cmd_doctor)
 
     p = sub.add_parser("corpus", help="跑真实模式语料回归（语料在私有仓）")
     p.add_argument("dir", nargs="?")

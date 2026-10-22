@@ -1368,6 +1368,8 @@ def check_setting_belongs(text, problems, types=None):
         layer = stack[-1] if stack else None
         if layer not in all_schemas:
             continue
+        if layer == "综合":
+            continue          # 综合是通用层：实测 复生时间 写在 综合 是合法的
         if layer in info["schemas"]:
             continue
         where = "、".join(sorted(x for x in info["schemas"] if x))
@@ -2259,12 +2261,28 @@ def full_lint(path, data_dir, strict=False):
                 strict=strict)
 
 
+def read_text(path):
+    """读文本文件并自动识别编码。返回 (文本, 编码名)。
+
+    中文用户常把文件存成 ANSI(GBK)，按 UTF-8 读会崩或报一堆乱码错。
+    gb18030 是 GBK 的超集，优先用它。
+    """
+    with open(path, "rb") as f:
+        raw = f.read()
+    for enc in ("utf-8-sig", "utf-8", "gb18030", "utf-16"):
+        try:
+            return raw.decode(enc), enc
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    return raw.decode("utf-8", "replace"), "utf-8(有损坏字符)"
+
+
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False,
               extensions=None, extension_values=None, base_options=None):
     problems = []
     settings = settings or {}
-    with open(path, encoding="utf-8") as f:
-        raw = f.read()
+    raw, _enc = read_text(path)
+    lint.encoding = _enc
     text = raw.replace("\r\n", "\n")
     # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
     text, s_str = join_multiline_strings_mapped(text)

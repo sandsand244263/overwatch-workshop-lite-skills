@@ -11,6 +11,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VERSION_FILE = "VERSION"
 FILES = {
     "SKILL.md": (r"^version: .*$", "version: %s"),
     ".claude-plugin/marketplace.json": (r'"version": "[0-9.]+"', '"version": "%s"'),
@@ -45,6 +46,10 @@ def main():
     version = args[0]
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         sys.exit("版本号格式应为 X.Y.Z")
+    vp = os.path.join(ROOT, VERSION_FILE)
+    with open(vp, "w", encoding="utf-8", newline="\n") as f:
+        f.write(new + "\n")
+
     for rel, (pat, fmt) in FILES.items():
         p = os.path.join(ROOT, rel)
         if not os.path.isfile(p):
