@@ -264,7 +264,7 @@ class P:
                 args.append(("const", ""))
                 self.i += 1
                 continue
-            args.append(self.expr())
+            args.append(self.parse())      # 参数里也要认三元
             self.ws()
             if self.i < len(self.s) and self.s[self.i] in SEP:
                 self.i += 1
@@ -359,6 +359,9 @@ W = {
     "blk_Else": 3,
     "blk_While": 5,
     "blk_For": 5,
+    "tern": 5,           # 三元表达式本体（实测 G3=1101 反推）
+    "var_player": 2,
+    "var_index": 2,      # 每个下标多算 2（实测 H1=501 反推）     # 事件玩家 / 本地玩家 取值比 全局 贵 1（实测 G2=301）
 }
 
 # 少数值函数的本体成本不是 1（实测 自定义颜色 = 4，相当于"四分量向量"另计）
@@ -404,7 +407,9 @@ def cost(node, in_item=False):
             total += cost(a, False)
         return total
     if t == "var":
-        return W["var"] + sum(cost(a) for a in node[2])
+        owner = node[1].split(".")[0]
+        base = W["var_player"] if owner in ("事件玩家", "本地玩家") else W["var"]
+        return base + W["var_index"] * len(node[2]) + sum(cost(a) for a in node[2])
     if t == "const":
         return W["const_value"] if node[1] in CONST_VALUE else W["const_inline"]
     if t == "bin":
@@ -416,7 +421,7 @@ def cost(node, in_item=False):
         return cost(node[1], in_item)
     if t == "tern":
         # 条件 ? 值1 : 值2 —— 一个三元元素 + 三部分
-        return W["call"] + cost(node[1]) + cost(node[2]) + cost(node[3])
+        return W["tern"] + cost(node[1]) + cost(node[2]) + cost(node[3])
     return 0
 
 

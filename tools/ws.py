@@ -137,10 +137,17 @@ REAL_WORLD_FACTOR = 2.12
 def cmd_count(args):
     sigs, labels, settings = load()
     from element_count import estimate, describe
+    from element_count2 import estimate2
     for path in args.files:
-        est, detail = estimate(path, sigs, labels)
-        line = "%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail))
-        if est >= 1500:                      # 大文件：模型已知低估，给校准值
+        if getattr(args, "legacy", False):
+            est, detail = estimate(path, sigs, labels)
+        else:
+            est = estimate2(path)
+            detail = None
+        line = "%s：预计 %d 个元素" % (os.path.basename(path), est)
+        if detail is not None:
+            line += "（%s）" % describe(detail)
+        if est >= 1500:                      # 大文件：已知偏低约 3%，给校准值
             line += "\n   └ 按真实模式校准约 %d 个（系数 %.2f；32,768 上限请按此值判断）" % (int(est * REAL_WORLD_FACTOR), REAL_WORLD_FACTOR)
         print(line)
         print("  上限 32768。估算仅供预警，最终以游戏「显示诊断结果 → 总计元素数量」为准。")
@@ -352,6 +359,26 @@ def cmd_calib(a):
             if est != real:
                 bad += 1
                 print("  ✗ %-4s 实测 %d 估算 %d（差 %+d）" % (key, real, est, est - real))
+    # 新模型（element_count2）同批对照：小样本允许 ±6，大文件另见 docs/limits.md
+    try:
+        from element_count2 import estimate2
+        _ok = _n = 0; _max = 0
+        for manifest in ("measurements.csv", "measurements-k.csv"):
+            path = os.path.join(calib_dir, manifest)
+            if not os.path.isfile(path):
+                continue
+            for r in _csv.DictReader(open(path, encoding="utf-8-sig")):
+                key = (r["probe"] or "").strip()
+                f = files.get(key)
+                if not f:
+                    continue
+                _n += 1
+                d = estimate2(f) - int(r["元素数"])
+                _max = max(_max, abs(d))
+                _ok += (d == 0)
+        print("元素计数新模型（逆向版）：%d/%d 精确，最大偏差 %d" % (_ok, _n, _max))
+    except Exception as e:
+        print("新模型对照跳过：%s" % e)
     print("\n标定样本 %d 个，偏差 %d 个" % (total, bad))
     return 0 if bad == 0 else 1
 
@@ -416,6 +443,7 @@ def main():
     p.set_defaults(func=cmd_calib)
 
     p = sub.add_parser("count", help="元素数估算")
+    p.add_argument("--legacy", action="store_true", help="用旧的经验模型（小样本 37/37，大文件偏低一半）")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_count)
 
