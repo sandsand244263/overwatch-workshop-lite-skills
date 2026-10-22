@@ -1002,8 +1002,9 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
         key = m.group(1)
         if key in setting_keys or key in SETTING_KEY_WHITELIST:
             continue
+        level = "warning" if "大厅" in stack else "error"
         _unknown_name("设置键", key, offs[idx] + raw.find(key), problems, text,
-                      "；用 ws.py settings --mode <模式> 生成合法的键")
+                      "；用 ws.py settings --mode <模式> 生成合法的键", level=level)
 
 
 _HERO_CACHE = {"names": None}
@@ -1883,6 +1884,8 @@ def check_types(text, problems, labels=None):
                       if any(_param_type(x) == "变量" for x in ls)}
     # For 全局变量 / For 玩家变量：第一个参数必须是已声明的变量
     for m in re.finditer(r"For\s+(全局变量|玩家变量)\(\s*([A-Za-z_]\w*)", text):
+        if _is_default_var(m.group(2)):
+            continue          # A~Z 内置变量，不需要声明
         if m.group(2) not in declared:
             _add(problems, text, m.start(), "error",
                  "For 循环的控制变量 %s 没有在变量块里声明" % m.group(2))
@@ -2284,6 +2287,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     global_rule = False
     in_comment = False
 
+    cond_buf = []
     for ln, line in enumerate(lines, 1):
         code = strip_noise(line)
         stripped = code.strip()
@@ -2403,9 +2407,13 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             continue
 
         if block == "条件":
-            if not stripped.endswith(";") and opens <= 0:
-                problems.append((ln, "error", "条件行缺少分号"))
-            body = stripped.rstrip(";")
+            # 跨行条件：把语句拼完整再判（实测「相距距离(…) > 20」会被折成多行）
+            if not stripped.endswith(";"):
+                cond_buf.append(stripped)
+                continue
+            full = " ".join(cond_buf + [stripped]) if cond_buf else stripped
+            cond_buf = []
+            body = full.rstrip(";").strip()
             if body and not COMPARISON.search(body):
                 problems.append((ln, "error", "条件缺少比较运算（== != > < >= <=）"))
             continue
@@ -2462,7 +2470,6 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
-    check_duplicate_rule_names(text, problems)
     check_arg_count(masked, problems)
     check_types(masked, problems, labels)
     check_unassigned(masked, problems)
