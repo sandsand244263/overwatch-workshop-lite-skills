@@ -1286,54 +1286,6 @@ def check_game_end_actions(text, problems):
                                      "死斗只能「宣告玩家胜利(某玩家)」" if ffa else "请改用「宣告队伍胜利(队伍)」或「宣布比赛为平局()」")))
 
 
-def check_victory_in_loop(text, problems):
-    """循环里宣告胜利后没有退出（中断/返回），会每秒重复宣告。
-
-    实测：抱团得分模式到 30 分后，日志里每秒都记一条「触发胜利」。
-    """
-    stack = []
-    lines = text.split("\n")
-    for i, raw in enumerate(lines):
-        s = strip_noise(raw).strip()
-        if not s or s.startswith("//"):
-            continue
-        if s.startswith("While(") or s.startswith("For "):
-            stack.append("loop")
-        elif s == "End;" or s.startswith("End;"):
-            if stack:
-                stack.pop()
-        if not stack:
-            continue
-        if any(a in s for a in VICTORY_ACTIONS):
-            ahead = "\n".join(lines[i + 1:i + 6])
-            if ("中断" not in ahead) and ("返回" not in ahead):
-                problems.append((i + 1, "warning",
-                                 "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
-
-
-def check_team_values(text, problems):
-    """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
-
-    实测：`范围内玩家(眼睛位置(事件玩家), 8, 双方, 关闭)` 游戏报
-    「第 44 行的"8,"之后应有一个值」——因为「双方」不是合法队伍值。
-    """
-    if "双方" not in text:
-        return
-    for m in re.finditer(r"(范围内玩家|范围内全部玩家|最近的玩家|玩家在范围内)\(", text):
-        i = m.end(); depth = 1
-        while i < len(text) and depth > 0:
-            if text[i] == "(":
-                depth += 1
-            elif text[i] == ")":
-                depth -= 1
-            i += 1
-        body = text[m.end():i - 1]
-        if "双方" not in body:
-            continue
-        line = text.count("\n", 0, m.start()) + 1
-        problems.append((line, "error",
-                         "%s 的队伍参数不能写「双方」（那是事件筛选词）；"
-                         "改用 所有队伍 / 队伍1 / 队伍2" % m.group(1)))
 
 
 def check_rule_semantics(text, problems):
@@ -1651,9 +1603,8 @@ def check_unassigned(text, problems):
     for pat in (r"(?:设置|修改)全局变量\(\s*(\w+)", r"(?:设置|修改)玩家变量\([^,，]+[,，]\s*(\w+)"):
         written |= set(re.findall(pat, text))
     # 直接赋值写法：全局.X = … / 事件玩家.X += 1 / 所有玩家(所有队伍).X[2] = …
-    written |= set(re.findall(
-        r"(?:全局|事件玩家|本地玩家|攻击方|被攻击方|主机玩家|本市玩家"
-        r"|所有玩家\([^()]*\)|玩家\([^()]*\)|随机玩家\([^()]*\))\.(\w+)(?:\[[^\]]*\])*\s*[-+*/]?=(?!=)", text))
+    # 任何 `.变量 = …` 都算赋值——包括间接引用：全局.某玩家.变量 = …（实测真实模式因此误报过两条）
+    written |= set(re.findall(r"\.(\w+)(?:\[[^\]]*\])*\s*[-+*/]?=(?!=)", text))
     # For 循环的控制变量由循环本身赋值
     written |= set(re.findall(r"For\s+(?:全局变量|玩家变量)\(\s*(\w+)", text))
 

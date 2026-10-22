@@ -386,6 +386,28 @@ def cmd_scaffold(a):
     return 0
 
 
+
+def cmd_selftest(args):
+    """工具自身的体检：同名函数重复定义会让旧版本静默生效（已踩过一次）。"""
+    import ast, collections, glob, os
+    here = os.path.dirname(os.path.abspath(__file__))
+    bad = 0
+    for f in sorted(glob.glob(os.path.join(here, "*.py"))):
+        src = open(f, encoding="utf-8").read()
+        try:
+            tree = ast.parse(src)
+        except SyntaxError as e:
+            print("✗ %s 语法错误：%s" % (os.path.basename(f), e))
+            bad += 1
+            continue
+        names = [n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
+        dup = {k: v for k, v in collections.Counter(names).items() if v > 1}
+        if dup:
+            print("✗ %s 重复定义（后定义的会静默生效）：%s" % (os.path.basename(f), dup))
+            bad += 1
+    print("工具自检：%s" % ("通过" if bad == 0 else "%d 个文件有问题" % bad))
+    return 0 if bad == 0 else 1
+
 def cmd_calib(a):
     """元素估算标定回归：全部实测样本必须精确命中。"""
     import csv as _csv
@@ -496,6 +518,8 @@ def main():
     p.add_argument("funcs", nargs="+")
     p.set_defaults(func=cmd_defaults)
 
+    p = sub.add_parser("selftest", help="工具自身体检（重复定义等）")
+    p.set_defaults(func=cmd_selftest)
     p = sub.add_parser("calib", help="元素估算标定回归（全部实测样本）")
     p.set_defaults(func=cmd_calib)
 
