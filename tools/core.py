@@ -645,6 +645,39 @@ def check_lobby_ffa_slots(text, problems):
 
 
 
+def check_percent_operator(text, problems):
+    """规则里的 `%` 是**取余运算符**，不是百分号。
+
+    2026-10-23 实机：`设置受到伤害(事件玩家, 50%)` 报「第64行的"50%"之后应有一个值」——
+    游戏把 `50 %` 当成「50 取余 …」，缺右操作数。
+    语料实证：`总计消耗时间 * 60 % 360`（9 处）说明 `%` 确实存在且是取余。
+    百分比在工坊里就是普通数字：要 50% 就写 `50`。
+    """
+    stack, pending = [], None
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if s == "{":
+            stack.append(pending or (stack[-1] if stack else None))
+            pending = None
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            pending = None
+            continue
+        if s.endswith("{"):
+            pending = s[:-1].strip()
+            continue
+        if ("动作" in stack or "条件" in stack) and re.search(r"\d\s*%\s*(?:[)\]},;]|$)", s):
+            problems.append((ln, "error",
+                             "「%」在工坊里是取余运算符，后面必须跟数值；游戏报「…之后应有一个值」。"
+                             "要写百分比就用纯数字：50 就是 50%"))
+        if ":" not in s and "：" not in s and "(" not in s:
+            pending = s
+
+
 def check_hero_enable_layer(text, problems):
     """`启用英雄` 必须写在 `英雄 > 综合` 里，挂在 `英雄` 直属层导入会失败。
 
@@ -3140,6 +3173,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
     check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)

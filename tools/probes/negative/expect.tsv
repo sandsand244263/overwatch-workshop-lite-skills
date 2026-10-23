@@ -30,5 +30,6 @@ lobby-one-team-twelve.ow	只写了 玩家上限	只写 队伍1: 12，另一队�
 lobby-one-team-eight.ow	只写了 玩家上限	只写 队伍1: 8，8+5=13 超栏位
 lobby-ffa-in-team-mode.ow	必须写 0	团队模式却写了自由混战 10
 lobby-ffa-zero-in-deathmatch.ow	至少 1	死斗却写自由混战 0
+percent-in-number.ow	「%」在工坊里是取余运算符	设置受到伤害(…, 50%)，游戏报「"50%"之后应有一个值」
 local-value-into-global.ow	全局变量不能存局部值	裸赋值 全局.x = 生命值(本地玩家)，游戏报「局部值只能用于视觉效果或HUD动作」
 hero-block-wrong-layer.ow	「启用英雄」要写在 英雄 > 综合	启用英雄 挂在 英雄 直属层（游戏报「之后应有一个队伍设置」）

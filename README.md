@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.6.7**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.6.8**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
