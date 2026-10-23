@@ -919,16 +919,20 @@ def check_probe_invisible(path, text, problems):
     p = (path or "").replace("\\", "/")
     if "probes/lab/" not in p:
         return
-    if "设置不可见" not in text:
+    if "开始镜头" not in text:
         problems.append((0, "warning",
-                         "验收探针没加 设置不可见(事件玩家, 全部);：工位上测试会看到持枪角色。"
-                         "（`隐藏英雄HUD` 只藏 HUD，藏不掉角色）"))
+                         "验收探针没做工位隐蔽：加 隐藏英雄HUD / 隐藏游戏模式HUD / "
+                         "开始镜头(事件玩家, 矢量(0, 50, 0), 矢量(0, 200, 0), 100)，"
+                         "画面里就不会有角色（见 docs/acceptance-flow.md）"))
         return
-    i_hide = text.find("设置不可见")
+    i_hide = text.find("开始镜头")
     i_wait = text.find("等待直到(游戏正在进行中()")
+    i_while = text.find("While(")
+    if i_while != -1 and i_while < i_hide:
+        return          # 写在循环里＝每秒重设，防重生把镜头冲掉
     if i_wait != -1 and i_hide > i_wait:
         problems.append((0, "warning",
-                         "设置不可见 写在「等待直到(游戏正在进行中())」之后了：开赛前那段仍会看到角色，"
+                         "开始镜头 写在「等待直到(游戏正在进行中())」之后了：开赛前那段仍能看到角色，"
                          "要挪到规则最前面（等待之前）"))
 
 
