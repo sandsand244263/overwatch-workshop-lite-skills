@@ -25,6 +25,7 @@ DATA = os.path.join(ROOT, "data")
 sys.path.insert(0, TOOLS)
 
 import core  # noqa: E402
+import local_paths  # noqa: E402
 
 
 def load():
@@ -641,8 +642,8 @@ def cmd_doctor(args):
     except Exception:
         pass
 
-    corpus = os.environ.get("WS_CORPUS", r"E:\工作内容\11_vibe-coding项目\workshop-lite-re\corpus\real")
-    n_corpus = len([f for f in os.listdir(corpus) if f.endswith((".ow", ".txt"))]) if os.path.isdir(corpus) else 0
+    corpus = local_paths.corpus_dir()
+    n_corpus = len([f for f in os.listdir(corpus) if f.endswith((".ow", ".txt"))]) if corpus and os.path.isdir(corpus) else 0
     if n_corpus:
         line(True, "真实语料 %d 个（维护者用）" % n_corpus)
 
@@ -708,8 +709,10 @@ def cmd_totals(args):
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     from element_count2 import estimate2
     import csv as _csv
-    path = args.table or os.path.join(
-        r"E:\工作内容\11_vibe-coding项目\workshop-lite-re", "corpus", "real-totals.tsv")
+    path = args.table or local_paths.real_totals()
+    if not path:
+        print("没有实测表：%s" % local_paths.hint())
+        return 2
     base = os.path.dirname(path)
     if not os.path.isfile(path):
         print("没有实测表：%s" % path)

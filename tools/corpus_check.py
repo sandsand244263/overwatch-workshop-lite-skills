@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """真实模式语料回归：改校验器后跑一遍，确认没新增误报、没漏掉已知问题。
 
-语料放在私有仓（默认 workshop-lite-re/corpus/real），不在公开仓库里。
+语料目录不在本仓库（他人作品，不公开）：用参数、环境变量 WS_CORPUS 或技能根的 local_paths.json 指定。
 首次运行会生成 expected.json 作为基线；之后跑就对比。
 
 用法：
@@ -18,9 +18,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import core  # noqa: E402
+import local_paths  # noqa: E402
 
 DATA = os.path.join(SKILL, "data")
-DEFAULT = r"E:\工作内容\11_vibe-coding项目\workshop-lite-re\corpus\real"
 
 
 def summarize(path):
@@ -45,9 +45,13 @@ def _kind(msg):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("dir", nargs="?", default=os.environ.get("WS_CORPUS", DEFAULT))
+    ap.add_argument("dir", nargs="?", default=local_paths.corpus_dir())
     ap.add_argument("--update", action="store_true", help="重写基线")
     a = ap.parse_args()
+
+    if not a.dir:
+        print("没有语料目录：%s" % local_paths.hint())
+        return 2
 
     files = sorted(glob.glob(os.path.join(a.dir, "*.ow")) + glob.glob(os.path.join(a.dir, "*.txt")))
     if not files:

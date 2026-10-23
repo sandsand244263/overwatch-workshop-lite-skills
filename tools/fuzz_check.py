@@ -21,9 +21,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import core  # noqa: E402
+import local_paths  # noqa: E402
 
 DATA = os.path.join(SKILL, "data")
-CORPUS = r"E:\工作内容\11_vibe-coding项目\workshop-lite-re\corpus\real"
 
 # 每类突变：(名字, 说明, 函数(text) -> text 或 None)
 def _pick_line(lines, pred):
@@ -175,10 +175,14 @@ def main():
     ap.add_argument("-v", "--verbose", action="store_true")
     a = ap.parse_args()
 
-    files = [a.file] if a.file else sorted(glob.glob(os.path.join(CORPUS, "*.ow")))
-    if not files:
-        print("没有可测的文件")
-        return 2
+    if a.file:
+        files = [a.file]
+    else:
+        corpus = local_paths.corpus_dir()
+        files = sorted(glob.glob(os.path.join(corpus, "*.ow"))) if corpus else []
+        if not files:
+            print("没有可测的文件：%s" % (local_paths.hint() if not corpus else "语料目录里没有 .ow：%s" % corpus))
+            return 2
 
     total = {}
     for path in files:
