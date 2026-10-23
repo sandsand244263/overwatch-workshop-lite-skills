@@ -105,6 +105,8 @@ metadata:
 python tools/ws.py check 模式.ow                        # 校验，交付前必跑，必须 0 error
 python tools/ws.py count 模式.ow                        # 元素数估算
 python tools/ws.py defaults 创建HUD文本                  # 查参数默认值
+python tools/ws.py keyinfo 随机英雄复生                   # 查一个设置键：哪一页/什么类型/哪些模式/合法值/层限制
+python tools/ws.py hero 路霸                              # 列某英雄的设置页与可写键
 python tools/ws.py modes                                # 列出全部模式
 python tools/ws.py settings --mode 死斗 --lobby --hero 死神 --out 房间.ow   # 生成设置块
 python tools/ws.py publish 模式.ow --outdir out          # 源码版

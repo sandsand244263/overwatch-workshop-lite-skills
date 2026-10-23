@@ -937,6 +937,16 @@ def main():
     p.add_argument("--limit", type=int, default=40)
     p.set_defaults(func=cmd_stats)
 
+    p = sub.add_parser("keyinfo", help="查一个设置键的全貌（页/类型/schema/模式/合法值/层限制）")
+    p.add_argument("key")
+    p.add_argument("--limit", type=int, default=12, help="模式列表最多显示几个")
+    p.set_defaults(func=cmd_keyinfo)
+
+    p = sub.add_parser("hero", help="列某英雄的设置页与可写键")
+    p.add_argument("name")
+    p.add_argument("--limit", type=int, default=15)
+    p.set_defaults(func=cmd_hero)
+
     p = sub.add_parser("reveal", help="在文件管理器里选中某个文件（交付测试文件用）")
     p.add_argument("file")
     p.set_defaults(func=cmd_reveal)
@@ -1476,6 +1486,107 @@ def cmd_explain(args):
         print("[%s%s] %s" % (r["layer"], " " + r["group"] if r["group"] else "", r["text"]))
     if len(hits) > args.limit:
         print("…共 %d 条，用 --limit 调整" % len(hits))
+    return 0
+
+
+def _load_tsv(name):
+    """读 data/ 下的 tsv，返回字典列表；文件不存在返回空列表。"""
+    import csv as _csv
+    path = os.path.join(DATA, name)
+    if not os.path.isfile(path):
+        return []
+    with open(path, encoding="utf-8-sig") as f:
+        return list(_csv.DictReader(f, delimiter="\t"))
+
+
+def cmd_keyinfo(a):
+    """一个设置键的全貌：属于哪一页、什么类型、哪些 schema/模式、合法值、语料挂哪层。
+
+    把以前几张贴不上线的手工表（key-map / enum-values / mode-schemas / schema-keys）
+    汇到一个查询入口，回答「这个键该写在哪、能写什么」。
+    """
+    key = a.key.strip()
+    rows = []
+    km = [r for r in _load_tsv("key-map.tsv") if (r.get("键") or "").strip() == key]
+    st = [r for r in _load_tsv("settings.tsv") if (r.get("key") or "").strip() == key]
+    sk = [r for r in _load_tsv("schema-keys.tsv") if (r.get("key") or "").strip() == key]
+    ev = [r for r in _load_tsv("enum-values.tsv") if (r.get("键名") or "").strip() == key]
+    pl = [r for r in _load_tsv("key-parent-layers.tsv") if (r.get("key") or "").strip() == key]
+
+    if not (km or st or sk):
+        print("没有「%s」这个键。相似的有：" % key)
+        import difflib
+        pool = sorted({(r.get("键") or "") for r in _load_tsv("key-map.tsv")} |
+                      {(r.get("key") or "") for r in _load_tsv("settings.tsv")})
+        for c in difflib.get_close_matches(key, [p for p in pool if p], n=6):
+            print("  ", c)
+        return 1
+
+    print("=== %s ===" % key)
+    for r in km:
+        print("页        %s（%s）第 %s 个" % (r.get("页名"), r.get("页GUID"), r.get("页内序")))
+        print("类型      %s" % (r.get("类型") or "?"))
+        if r.get("键名串ID"):
+            print("串ID      %s" % r.get("键名串ID"))
+    for r in st:
+        print("数据表    %s / %s    显示词：%s" % (r.get("schema"), r.get("type"), r.get("values") or "（空）"))
+    if sk:
+        names = sorted({(r.get("schema_name") or "") + "(" + (r.get("schema_guid") or "") + ")" for r in sk})
+        print("所属schema " + "、".join(names))
+        sch_names = {(r.get("schema_name") or "").strip() for r in sk}
+        modes = []
+        for r in _load_tsv("mode-schemas.tsv"):
+            if sch_names & {(s or "").strip() for s in (r.get("schemas") or "").split("|")}:
+                m = (r.get("mode") or "").strip()
+                if m and m not in modes:
+                    modes.append(m)
+        if modes:
+            shown = modes[:a.limit]
+            print("出现在的模式（%d 个）%s%s"
+                  % (len(modes), "、".join(shown), " …" if len(modes) > len(shown) else ""))
+    if ev:
+        for r in ev:
+            print("合法值    %s" % (r.get("合法值原文") or "")[:70])
+            if r.get("依据"):
+                print("          依据 %s" % (r.get("依据") or "")[:70])
+    if pl:
+        for r in pl:
+            print("层限制    只能写在「%s」（%s）" % (r.get("allowed_parents"), r.get("source") or ""))
+    if not pl:
+        print("层限制    （没有实机结论；不确定就写在「模式 > 综合」或该模式块里，别嵌套过深）")
+    return 0
+
+
+def cmd_hero(a):
+    """列某英雄的设置页与键（data/hero-pages.tsv，1919 行，之前没人读）。"""
+    name = a.name.strip()
+    rows = [r for r in _load_tsv("hero-pages.tsv") if (r.get("owner") or "").strip() == name]
+    if not rows:
+        print("没有「%s」的英雄页数据。可用：" % name)
+        owners = sorted({(r.get("owner") or "").strip() for r in _load_tsv("hero-pages.tsv") if r.get("owner")})
+        print("  " + "、".join(owners[:30]) + (" …" if len(owners) > 30 else ""))
+        return 1
+    pages = {}
+    for r in rows:
+        pages.setdefault((r.get("page_no") or "", r.get("page") or ""), []).append(r)
+    print("=== %s：%d 个设置页 ===" % (name, len(pages)))
+    for (no, page), items in sorted(pages.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        seen, keys = set(), []
+        for r in items:
+            k = (r.get("key") or "").strip()
+            if not k or k in seen:
+                continue
+            seen.add(k)
+            keys.append(k)
+        tpl = [k for k in keys if "%1$s" in k or "%s" in k]
+        real = [k for k in keys if k not in tpl]
+        print("\n[%s] %s（%d 个可写键）" % (no, page, len(real)))
+        for k in real[:a.limit]:
+            print("   ", k)
+        if len(real) > a.limit:
+            print("    …还有 %d 个，用 --limit 调大" % (len(real) - a.limit))
+        if tpl:
+            print("    （另有 %d 个模板键，如 %s —— 每个技能各一份）" % (len(tpl), tpl[0]))
     return 0
 
 
