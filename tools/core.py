@@ -919,10 +919,17 @@ def check_probe_invisible(path, text, problems):
     p = (path or "").replace("\\", "/")
     if "probes/lab/" not in p:
         return
-    if "隐藏英雄HUD" not in text and "隐藏游戏模式HUD" not in text:
+    if "设置不可见" not in text:
         problems.append((0, "warning",
-                         "验收探针没有隐藏游戏自带 HUD：工位上屏幕会有血量/弹药/比分。"
-                         "规则最前面加 隐藏英雄HUD(所有玩家(所有队伍)); 隐藏游戏模式HUD(所有玩家(所有队伍));"))
+                         "验收探针没加 设置不可见(事件玩家, 全部);：工位上测试会看到持枪角色。"
+                         "（`隐藏英雄HUD` 只藏 HUD，藏不掉角色）"))
+        return
+    i_hide = text.find("设置不可见")
+    i_wait = text.find("等待直到(游戏正在进行中()")
+    if i_wait != -1 and i_hide > i_wait:
+        problems.append((0, "warning",
+                         "设置不可见 写在「等待直到(游戏正在进行中())」之后了：开赛前那段仍会看到角色，"
+                         "要挪到规则最前面（等待之前）"))
 
 
 def check_probe_output(path, text, problems):
