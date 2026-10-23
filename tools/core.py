@@ -910,6 +910,21 @@ def check_block_layers(text, problems):
             pending = s
 
 
+def check_probe_invisible(path, text, problems):
+    """lab 里的验收探针必须把自己隐身（用户 2026-10-23 要求）。
+
+    理由：测试在工位/公开场合跑，屏幕上出现持枪角色太像在打游戏；
+    `设置不可见(所有玩家(所有队伍), 全部)` 之后画面只剩地图，看着像在调设置。
+    """
+    p = (path or "").replace("\\", "/")
+    if "probes/lab/" not in p:
+        return
+    if "设置不可见" not in text:
+        problems.append((0, "warning",
+                         "验收探针没加「设置不可见」：工位上测试会显示角色。"
+                         "加一句 设置不可见(所有玩家(所有队伍), 全部);"))
+
+
 def check_probe_output(path, text, problems):
     """实验探针（`tools/probes/lab/`）的读数必须走 `记入查看器`。
 
@@ -3461,6 +3476,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_maps_not_in_editor(text, problems)
     check_block_layers(text, problems)
     check_probe_output(path, text, problems)
+    check_probe_invisible(path, text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_action_as_value(masked, kinds or {}, problems)
