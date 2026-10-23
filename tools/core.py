@@ -1996,30 +1996,6 @@ def check_setting_belongs(text, problems, types=None):
                          % (key, where, layer)))
 
 
-_BOOL_WORDS = {"map": None}
-
-
-def load_setting_bool_words(path=None):
-    """{布尔键: {语料里实证过的写法}} —— 来自 data/setting-bool-words.tsv。
-
-    为什么需要：游戏数据里布尔键的显示词是「启用/禁用」，但导入器对大多数键只认
-    「开启/关闭」，个别键（如 主要攻击模式）确实接受「禁用」。
-    哪些接受只能靠真实语料定：8 个真实模式里 禁用 用了 53 次且都能导入。
-    """
-    path = os.path.abspath(path or os.path.join(DATA_DIR, "setting-bool-words.tsv"))
-    if _BOOL_WORDS["map"] is not None:
-        return _BOOL_WORDS["map"]
-    out = {}
-    if os.path.isfile(path):
-        with open(path, encoding="utf-8-sig") as f:
-            for row in csv.DictReader(f, delimiter="\t"):
-                key = (row.get("key") or "").strip()
-                words = (row.get("words") or "").strip()
-                if key and words:
-                    out[key] = {w for w in words.split("|") if w}
-    _BOOL_WORDS["map"] = out
-    return out
-
 
 def check_setting_bools(text, problems, types=None):
     """布尔项在 .ow 里只能写 开启 / 关闭（或 是 / 否）；「禁用」是界面词，导入会失败。
@@ -2039,8 +2015,9 @@ def check_setting_bools(text, problems, types=None):
         if not info or "Bool" not in info["type"]:
             continue
         if val in ("禁用", "启用"):
-            if val in load_setting_bool_words().get(key, ()):
-                continue          # 真实语料里就是这么写的，且能导入
+            # 注意：语料里到处都是 禁用，那是**导出产物**（导出写显示词，导入只认 开启/关闭），
+            # 不能拿语料证明「禁用 合法」。详见 docs/settings-map.md 第二节、E-22。
+
             problems.append((i, "warning",
                              "「%s」是布尔项，这里写的是「%s」；多数情况要写 开启/关闭，"
                              "但个别模式接受 禁用（实测：目标点决胜机制/推进背包 写禁用被拒）"

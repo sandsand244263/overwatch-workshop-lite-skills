@@ -33,7 +33,6 @@ import core          # noqa: E402
 import local_paths   # noqa: E402
 
 OUT = os.path.join(SKILL, "data", "format-spec-corpus.tsv")
-BOOL_OUT = os.path.join(SKILL, "data", "setting-bool-words.tsv")
 
 BOOL_WORDS = {"开启", "关闭", "是", "否", "启用", "禁用", "真", "假"}
 
@@ -144,20 +143,9 @@ def main():
                  len(set((k, s) for k, s, _ in action_arg))))
         return 0
 
-    # 布尔键在真实文件里的实际写法（用来消除「写了禁用就报错」的误报）
-    bool_words = collections.defaultdict(collections.Counter)
-    for (key, shape, source), n in setting_value.items():
-        pass
-    for (key, val, source), n in bool_seen.items():
-        if source != "corpus":      # 只信真实语料：探针是我们自己写的，写错会把错词洗白
-            continue
-        bool_words[key][val] += n
-    with open(BOOL_OUT, "w", encoding="utf-8", newline="") as f:
-        f.write("key\twords\tevidence\n")
-        for key in sorted(bool_words):
-            words = "|".join(w for w, _ in bool_words[key].most_common())
-            f.write("%s\t%s\t语料实证（共 %d 次）\n" % (key, words, sum(bool_words[key].values())))
-    print("已写 %s（%d 个键）" % (os.path.basename(BOOL_OUT), len(bool_words)))
+    # 注意：不要用「语料里出现过 禁用」来推断「禁用 合法」。
+    # 语料是**导出产物**：导出把布尔项写成显示词（启用/禁用），导入只认 开启/关闭。
+    # 详见 docs/settings-map.md 第二节、EVIDENCE.md E-22。
 
     rows.sort(key=lambda r: (r[0], -r[3]))
 
