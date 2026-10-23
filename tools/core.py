@@ -675,6 +675,21 @@ def check_hero_rule_multiplier(text, problems):
                          "只想留一个就把另一个改回 100%%" % (hero, rule, hero * rule / 100)))
 
 
+def check_health_percent_param(text, problems):
+    """`设置最大生命值` 的参数是**百分比**（100 = 原值），不是绝对血量。
+
+    2026-10-23 实机踩过：写 `设置最大生命值(事件玩家, 300)` 以为给 300 血，
+    实际是 300%（3 倍）。想给 600 血的路霸一半血，要写 50。
+    """
+    for m in re.finditer(r"设置最大生命值\(([^,，]*)[,，]\s*(\d+(?:\.\d+)?)\s*\)", text):
+        val = float(m.group(2))
+        if val >= 250:
+            ln = text.count("\n", 0, m.start()) + 1
+            problems.append((ln, "warning",
+                             "设置最大生命值 的参数是百分比（100 = 原值），%g 表示 %g 倍；"
+                             "想给具体血量就换算成百分比（例如 600 血的英雄要 300 点 = 50）" % (val, val / 100)))
+
+
 def check_percent_operator(text, problems):
     """规则里的 `%` 是**取余运算符**，不是百分号。
 
@@ -3398,6 +3413,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_health_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
