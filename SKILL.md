@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.10.10
+version: 3.10.11
 author: 用户
 platforms: [windows]
 metadata:
@@ -122,6 +122,19 @@ python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量�
 5. **默认只交付源码版**。要防复制才出混淆版，并说明代价：占元素、影响可维护性、索引混淆拖性能、字符串混淆改变比较语义。
 6. **元素超预算**：`ws.py count` 预警 → 按 `docs/cost-patterns.md` 的顺序降级 → 报数时说明是估算。
 7. **改数据前先 `ws.py diff`**：无差异才动别的。
+
+## 版本更新：一条命令自更新
+
+```bash
+python tools/ws.py upgrade --check    # 只看本地 vX → 远端 vY
+python tools/ws.py upgrade            # 真的覆盖（旧 data/docs/tools 备份到 .backup-vX）
+python tools/ws.py upgrade --force    # 版本相同也强制重装
+```
+
+下载走 GitHub tarball；直连失败会自动改走本机 Clash（127.0.0.1:7897）。
+升级完务必 `python tools/ws.py selftest && python tools/ws.py check-all` 复核。
+
+**开工前先 `upgrade --check`**：技能迭代快，旧版会按已经作废的规则给你写代码。
 
 ## 生成纪律（写错就导不进去）
 
