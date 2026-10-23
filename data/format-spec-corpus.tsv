@@ -1,0 +1,1274 @@
+kind	subject	context	count	where
+action_arg	If	字面量	2485	corpus
+action_arg	等待	字面量	1737	corpus
+action_arg	调用子程序	字面量	873	corpus
+action_arg	小字体信息	字面量	431	corpus
+action_arg	播放效果	字面量	428	corpus
+action_arg	自定义字符串	字面量	351	corpus
+action_arg	等待直到	字面量	325	corpus
+action_arg	创建HUD文本	字面量	314	corpus
+action_arg	设置状态	字面量	267	corpus
+action_arg	If	含表达式	259	corpus
+action_arg	按下按键	字面量	237	corpus
+action_arg	修改全局变量	字面量	183	corpus
+action_arg	While	字面量	171	corpus
+action_arg	大字体信息	字面量	153	corpus
+action_arg	创建效果	字面量	121	corpus
+action_arg	修改玩家变量	字面量	120	corpus
+action_arg	停止按下按钮	字面量	119	corpus
+action_arg	伤害	含表达式	102	corpus
+action_arg	消除效果	字面量	95	corpus
+action_arg	开始按下按钮	字面量	95	corpus
+action_arg	设置技能冷却	字面量	92	corpus
+action_arg	根据条件跳过	字面量	85	corpus
+action_arg	等待	字面量	82	probes
+action_arg	传送	字面量	80	corpus
+action_arg	数组	字面量	79	corpus
+action_arg	禁用按钮	字面量	79	corpus
+action_arg	开始规则	字面量	76	corpus
+action_arg	治疗	含表达式	74	corpus
+action_arg	根据条件中止	字面量	72	corpus
+action_arg	创建地图文本	字面量	71	corpus
+action_arg	可用按钮	字面量	67	corpus
+action_arg	小字体信息	含表达式	66	corpus
+action_arg	伤害	字面量	64	corpus
+action_arg	施加推力	字面量	64	corpus
+action_arg	英雄图标字符串	字面量	64	corpus
+action_arg	停止朝向	字面量	62	corpus
+action_arg	所有玩家	字面量	60	corpus
+action_arg	清除状态	字面量	60	corpus
+action_arg	传送	含表达式	58	corpus
+action_arg	消除HUD文本	字面量	57	corpus
+action_arg	开始朝向	字面量	55	corpus
+action_arg	全局.talentsData[数组值的索引	字面量	53	corpus
+action_arg	消除地图文本	字面量	51	corpus
+action_arg	跳过	字面量	46	corpus
+action_arg	记入查看器	字面量	46	probes
+action_arg	设置终极技能充能	含表达式	45	corpus
+action_arg	开始朝向	含表达式	45	corpus
+action_arg	设置全局变量	字面量	45	probes
+action_arg	治疗	字面量	43	corpus
+action_arg	设置不可见	字面量	41	corpus
+action_arg	在索引处修改全局变量	字面量	39	corpus
+action_arg	播放效果	含表达式	39	corpus
+action_arg	为玩家添加生命池	含表达式	38	corpus
+action_arg	创建效果	含表达式	38	corpus
+action_arg	自定义颜色	字面量	38	corpus
+action_arg	设置移动速度	字面量	36	corpus
+action_arg	取消主要动作	字面量	36	corpus
+action_arg	等待	含表达式	35	corpus
+action_arg	设置终极技能充能	字面量	33	corpus
+action_arg	创建地图文本	含表达式	33	corpus
+action_arg	创建HUD文本	字面量	33	probes
+action_arg	设置技能冷却	含表达式	32	corpus
+action_arg	移除玩家的生命池	字面量	30	corpus
+action_arg	施加推力	含表达式	30	corpus
+action_arg	击杀	字面量	29	corpus
+action_arg	开始强制重生室	字面量	29	corpus
+action_arg	英雄	字面量	28	corpus
+action_arg	开始调整玩家大小	字面量	26	corpus
+action_arg	创建HUD文本	含表达式	26	corpus
+action_arg	设置玩家生命值	含表达式	24	corpus
+action_arg	颜色	字面量	24	corpus
+action_arg	开始强制玩家选择英雄	字面量	24	corpus
+action_arg	修改玩家变量	含表达式	24	corpus
+action_arg	设置玩家变量	字面量	24	probes
+action_arg	设置弹药	字面量	23	corpus
+action_arg	If	字面量	23	probes
+action_arg	移除机器人	字面量	22	corpus
+action_arg	为玩家添加生命池	字面量	22	corpus
+action_arg	修改全局变量	字面量	22	probes
+action_arg	设置比赛时间	字面量	21	corpus
+action_arg	数组	含表达式	21	corpus
+action_arg	设置引力	字面量	21	corpus
+action_arg	停止镜头	字面量	20	corpus
+action_arg	停止加速	字面量	20	corpus
+action_arg	While	字面量	20	probes
+action_arg	开始定向阈值	字面量	19	corpus
+action_arg	设置朝向	字面量	19	corpus
+action_arg	调用子程序	字面量	19	probes
+action_arg	设置玩家生命值	字面量	18	corpus
+action_arg	等待直到	含表达式	18	corpus
+action_arg	设置造成伤害	含表达式	17	corpus
+action_arg	开始镜头	含表达式	17	corpus
+action_arg	追踪玩家变量频率	字面量	17	corpus
+action_arg	创建弹道	含表达式	16	corpus
+action_arg	已过滤的数组	字面量	16	corpus
+action_arg	全局.GlobalKeyMapping[	含表达式	16	corpus
+action_arg	大字体信息	字面量	16	probes
+action_arg	停止伤害调整	字面量	15	corpus
+action_arg	停止追踪玩家变量	字面量	15	corpus
+action_arg	创建弹道	字面量	15	corpus
+action_arg	设置受到伤害	字面量	14	corpus
+action_arg	开始伤害调整	字面量	14	corpus
+action_arg	设置跳跃垂直速度	字面量	14	corpus
+action_arg	复活	字面量	13	corpus
+action_arg	创建光束效果	含表达式	13	corpus
+action_arg	交流	字面量	13	corpus
+action_arg	创建弹道效果	含表达式	13	corpus
+action_arg	设置移动速度	字面量	13	probes
+action_arg	开始为机器人强制设置名称	字面量	12	corpus
+action_arg	While	含表达式	12	corpus
+action_arg	设置技能充能	字面量	12	corpus
+action_arg	开始修改英雄语音	字面量	12	corpus
+action_arg	开始加速	字面量	12	corpus
+action_arg	设置主要攻击模式启用	字面量	12	corpus
+action_arg	设置玩家可选的英雄	字面量	11	corpus
+action_arg	设置朝向	含表达式	11	corpus
+action_arg	停止强制设置玩家位置	字面量	11	corpus
+action_arg	生成机器人	含表达式	10	corpus
+action_arg	开启与环境的移动碰撞	字面量	10	corpus
+action_arg	开始持续治疗	字面量	10	corpus
+action_arg	停止定向阈值	字面量	10	corpus
+action_arg	调整玩家队伍	含表达式	10	corpus
+action_arg	显示英雄HUD	字面量	10	corpus
+action_arg	隐藏英雄HUD	字面量	10	corpus
+action_arg	设置状态	含表达式	10	corpus
+action_arg	开始强制设置玩家位置	字面量	10	corpus
+action_arg	创建效果	含%	10	corpus
+action_arg	矢量	含表达式	10	corpus
+action_arg	持续追踪全局变量	字面量	10	corpus
+action_arg	复生	字面量	9	corpus
+action_arg	停止强制玩家选择英雄	字面量	9	corpus
+action_arg	设置最大生命值	字面量	9	corpus
+action_arg	设置受到的击退	字面量	9	corpus
+action_arg	所用英雄	字面量	9	corpus
+action_arg	追踪全局变量频率	字面量	9	corpus
+action_arg	创建图标	字面量	9	corpus
+action_arg	设置辅助攻击模式启用	字面量	9	corpus
+action_arg	播放效果	字面量	9	probes
+action_arg	隐藏游戏模式HUD	字面量	8	corpus
+action_arg	技能图标字符串	字面量	8	corpus
+action_arg	设置受到治疗	字面量	8	corpus
+action_arg	根据条件循环	字面量	8	corpus
+action_arg	设置启用终极技能	字面量	8	corpus
+action_arg	设置地形消灭者玩家	字面量	8	corpus
+action_arg	If	含%	7	corpus
+action_arg	设置弹道速度	字面量	7	corpus
+action_arg	修改全局变量	含表达式	7	corpus
+action_arg	输入绑定字符串	字面量	7	corpus
+action_arg	隐藏姓名板	字面量	7	corpus
+action_arg	设置造成伤害	字面量	7	corpus
+action_arg	创建光束效果	字面量	7	corpus
+action_arg	设置技能资源	字面量	6	corpus
+action_arg	设置弹道引力	字面量	6	corpus
+action_arg	开始限制阈值	字面量	6	corpus
+action_arg	停止限制阈值	字面量	6	corpus
+action_arg	创建图标	含表达式	6	corpus
+action_arg	解除绑定	字面量	6	corpus
+action_arg	开始持续治疗	含表达式	6	corpus
+action_arg	设置技能资源	含表达式	6	corpus
+action_arg	根据条件跳过	含表达式	6	corpus
+action_arg	跳过	含表达式	6	corpus
+action_arg	追踪玩家变量频率	含表达式	6	corpus
+action_arg	设置瞄准速度	字面量	6	corpus
+action_arg	创建追踪弹道	字面量	6	corpus
+action_arg	创建弹道效果	字面量	6	corpus
+action_arg	创建追踪弹道	含表达式	6	corpus
+action_arg	开始治疗调整	字面量	6	corpus
+action_arg	事件玩家.PlayerUnlockedTitleArray[数量	字面量	6	corpus
+action_arg	事件玩家.PlayerTitleColorArray[数量	字面量	6	corpus
+action_arg	设置移动速度	含表达式	5	corpus
+action_arg	根据条件中止	含表达式	5	corpus
+action_arg	关闭游戏预设复生模式	字面量	5	corpus
+action_arg	全局.cm_stage[全局.cm_Buttons[单次赋值	字面量	5	corpus
+action_arg	与此方向的垂直角度	含表达式	5	corpus
+action_arg	||	字面量	5	corpus
+action_arg	设置慢动作	字面量	5	corpus
+action_arg	消除图标	字面量	5	corpus
+action_arg	消除进度条地图文本	字面量	5	corpus
+action_arg	创建进度条地图文本	含表达式	5	corpus
+action_arg	绑定玩家	含表达式	5	corpus
+action_arg	隐藏信息	字面量	5	corpus
+action_arg	停止为机器人强制设置名称	字面量	5	corpus
+action_arg	从数组中移除	含表达式	5	corpus
+action_arg	开始定向阈值	含表达式	5	corpus
+action_arg	按钮被按下	字面量	5	corpus
+action_arg	按钮	字面量	4	corpus
+action_arg	设置最大弹药	字面量	4	corpus
+action_arg	本地玩家.cm_ButtonsPlayer[单次赋值	含表达式	4	corpus
+action_arg	生成机器人	字面量	4	corpus
+action_arg	设置武器	字面量	4	corpus
+action_arg	开始强制设置玩家位置	含表达式	4	corpus
+action_arg	开始镜头	字面量	4	corpus
+action_arg	宣告队伍胜利	字面量	4	corpus
+action_arg	已过滤的数组	含表达式	4	corpus
+action_arg	取消与环境的移动碰撞	字面量	4	corpus
+action_arg	停止追踪全局变量	字面量	4	corpus
+action_arg	开始加速	含表达式	4	corpus
+action_arg	开始伤害调整	含表达式	4	corpus
+action_arg	设置弹药	含表达式	4	corpus
+action_arg	开启与玩家的移动碰撞	字面量	4	corpus
+action_arg	开始持续伤害	含表达式	4	corpus
+action_arg	隐藏消灭提示	字面量	4	corpus
+action_arg	数量	字面量	4	corpus
+action_arg	正在交流	字面量	4	corpus
+action_arg	施加推力	字面量	4	probes
+action_arg	修改玩家变量	字面量	4	probes
+action_arg	设置状态	字面量	4	probes
+action_arg	等待直到	字面量	4	probes
+action_arg	设置最大生命值	含表达式	3	corpus
+action_arg	首个	字面量	3	corpus
+action_arg	隐藏游戏模式地图UI	字面量	3	corpus
+action_arg	追踪全局变量频率	含表达式	3	corpus
+action_arg	自定义字符串	含表达式	3	corpus
+action_arg	所有玩家	含表达式	3	corpus
+action_arg	数组随机取值	字面量	3	corpus
+action_arg	停止修改英雄语音	字面量	3	corpus
+action_arg	设置最大复生时间	字面量	3	corpus
+action_arg	开始强制设置玩家轮廓	字面量	3	corpus
+action_arg	创建进度条地图文本	字面量	3	corpus
+action_arg	开始调整障碍大小	字面量	3	corpus
+action_arg	宣告玩家胜利	字面量	3	corpus
+action_arg	全局.MoneySplit[栏位	含表达式	3	corpus
+action_arg	开始持续伤害	字面量	3	corpus
+action_arg	取消与玩家的移动碰撞	字面量	3	corpus
+action_arg	设置比赛时间	含表达式	3	corpus
+action_arg	伤害	字面量	3	probes
+action_arg	设置受到伤害	含表达式	2	corpus
+action_arg	消除HUD文本	含表达式	2	corpus
+action_arg	大字体信息	含表达式	2	corpus
+action_arg	大字体信息	含%	2	corpus
+action_arg	移除玩家的所有生命值	字面量	2	corpus
+action_arg	创建HUD文本	含%	2	corpus
+action_arg	本地玩家.cm_ButtonsPlayer[单次赋值	字面量	2	corpus
+action_arg	单次赋值	含表达式	2	corpus
+action_arg	所选位置	含表达式	2	corpus
+action_arg	设置启用跳跃	字面量	2	corpus
+action_arg	图标字符串	字面量	2	corpus
+action_arg	相距距离	字面量	2	corpus
+action_arg	禁用语音聊天	字面量	2	corpus
+action_arg	射线命中位置	含表达式	2	corpus
+action_arg	数量	含表达式	2	corpus
+action_arg	逐帧更新	含表达式	2	corpus
+action_arg	所有存活玩家	字面量	2	corpus
+action_arg	开始修改英雄语音	含表达式	2	corpus
+action_arg	绑定玩家	字面量	2	corpus
+action_arg	设置启用蹲下	字面量	2	corpus
+action_arg	停止所有持续治疗	字面量	2	corpus
+action_arg	输入绑定字符串	含表达式	2	corpus
+action_arg	显示计分板	字面量	2	corpus
+action_arg	移除玩家	字面量	2	corpus
+action_arg	隐藏计分板	字面量	2	corpus
+action_arg	开始治疗调整	含表达式	2	corpus
+action_arg	停止治疗调整	字面量	2	corpus
+action_arg	持续追踪玩家变量	字面量	2	corpus
+action_arg	面朝方向	含表达式	2	corpus
+action_arg	创建地图文本	含%	2	corpus
+action_arg	添加至数组	字面量	2	corpus
+action_arg	持续追踪全局变量	含表达式	2	corpus
+action_arg	距离准星最近的玩家	含表达式	2	corpus
+action_arg	映射的数组	字面量	2	corpus
+action_arg	在索引处设置玩家变量	字面量	2	corpus
+action_arg	射线命中位置	字面量	2	corpus
+action_arg	设置技能充能	含表达式	2	corpus
+action_arg	创建HUD文本	含表达式	2	probes
+action_arg	记入查看器	含表达式	2	probes
+action_arg	宣布比赛为平局	字面量	2	probes
+action_arg	在索引处修改全局变量	含表达式	1	corpus
+action_arg	开始按下按钮	含表达式	1	corpus
+action_arg	停止按下按钮	含表达式	1	corpus
+action_arg	设置造成治疗	含表达式	1	corpus
+action_arg	设置受到治疗	含表达式	1	corpus
+action_arg	设置弹道速度	含表达式	1	corpus
+action_arg	开始调整玩家大小	含表达式	1	corpus
+action_arg	取整	含%	1	corpus
+action_arg	玩家英雄数据	含表达式	1	corpus
+action_arg	单次赋值	字面量	1	corpus
+action_arg	全局.cm_stage[全局.cm_Buttons[单次赋值	含表达式	1	corpus
+action_arg	数组包含	字面量	1	corpus
+action_arg	事件玩家.TIME[数组值的索引	含表达式	1	corpus
+action_arg	距离准星最近的玩家	字面量	1	corpus
+action_arg	从数组中移除	字面量	1	corpus
+action_arg	归一化	含表达式	1	corpus
+action_arg	方向	含表达式	1	corpus
+action_arg	全局.yanchi[数组值的索引	字面量	1	corpus
+action_arg	眼睛位置	字面量	1	corpus
+action_arg	全局.IlIIIIlIIIlI[数组值的索引	字面量	1	corpus
+action_arg	创建进度条HUD文本	字面量	1	corpus
+action_arg	图标字符串	含表达式	1	corpus
+action_arg	:	含表达式	1	corpus
+action_arg	全局.IlIIIlIlllll[单次赋值	含表达式	1	corpus
+action_arg	随机实数	含表达式	1	corpus
+action_arg	全局.IlIlllIIIlII[随机整数	字面量	1	corpus
+action_arg	设置队伍分数	字面量	1	corpus
+action_arg	*	含表达式	1	corpus
+action_arg	全局.lIIIIIIllIII[单次赋值	字面量	1	corpus
+action_arg	"",	含表达式	1	corpus
+action_arg	旗帜),	含表达式	1	corpus
+action_arg	按钮	含表达式	1	corpus
+action_arg	地图矢量	含表达式	1	corpus
+action_arg	:	字面量	1	corpus
+action_arg	全局.Teleportregion3[数组值的索引	字面量	1	corpus
+action_arg	全局.Tokenspawn2[单次赋值	字面量	1	corpus
+action_arg	全局.Tokenspawn2[单次赋值	含表达式	1	corpus
+action_arg	首个	含%	1	corpus
+action_arg	停止调整玩家大小	字面量	1	corpus
+action_arg	宣告玩家胜利	含表达式	1	corpus
+action_arg	垂直朝向角度	含表达式	1	corpus
+action_arg	事件玩家.Guide[事件玩家.Guide2[单次赋值	含表达式	1	corpus
+action_arg	设置跳跃垂直速度	含表达式	1	corpus
+action_arg	设置慢动作	含表达式	1	corpus
+action_arg	设置最大复生时间	含表达式	1	corpus
+action_arg	矢量间夹角	字面量	1	corpus
+action_arg	标准化生命值	含表达式	1	corpus
+action_arg	重置玩家英雄可选状态	字面量	1	corpus
+action_arg	矢量积	含表达式	1	corpus
+action_arg	事件玩家.talentsMasterArray[数组值的索引	字面量	1	corpus
+action_arg	眼睛位置	含表达式	1	corpus
+action_arg	停止调整障碍大小	字面量	1	corpus
+action_arg	设置启用装填	字面量	1	corpus
+action_arg	较小	含表达式	1	corpus
+action_arg	范围内玩家	含表达式	1	corpus
+action_arg	停止所有持续伤害	字面量	1	corpus
+action_arg	创建弹道效果	含%	1	corpus
+action_arg	根据条件跳过	含%	1	corpus
+action_arg	栏位	字面量	1	corpus
+action_arg	显示信息	字面量	1	corpus
+action_arg	显示姓名板	字面量	1	corpus
+action_arg	显示消灭提示	字面量	1	corpus
+action_arg	在索引处修改玩家变量	字面量	1	corpus
+action_arg	较小	字面量	1	corpus
+action_arg	被攻击方.HookedCountArray[栏位	含表达式	1	corpus
+action_arg	被攻击方.HookedCountArray[栏位	字面量	1	corpus
+action_arg	修改玩家分数	含表达式	1	corpus
+action_arg	对所有玩家禁用死亡回放	字面量	1	corpus
+action_arg	全局.BotSpawnCoords[数量	含表达式	1	corpus
+action_arg	修改玩家分数	字面量	1	corpus
+action_arg	攻击方.PlayerUnlockedTitleArray[数量	字面量	1	corpus
+action_arg	攻击方.PlayerTitleColorArray[数量	字面量	1	corpus
+action_arg	所选位置	含%	1	corpus
+action_arg	设置造成治疗	字面量	1	corpus
+action_arg	击杀	字面量	1	probes
+action_arg	创建效果	字面量	1	probes
+action_arg	取消与环境的移动碰撞	字面量	1	probes
+action_arg	开启与环境的移动碰撞	字面量	1	probes
+action_arg	传送	含表达式	1	probes
+action_arg	创建效果	含表达式	1	probes
+action_arg	Y方向分量	含表达式	1	probes
+action_arg	设置受到伤害	字面量	1	probes
+action_arg	设置移动速度	含表达式	1	probes
+action_arg	设置受到伤害	含%	1	probes
+action_arg	比赛结束	字面量	1	probes
+action_arg	颜色	字面量	1	probes
+action_arg	自定义字符串	含表达式	1	probes
+action_arg	所有玩家	字面量	1	probes
+action_arg	宣告玩家胜利	字面量	1	probes
+block_parent	设置	顶层	103	probes
+block_parent	模式	设置	98	probes
+block_parent	死斗	模式	89	probes
+block_parent	变量	顶层	80	probes
+block_parent	综合	模式	66	probes
+block_parent	大厅	设置	55	probes
+block_parent	主程序	设置	51	probes
+block_parent	子程序	顶层	13	probes
+block_parent	设置	顶层	8	corpus
+block_parent	主程序	设置	8	corpus
+block_parent	大厅	设置	8	corpus
+block_parent	模式	设置	8	corpus
+block_parent	英雄	设置	8	corpus
+block_parent	变量	顶层	8	corpus
+block_parent	英雄	设置	8	probes
+block_parent	综合	英雄	8	probes
+block_parent	子程序	顶层	7	corpus
+block_parent	综合	模式	6	corpus
+block_parent	路霸	综合	6	probes
+block_parent	队伍1	英雄	5	corpus
+block_parent	队伍2	英雄	5	corpus
+block_parent	扩展	设置	5	corpus
+block_parent	综合	英雄	5	corpus
+block_parent	团队死斗	模式	4	corpus
+block_parent	托比昂	队伍2	4	corpus
+block_parent	地图工坊	设置	4	corpus
+block_parent	天使	队伍2	3	corpus
+block_parent	D.Mon	队伍1	3	corpus
+block_parent	D.Va	队伍1	3	corpus
+block_parent	卢西奥	队伍1	3	corpus
+block_parent	安娜	队伍1	3	corpus
+block_parent	末日铁拳	队伍1	3	corpus
+block_parent	死神	队伍1	3	corpus
+block_parent	毛加	队伍1	3	corpus
+block_parent	源氏	队伍1	3	corpus
+block_parent	西格玛	队伍1	3	corpus
+block_parent	路霸	队伍1	3	corpus
+block_parent	骇灾	队伍1	3	corpus
+block_parent	堡垒	队伍2	3	corpus
+block_parent	布丽吉塔	队伍2	3	corpus
+block_parent	拉玛刹	队伍2	3	corpus
+block_parent	毛加	队伍2	3	corpus
+block_parent	法老之鹰	队伍2	3	corpus
+block_parent	温斯顿	队伍2	3	corpus
+block_parent	源氏	队伍2	3	corpus
+block_parent	禅雅塔	队伍2	3	corpus
+block_parent	秩序之光	队伍2	3	corpus
+block_parent	莱因哈特	队伍2	3	corpus
+block_parent	西格玛	队伍2	3	corpus
+block_parent	飞天猫	队伍2	3	corpus
+block_parent	黑影	队伍2	3	corpus
+block_parent	攻击护送	模式	3	corpus
+block_parent	运载目标	模式	3	corpus
+block_parent	路霸	综合	3	corpus
+block_parent	启用英雄	综合	3	probes
+block_parent	禁用 勇夺锦旗	模式	2	corpus
+block_parent	禁用 攻防作战	模式	2	corpus
+block_parent	禁用 突击模式	模式	2	corpus
+block_parent	半藏	队伍1	2	corpus
+block_parent	卡西迪	队伍1	2	corpus
+block_parent	回声	队伍1	2	corpus
+block_parent	堡垒	队伍1	2	corpus
+block_parent	奥丽莎	队伍1	2	corpus
+block_parent	巴蒂斯特	队伍1	2	corpus
+block_parent	托比昂	队伍1	2	corpus
+block_parent	拉玛刹	队伍1	2	corpus
+block_parent	探奇	队伍1	2	corpus
+block_parent	无漾	队伍1	2	corpus
+block_parent	查莉娅	队伍1	2	corpus
+block_parent	法老之鹰	队伍1	2	corpus
+block_parent	渣客女王	队伍1	2	corpus
+block_parent	温斯顿	队伍1	2	corpus
+block_parent	狂鼠	队伍1	2	corpus
+block_parent	瑞稀	队伍1	2	corpus
+block_parent	生命之梭	队伍1	2	corpus
+block_parent	破坏球	队伍1	2	corpus
+block_parent	禅雅塔	队伍1	2	corpus
+block_parent	艾什	队伍1	2	corpus
+block_parent	莫伊拉	队伍1	2	corpus
+block_parent	莱因哈特	队伍1	2	corpus
+block_parent	西拉	队伍1	2	corpus
+block_parent	金驭	队伍1	2	corpus
+block_parent	雾子	队伍1	2	corpus
+block_parent	飞天猫	队伍1	2	corpus
+block_parent	黑影	队伍1	2	corpus
+block_parent	禁用英雄	队伍1	2	corpus
+block_parent	D.Mon	队伍2	2	corpus
+block_parent	D.Va	队伍2	2	corpus
+block_parent	半藏	队伍2	2	corpus
+block_parent	卡西迪	队伍2	2	corpus
+block_parent	卢西奥	队伍2	2	corpus
+block_parent	回声	队伍2	2	corpus
+block_parent	队伍2	队伍2	2	corpus
+block_parent	奥丽莎	队伍2	2	corpus
+block_parent	安娜	队伍2	2	corpus
+block_parent	巴蒂斯特	队伍2	2	corpus
+block_parent	探奇	队伍2	2	corpus
+block_parent	无漾	队伍2	2	corpus
+block_parent	末日铁拳	队伍2	2	corpus
+block_parent	朱诺	队伍2	2	corpus
+block_parent	查莉娅	队伍2	2	corpus
+block_parent	死神	队伍2	2	corpus
+block_parent	渣客女王	队伍2	2	corpus
+block_parent	狂鼠	队伍2	2	corpus
+block_parent	猎空	队伍2	2	corpus
+block_parent	瑞稀	队伍2	2	corpus
+block_parent	生命之梭	队伍2	2	corpus
+block_parent	破坏球	队伍2	2	corpus
+block_parent	美	队伍2	2	corpus
+block_parent	艾什	队伍2	2	corpus
+block_parent	莫伊拉	队伍2	2	corpus
+block_parent	西拉	队伍2	2	corpus
+block_parent	路霸	队伍2	2	corpus
+block_parent	金驭	队伍2	2	corpus
+block_parent	雾子	队伍2	2	corpus
+block_parent	骇灾	队伍2	2	corpus
+block_parent	黑百合	队伍2	2	corpus
+block_parent	禁用英雄	综合	2	corpus
+block_parent	占领要点	模式	2	corpus
+block_parent	攻防阵线	模式	2	corpus
+block_parent	机动推进	模式	2	corpus
+block_parent	斩仇	队伍1	2	corpus
+block_parent	伊拉锐	队伍2	2	corpus
+block_parent	死斗	模式	2	corpus
+block_parent	D.Mon	综合	2	corpus
+block_parent	奥丽莎	综合	2	corpus
+block_parent	安娜	综合	2	corpus
+block_parent	安燃	综合	2	corpus
+block_parent	弗蕾娅	综合	2	corpus
+block_parent	末日铁拳	综合	2	corpus
+block_parent	查莉娅	综合	2	corpus
+block_parent	死神	综合	2	corpus
+block_parent	毛加	综合	2	corpus
+block_parent	渣客女王	综合	2	corpus
+block_parent	温斯顿	综合	2	corpus
+block_parent	狂鼠	综合	2	corpus
+block_parent	猎空	综合	2	corpus
+block_parent	破坏球	综合	2	corpus
+block_parent	莫伊拉	综合	2	corpus
+block_parent	莱因哈特	综合	2	corpus
+block_parent	西拉	综合	2	corpus
+block_parent	黑影	综合	2	corpus
+block_parent	占领要点 6v6	模式	2	probes
+block_parent	占领要点	模式	2	probes
+block_parent	决斗先锋	模式	1	corpus
+block_parent	禁用 占领要点	模式	1	corpus
+block_parent	禁用 攻击护送	模式	1	corpus
+block_parent	禁用 运载目标	模式	1	corpus
+block_parent	队伍1	队伍1	1	corpus
+block_parent	天使	队伍1	1	corpus
+block_parent	布丽吉塔	队伍1	1	corpus
+block_parent	朱诺	队伍1	1	corpus
+block_parent	猎空	队伍1	1	corpus
+block_parent	秩序之光	队伍1	1	corpus
+block_parent	美	队伍1	1	corpus
+block_parent	黑百合	队伍1	1	corpus
+block_parent	禁用英雄	队伍2	1	corpus
+block_parent	攻防作战	模式	1	corpus
+block_parent	角斗领域 训练靶场	模式	1	corpus
+block_parent	闪点作战	模式	1	corpus
+block_parent	启用英雄	队伍1	1	corpus
+block_parent	埃姆雷	队伍2	1	corpus
+block_parent	安燃	队伍2	1	corpus
+block_parent	弗蕾娅	队伍2	1	corpus
+block_parent	斩仇	队伍2	1	corpus
+block_parent	死怨	队伍2	1	corpus
+block_parent	索杰恩	队伍2	1	corpus
+block_parent	血律	队伍2	1	corpus
+block_parent	D.Va	综合	1	corpus
+block_parent	伊拉锐	综合	1	corpus
+block_parent	回声	综合	1	corpus
+block_parent	巴蒂斯特	综合	1	corpus
+block_parent	托比昂	综合	1	corpus
+block_parent	探奇	综合	1	corpus
+block_parent	死怨	综合	1	corpus
+block_parent	瑞稀	综合	1	corpus
+block_parent	西格玛	综合	1	corpus
+block_parent	金驭	综合	1	corpus
+block_parent	骇灾	综合	1	corpus
+block_parent	埃姆雷	队伍1	1	corpus
+block_parent	安燃	队伍1	1	corpus
+block_parent	弗蕾娅	队伍1	1	corpus
+block_parent	死怨	队伍1	1	corpus
+block_parent	索杰恩	队伍1	1	corpus
+block_parent	启用英雄	综合	1	corpus
+block_parent	禁用 占领要点 6v6	模式	1	corpus
+block_parent	禁用 团队死斗	模式	1	corpus
+block_parent	禁用 攻击护送 6v6	模式	1	corpus
+block_parent	禁用 攻防阵线 6v6	模式	1	corpus
+block_parent	禁用 机动推进 6v6	模式	1	corpus
+block_parent	禁用 死斗	模式	1	corpus
+block_parent	禁用 角斗领域 训练靶场	模式	1	corpus
+block_parent	禁用 训练靶场	模式	1	corpus
+block_parent	禁用 赏金猎手	模式	1	corpus
+block_parent	禁用 运载目标 6v6	模式	1	corpus
+block_parent	禁用 闪点作战	模式	1	corpus
+block_parent	禁用 闪点作战 6v6	模式	1	corpus
+block_parent	卢西奥	综合	1	corpus
+block_parent	天使	综合	1	corpus
+block_parent	布丽吉塔	综合	1	corpus
+block_parent	拉玛刹	综合	1	corpus
+block_parent	斩仇	综合	1	corpus
+block_parent	朱诺	综合	1	corpus
+block_parent	法老之鹰	综合	1	corpus
+block_parent	源氏	综合	1	corpus
+block_parent	生命之梭	综合	1	corpus
+block_parent	美	综合	1	corpus
+block_parent	飞天猫	综合	1	corpus
+block_parent	启用英雄	英雄	1	probes
+block_parent	综合	设置	1	probes
+block_parent	禁用 勇夺锦旗	模式	1	probes
+block_parent	禁用 占领要点	模式	1	probes
+block_parent	禁用 占领要点 6v6	模式	1	probes
+block_parent	禁用 团队死斗	模式	1	probes
+block_parent	攻击护送	模式	1	probes
+block_parent	禁用 攻击护送 6v6	模式	1	probes
+block_parent	攻防作战	模式	1	probes
+block_parent	禁用 攻防阵线 6v6	模式	1	probes
+block_parent	禁用 攻防阵线	模式	1	probes
+block_parent	禁用 机动推进 6v6	模式	1	probes
+block_parent	禁用 机动推进	模式	1	probes
+block_parent	禁用 死斗	模式	1	probes
+block_parent	禁用 突击模式	模式	1	probes
+block_parent	禁用 角斗领域 训练靶场	模式	1	probes
+block_parent	禁用 训练靶场	模式	1	probes
+block_parent	禁用 赏金猎手	模式	1	probes
+block_parent	禁用 运载目标 6v6	模式	1	probes
+block_parent	运载目标	模式	1	probes
+block_parent	禁用 闪点作战	模式	1	probes
+block_parent	禁用 闪点作战 6v6	模式	1	probes
+block_parent	队伍1	英雄	1	probes
+block_parent	伊拉锐	队伍1	1	probes
+block_parent	半藏	队伍1	1	probes
+block_parent	卡西迪	队伍1	1	probes
+block_parent	卢西奥	队伍1	1	probes
+block_parent	回声	队伍1	1	probes
+block_parent	堡垒	队伍1	1	probes
+block_parent	队伍1	队伍1	1	probes
+block_parent	天使	队伍1	1	probes
+block_parent	安燃	队伍1	1	probes
+block_parent	巴蒂斯特	队伍1	1	probes
+block_parent	布丽吉塔	队伍1	1	probes
+block_parent	弗蕾娅	队伍1	1	probes
+block_parent	托比昂	队伍1	1	probes
+block_parent	探奇	队伍1	1	probes
+block_parent	斩仇	队伍1	1	probes
+block_parent	无漾	队伍1	1	probes
+block_parent	末日铁拳	队伍1	1	probes
+block_parent	朱诺	队伍1	1	probes
+block_parent	查莉娅	队伍1	1	probes
+block_parent	死神	队伍1	1	probes
+block_parent	法老之鹰	队伍1	1	probes
+block_parent	温斯顿	队伍1	1	probes
+block_parent	源氏	队伍1	1	probes
+block_parent	狂鼠	队伍1	1	probes
+block_parent	猎空	队伍1	1	probes
+block_parent	瑞稀	队伍1	1	probes
+block_parent	禅雅塔	队伍1	1	probes
+block_parent	索杰恩	队伍1	1	probes
+block_parent	美	队伍1	1	probes
+block_parent	艾什	队伍1	1	probes
+block_parent	莱因哈特	队伍1	1	probes
+block_parent	血律	队伍1	1	probes
+block_parent	西格玛	队伍1	1	probes
+block_parent	路霸	队伍1	1	probes
+block_parent	黑影	队伍1	1	probes
+block_parent	队伍2	英雄	1	probes
+block_parent	伊拉锐	队伍2	1	probes
+block_parent	半藏	队伍2	1	probes
+block_parent	卡西迪	队伍2	1	probes
+block_parent	卢西奥	队伍2	1	probes
+block_parent	回声	队伍2	1	probes
+block_parent	堡垒	队伍2	1	probes
+block_parent	队伍2	队伍2	1	probes
+block_parent	天使	队伍2	1	probes
+block_parent	安燃	队伍2	1	probes
+block_parent	巴蒂斯特	队伍2	1	probes
+block_parent	布丽吉塔	队伍2	1	probes
+block_parent	弗蕾娅	队伍2	1	probes
+block_parent	托比昂	队伍2	1	probes
+block_parent	探奇	队伍2	1	probes
+block_parent	斩仇	队伍2	1	probes
+block_parent	无漾	队伍2	1	probes
+block_parent	末日铁拳	队伍2	1	probes
+block_parent	朱诺	队伍2	1	probes
+block_parent	查莉娅	队伍2	1	probes
+block_parent	死神	队伍2	1	probes
+block_parent	法老之鹰	队伍2	1	probes
+block_parent	温斯顿	队伍2	1	probes
+block_parent	源氏	队伍2	1	probes
+block_parent	狂鼠	队伍2	1	probes
+block_parent	猎空	队伍2	1	probes
+block_parent	瑞稀	队伍2	1	probes
+block_parent	禅雅塔	队伍2	1	probes
+block_parent	索杰恩	队伍2	1	probes
+block_parent	美	队伍2	1	probes
+block_parent	艾什	队伍2	1	probes
+block_parent	莱因哈特	队伍2	1	probes
+block_parent	血律	队伍2	1	probes
+block_parent	西格玛	队伍2	1	probes
+block_parent	路霸	队伍2	1	probes
+block_parent	黑影	队伍2	1	probes
+block_parent	D.Mon	综合	1	probes
+block_parent	D.Va	综合	1	probes
+block_parent	埃姆雷	综合	1	probes
+block_parent	奥丽莎	综合	1	probes
+block_parent	安娜	综合	1	probes
+block_parent	拉玛刹	综合	1	probes
+block_parent	死怨	综合	1	probes
+block_parent	毛加	综合	1	probes
+block_parent	渣客女王	综合	1	probes
+block_parent	生命之梭	综合	1	probes
+block_parent	破坏球	综合	1	probes
+block_parent	秩序之光	综合	1	probes
+block_parent	莫伊拉	综合	1	probes
+block_parent	西拉	综合	1	probes
+block_parent	金驭	综合	1	probes
+block_parent	雾子	综合	1	probes
+block_parent	飞天猫	综合	1	probes
+block_parent	骇灾	综合	1	probes
+block_parent	黑百合	综合	1	probes
+block_parent	地图工坊	设置	1	probes
+block_parent	扩展	设置	1	probes
+block_parent	团队死斗	模式	1	probes
+setting_value	伤害量	数字+%	126	corpus
+setting_value	生命值	数字+%	119	corpus
+setting_value	移动速度	数字+%	66	corpus
+setting_value	游戏模式开始	词	66	probes
+setting_value	重装职责被动生命值加成	布尔词	63	probes
+setting_value	弹道速度	数字+%	51	corpus
+setting_value	模式名称	带引号字符串	51	probes
+setting_value	复生时间	数字+%	48	probes
+setting_value	描述	带引号字符串	47	probes
+setting_value	观战者人数上限	数字	47	probes
+setting_value	玩家上限 队伍1	数字	47	probes
+setting_value	随机英雄复生	布尔词	46	probes
+setting_value	返回大厅	词	44	probes
+setting_value	队列中的玩家可以加入	布尔词	44	probes
+setting_value	急救包刷新	布尔词	44	probes
+setting_value	英雄限制	词	44	probes
+setting_value	玩家上限 队伍2	数字	44	probes
+setting_value	地图轮换	词	43	probes
+setting_value	比赛结束后转换队伍	布尔词	43	probes
+setting_value	生命值	数字+%	41	probes
+setting_value	主要攻击模式	布尔词	39	corpus
+setting_value	治疗量	数字+%	38	corpus
+setting_value	终极技能持续时间	数字+%	37	corpus
+setting_value	获胜得分	数字	37	probes
+setting_value	受到伤害量	数字+%	35	corpus
+setting_value	垂直跳跃速度	数字+%	33	corpus
+setting_value	重生时终极技能充能完毕	布尔词	33	corpus
+setting_value	弹夹容量倍率	数字+%	30	probes
+setting_value	移动重力	数字+%	29	corpus
+setting_value	弹夹容量倍率	数字+%	26	corpus
+setting_value	投射物重力	数字+%	22	corpus
+setting_value	重装职责被动生命值加成	布尔词	22	corpus
+setting_value	游戏模式开始	词	21	corpus
+setting_value	受到治疗量	数字+%	21	corpus
+setting_value	无需装弹	布尔词	20	corpus
+setting_value	威能充能速度	数字+%	19	corpus
+setting_value	伤害量	数字+%	19	probes
+setting_value	复生时间	数字+%	15	corpus
+setting_value	受到伤害量	数字+%	15	probes
+setting_value	英雄限制	布尔词	12	corpus
+setting_value	弹道速度	数字+%	12	probes
+setting_value	终极技能持续时间无限	布尔词	11	corpus
+setting_value	追赶等级时造成消灭威能加值	数字+%	11	corpus
+setting_value	终极技能持续时间	数字+%	11	probes
+setting_value	辅助攻击模式	布尔词	10	corpus
+setting_value	急救包刷新	布尔词	9	corpus
+setting_value	急救包刷新时间	数字+%	9	corpus
+setting_value	描述	带引号字符串	8	corpus
+setting_value	模式名称	带引号字符串	8	corpus
+setting_value	队列中的玩家可以加入	布尔词	8	corpus
+setting_value	启用威能	布尔词	8	corpus
+setting_value	允许切换英雄	布尔词	8	probes
+setting_value	观战者人数上限	数字	7	corpus
+setting_value	返回大厅	词	7	corpus
+setting_value	占领速度	数字+%	7	corpus
+setting_value	移动速度	数字+%	7	probes
+setting_value	终极技能自动充能速度	数字+%	6	corpus
+setting_value	地图轮换	词	6	corpus
+setting_value	获胜得分	数字	6	corpus
+setting_value	火箭重拳冷却时间	数字+%	6	corpus
+setting_value	被动生命值恢复	布尔词	6	probes
+setting_value	玩家上限 队伍1	数字	5	corpus
+setting_value	玩家上限 队伍2	数字	5	corpus
+setting_value	战斗时终极技能充能速度	数字+%	5	corpus
+setting_value	技能冷却时间	数字+%	5	corpus
+setting_value	比赛语音聊天	布尔词	5	corpus
+setting_value	黏性炸弹冷却时间	数字+%	5	corpus
+setting_value	生物手雷冷却时间	数字+%	5	corpus
+setting_value	裂地重拳冷却时间	数字+%	5	corpus
+setting_value	投射屏障冷却时间	数字+%	5	corpus
+setting_value	粒子屏障冷却时间	数字+%	5	corpus
+setting_value	暗影步冷却时间	数字+%	5	corpus
+setting_value	心脏过载冷却时间	数字+%	5	corpus
+setting_value	悬浮背包充能速度	数字+%	5	corpus
+setting_value	替魂纸人冷却时间	数字+%	5	corpus
+setting_value	呼吸器充能速度	数字+%	5	corpus
+setting_value	幽灵形态冷却时间	数字+%	5	corpus
+setting_value	位移传动冷却时间	数字+%	5	corpus
+setting_value	运载目标速度	数字+%	5	corpus
+setting_value	自由混战人数上限	数字	5	probes
+setting_value	垂直跳跃速度	数字+%	5	probes
+setting_value	治疗量	数字+%	5	probes
+setting_value	终极技能充能速度	数字+%	4	corpus
+setting_value	战斗时终极技能充能速度 自毁	数字+%	4	corpus
+setting_value	终极技能充能速度（自毁）	数字+%	4	corpus
+setting_value	强音冷却时间	数字+%	4	corpus
+setting_value	聚焦光线冷却时间	数字+%	4	corpus
+setting_value	飞行冷却时间	数字+%	4	corpus
+setting_value	标枪旋击冷却时间	数字+%	4	corpus
+setting_value	麻醉镖冷却时间	数字+%	4	corpus
+setting_value	愈合冲击冷却时间	数字+%	4	corpus
+setting_value	维生力场冷却时间	数字+%	4	corpus
+setting_value	屏障护盾充能速度	数字+%	4	corpus
+setting_value	流星飞锤击退距离	数字+%	4	corpus
+setting_value	钻地冷却时间	数字+%	4	corpus
+setting_value	钻头突刺冷却时间	数字+%	4	corpus
+setting_value	终极技能充能速度（毁天灭地）	数字+%	4	corpus
+setting_value	震荡冲击冷却时间	数字+%	4	corpus
+setting_value	原始暴怒近身攻击击退倍率	数字+%	4	corpus
+setting_value	影冷却时间	数字+%	4	corpus
+setting_value	捕兽夹冷却时间	数字+%	4	corpus
+setting_value	闪回冷却时间	数字+%	4	corpus
+setting_value	闪现冷却时间	数字+%	4	corpus
+setting_value	延时雷管引爆时间	数字+%	4	corpus
+setting_value	屏障力场充能速度	数字+%	4	corpus
+setting_value	追踪弹冷却时间	数字+%	4	corpus
+setting_value	锚点无人机冷却时间	数字+%	4	corpus
+setting_value	链钩冷却时间	数字+%	4	corpus
+setting_value	鸡飞狗跳击退倍率	数字+%	4	corpus
+setting_value	赛博空间冷却时间	数字+%	4	corpus
+setting_value	喷射背包冷却时间	数字+%	4	corpus
+setting_value	比赛结束后转换队伍	布尔词	4	corpus
+setting_value	推进器冷却时间	数字+%	4	corpus
+setting_value	蛮力冲撞冷却时间	数字+%	4	corpus
+setting_value	无需装弹	布尔词	4	probes
+setting_value	移动重力	数字+%	4	probes
+setting_value	可用武器	词	3	corpus
+setting_value	终极技能自动充能速度 自毁	数字+%	3	corpus
+setting_value	防御矩阵充能速度	数字+%	3	corpus
+setting_value	防御矩阵最长时间	数字+%	3	corpus
+setting_value	“跃”冷却时间	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 神射手	数字+%	3	corpus
+setting_value	战术翻滚冷却时间	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 音障	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 人格复制	数字+%	3	corpus
+setting_value	终极技能自动充能速度 人格复制	数字+%	3	corpus
+setting_value	士兵	数字	3	corpus
+setting_value	生物力场冷却时间	数字+%	3	corpus
+setting_value	守护天使冷却时间	数字+%	3	corpus
+setting_value	重生冷却时间	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 撼地猛刺	数字+%	3	corpus
+setting_value	终极技能充能速度（撼地猛刺）	数字+%	3	corpus
+setting_value	终极技能自动充能速度 撼地猛刺	数字+%	3	corpus
+setting_value	能量标枪冷却时间	数字+%	3	corpus
+setting_value	终极技能充能速度（纳米激素）	数字+%	3	corpus
+setting_value	恢复包冷却时间	数字+%	3	corpus
+setting_value	能量盾击冷却时间	数字+%	3	corpus
+setting_value	热力过载冷却时间	数字+%	3	corpus
+setting_value	翻江浪冷却时间	数字+%	3	corpus
+setting_value	飞流步冷却时间	数字+%	3	corpus
+setting_value	粒子炮辅助攻击击退倍率	数字+%	3	corpus
+setting_value	命令怒吼冷却时间	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 斩	数字+%	3	corpus
+setting_value	震荡地雷冷却时间	数字+%	3	corpus
+setting_value	终极技能充能速度（脉冲炸弹）	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 圣	数字+%	3	corpus
+setting_value	终极技能充能速度（圣）	数字+%	3	corpus
+setting_value	终极技能自动充能速度 圣	数字+%	3	corpus
+setting_value	冰霜枪冰冻敌人的速度	数字+%	3	corpus
+setting_value	急冻冷却时间	数字+%	3	corpus
+setting_value	双筒猎枪击退距离（敌方）	数字+%	3	corpus
+setting_value	延时雷管冷却时间	数字+%	3	corpus
+setting_value	生化能量上限	数字+%	3	corpus
+setting_value	生化能量恢复速度	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 开路先锋	数字+%	3	corpus
+setting_value	震地手雷冷却时间	数字+%	3	corpus
+setting_value	呼吸器冷却时间	数字+%	3	corpus
+setting_value	爆能水晶冷却时间	数字+%	3	corpus
+setting_value	音速斥力场冷却时间	数字+%	3	corpus
+setting_value	“瞬”距离倍率	数字+%	3	corpus
+setting_value	尖刺护体资源消耗	数字+%	3	corpus
+setting_value	狂跃冷却时间	数字+%	3	corpus
+setting_value	终极技能充能速度（千针雨）	数字+%	3	corpus
+setting_value	战斗时终极技能充能速度 电磁脉冲	数字+%	3	corpus
+setting_value	终极技能充能速度（电磁脉冲）	数字+%	3	corpus
+setting_value	终极技能自动充能速度 电磁脉冲	数字+%	3	corpus
+setting_value	音冷却时间	数字+%	3	corpus
+setting_value	动能俘获冷却时间	数字+%	3	corpus
+setting_value	尖刺墙生命值	数字+%	3	corpus
+setting_value	尖刺护体移动速度惩罚	数字+%	3	corpus
+setting_value	比赛时长（分钟）	数字	3	corpus
+setting_value	推进背包冷却时间	数字+%	3	corpus
+setting_value	主动复生	布尔词	3	corpus
+setting_value	聚变连发枪冷却时间	数字+%	3	corpus
+setting_value	飞空斩击冷却时间	数字+%	3	corpus
+setting_value	呼吸器最长时间	数字+%	3	corpus
+setting_value	怒炎冲冷却时间	数字+%	3	corpus
+setting_value	上升气流冷却时间	数字+%	3	corpus
+setting_value	疾冲冷却时间	数字+%	3	corpus
+setting_value	占领速度	数字+%	3	probes
+setting_value	队伍平衡	词	2	corpus
+setting_value	突进刺击击退倍率	数字+%	2	corpus
+setting_value	呼叫机甲击退倍率	数字+%	2	corpus
+setting_value	微型飞弹冷却时间	数字+%	2	corpus
+setting_value	推进器击退倍率	数字+%	2	corpus
+setting_value	自毁击退倍率	数字+%	2	corpus
+setting_value	“岚”数量	数字	2	corpus
+setting_value	“跃”距离设置	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 竜	数字+%	2	corpus
+setting_value	终极技能充能速度（竜）	数字+%	2	corpus
+setting_value	闪光弹冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（音障）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 音障	数字+%	2	corpus
+setting_value	音波冷却时间	数字+%	2	corpus
+setting_value	音波击退倍率	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 火炮模式	数字+%	2	corpus
+setting_value	终极技能充能速度（火炮模式）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 火炮模式	数字+%	2	corpus
+setting_value	螺旋飞弹冷却时间	数字+%	2	corpus
+setting_value	螺旋飞弹击退倍率	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 女武神	数字+%	2	corpus
+setting_value	强固防御冷却时间	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 纳米激素	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 增幅矩阵	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 集结号令	数字+%	2	corpus
+setting_value	流星飞锤冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（集结号令）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 集结号令	数字+%	2	corpus
+setting_value	热力过载持续时间	数字+%	2	corpus
+setting_value	部署炮台冷却时间	数字+%	2	corpus
+setting_value	吞噬漩涡冷却时间	数字+%	2	corpus
+setting_value	终极技能自动充能速度 诛	数字+%	2	corpus
+setting_value	终极技能自动充能速度 地壳震击	数字+%	2	corpus
+setting_value	终极技能自动充能速度 惊涛破	数字+%	2	corpus
+setting_value	飞流步持续时间倍率	数字+%	2	corpus
+setting_value	悍猛格挡冷却时间	数字+%	2	corpus
+setting_value	毁天灭地击退倍率	数字+%	2	corpus
+setting_value	火箭重拳击退倍率	数字+%	2	corpus
+setting_value	滑翔推进冷却时间	数字+%	2	corpus
+setting_value	滑翔推进持续时间倍率	数字+%	2	corpus
+setting_value	终极技能自动充能速度 轨道射线	数字+%	2	corpus
+setting_value	悬浮背包最长时间	数字+%	2	corpus
+setting_value	推进背包	布尔词	2	corpus
+setting_value	推进背包加速	数字+%	2	corpus
+setting_value	火箭发射器击退倍率	数字+%	2	corpus
+setting_value	震荡冲击击退倍率	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 轰翻天	数字+%	2	corpus
+setting_value	喷射背包击退倍率	数字+%	2	corpus
+setting_value	喷射背包加速	数字+%	2	corpus
+setting_value	终极技能充能速度（斩）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 斩	数字+%	2	corpus
+setting_value	榴弹发射器击退倍率	数字+%	2	corpus
+setting_value	震荡地雷击退倍率	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 脉冲炸弹	数字+%	2	corpus
+setting_value	终极技能自动充能速度 脉冲炸弹	数字+%	2	corpus
+setting_value	缚魂锁链冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（生命之树）	数字+%	2	corpus
+setting_value	花瓣平台	布尔词	2	corpus
+setting_value	终极技能充能速度（地雷禁区）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 地雷禁区	数字+%	2	corpus
+setting_value	传送面板冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（光子屏障）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 光子屏障	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 暴雪	数字+%	2	corpus
+setting_value	暴雪冰冻敌人的速度	数字+%	2	corpus
+setting_value	终极技能充能速度（暴雪）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 暴雪	数字+%	2	corpus
+setting_value	双筒猎枪击退距离（自身）	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 聚合射线	数字+%	2	corpus
+setting_value	消散冷却时间	数字+%	2	corpus
+setting_value	生化之球伤害最大值	数字+%	2	corpus
+setting_value	生化之球治疗最大值	数字+%	2	corpus
+setting_value	终极技能充能速度（聚合射线）	数字+%	2	corpus
+setting_value	终极技能自动充能速度 聚合射线	数字+%	2	corpus
+setting_value	冲锋冷却时间	数字+%	2	corpus
+setting_value	冲锋击退倍率	数字+%	2	corpus
+setting_value	屏障力场冷却时间	数字+%	2	corpus
+setting_value	烈焰打击冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（裂地猛击）	数字+%	2	corpus
+setting_value	实验屏障充能速度	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 引力乱流	数字+%	2	corpus
+setting_value	终极技能充能速度（引力乱流）	数字+%	2	corpus
+setting_value	质量吸附击退距离	数字+%	2	corpus
+setting_value	终极技能充能速度（鸡飞狗跳）	数字+%	2	corpus
+setting_value	音速斥力场击退倍率	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 猫猫劫	数字+%	2	corpus
+setting_value	尖刺墙冷却时间	数字+%	2	corpus
+setting_value	在线修复冷却时间	数字+%	2	corpus
+setting_value	剧毒诡雷冷却时间	数字+%	2	corpus
+setting_value	抓钩冷却时间	数字+%	2	corpus
+setting_value	滑翔	布尔词	2	corpus
+setting_value	部署炮台	布尔词	2	corpus
+setting_value	天罚形态冷却时间	数字+%	2	corpus
+setting_value	钻地持续时间倍率	数字+%	2	corpus
+setting_value	心脏过载治疗量	数字+%	2	corpus
+setting_value	悬浮背包垂直速度	数字+%	2	corpus
+setting_value	终极技能充能速度（原始暴怒）	数字+%	2	corpus
+setting_value	闪冷却时间	数字+%	2	corpus
+setting_value	生命之握和愈疗灵花射程	数字+%	2	corpus
+setting_value	感应护盾冷却时间	数字+%	2	corpus
+setting_value	哨戒炮	布尔词	2	corpus
+setting_value	质量吸附冷却时间	数字+%	2	corpus
+setting_value	战斗时终极技能充能速度 鸡飞狗跳	数字+%	2	corpus
+setting_value	铃冷却时间	数字+%	2	corpus
+setting_value	咻咻飞充能速度	数字+%	2	corpus
+setting_value	尖刺墙	布尔词	2	corpus
+setting_value	尖刺护体资源恢复	数字+%	2	corpus
+setting_value	被动生命值恢复	布尔词	2	corpus
+setting_value	“天使”重生抵消消灭次数	布尔词	2	corpus
+setting_value	阵亡镜头	布尔词	2	corpus
+setting_value	助推器充能速度	数字+%	2	corpus
+setting_value	助推器最长时间	数字+%	2	corpus
+setting_value	无机甲重生	布尔词	2	corpus
+setting_value	招架姿态恢复倍率	空	2	corpus
+setting_value	旋风疾步冷却时间	数字+%	2	corpus
+setting_value	血斩冷却时间	数字+%	2	corpus
+setting_value	锯齿利刃（格雷西）冷却时间	数字+%	2	corpus
+setting_value	烈日冲击冷却时间	数字+%	2	corpus
+setting_value	岚冷却时间	数字+%	2	corpus
+setting_value	虹吸冲击枪冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（朱羽焚）	数字+%	2	corpus
+setting_value	机动闪避冷却时间	数字+%	2	corpus
+setting_value	纵情狂飙冷却时间	数字+%	2	corpus
+setting_value	纵情狂飙速度倍率	数字+%	2	corpus
+setting_value	花瓣平台生命值	数字+%	2	corpus
+setting_value	工程抓钩冷却时间	数字+%	2	corpus
+setting_value	瞬冷却时间	数字+%	2	corpus
+setting_value	生物猫爪弹射程	数字+%	2	corpus
+setting_value	终极技能充能速度（无极斩）	数字+%	2	corpus
+setting_value	终极技能充能速度（人格复制）	数字+%	2	corpus
+setting_value	熠闪舞冷却时间	数字+%	2	corpus
+setting_value	终极技能充能速度（杀戮狂宴）	数字+%	2	corpus
+setting_value	终极技能充能速度（开路先锋）	数字+%	2	corpus
+setting_value	计分速度	数字+%	2	corpus
+setting_value	受到治疗量	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 鸡飞狗跳	数字+%	2	probes
+setting_value	链钩冷却时间	数字+%	2	probes
+setting_value	运载目标速度	数字+%	2	probes
+setting_value	“岚”数量	数字	2	probes
+setting_value	音波击退倍率	数字+%	2	probes
+setting_value	士兵	数字	2	probes
+setting_value	怒炎冲冷却时间	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 朱羽焚	数字+%	2	probes
+setting_value	熠闪舞冷却时间	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 流星索	数字+%	2	probes
+setting_value	热力过载持续时间	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 地壳震击	数字+%	2	probes
+setting_value	钻地持续时间倍率	数字+%	2	probes
+setting_value	招架姿态恢复倍率	空	2	probes
+setting_value	飞流步冷却时间	数字+%	2	probes
+setting_value	飞流步持续时间倍率	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 毁天灭地	数字+%	2	probes
+setting_value	滑翔推进持续时间倍率	数字+%	2	probes
+setting_value	投射屏障冷却时间	数字+%	2	probes
+setting_value	粒子屏障冷却时间	数字+%	2	probes
+setting_value	悬浮背包充能速度	数字+%	2	probes
+setting_value	悬浮背包最长时间	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 脉冲炸弹	数字+%	2	probes
+setting_value	替魂纸人冷却时间	数字+%	2	probes
+setting_value	替魂纸人持续时间倍率	数字+%	2	probes
+setting_value	冰霜枪冰冻敌人的时长	数字+%	2	probes
+setting_value	冰霜枪冰冻敌人的速度	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 暴雪	数字+%	2	probes
+setting_value	延时雷管引爆时间	数字+%	2	probes
+setting_value	战斗时终极技能充能速度 裂地猛击	数字+%	2	probes
+setting_value	焕生无人机持续时间倍率	数字+%	2	probes
+setting_value	迅影疾行持续时间倍率	数字+%	2	probes
+setting_value	实验屏障充能速度	数字+%	2	probes
+setting_value	呼吸器充能速度	数字+%	2	probes
+setting_value	呼吸器最长时间	数字+%	2	probes
+setting_value	职责被动	布尔词	2	probes
+setting_value	可用武器	词	2	probes
+setting_value	占领时间	数字	1	corpus
+setting_value	无目标点决胜机制时平局时限	数字	1	corpus
+setting_value	显示英雄位置	布尔词	1	corpus
+setting_value	比赛开始后显示英雄位置时间	数字	1	corpus
+setting_value	目标点决胜机制	布尔词	1	corpus
+setting_value	目标点决胜机制激活时间	数字	1	corpus
+setting_value	英雄池上限	词	1	corpus
+setting_value	战斗时终极技能充能速度 战术目镜	数字+%	1	corpus
+setting_value	终极技能充能速度（战术目镜）	数字+%	1	corpus
+setting_value	终极技能充能速度（女武神）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 纳米激素	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 轨道射线	数字+%	1	corpus
+setting_value	脉冲星飞雷冷却时间	数字+%	1	corpus
+setting_value	超能环域冷却时间	数字+%	1	corpus
+setting_value	终极技能充能速度（重力喷涌）	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 死亡绽放	数字+%	1	corpus
+setting_value	屏障发射器冷却时间	数字+%	1	corpus
+setting_value	回春疾行冷却时间	数字+%	1	corpus
+setting_value	终极技能自动充能速度 生命之树	数字+%	1	corpus
+setting_value	工程抓钩击退距离	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 地雷禁区	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 光子屏障	数字+%	1	corpus
+setting_value	冰墙冷却时间	数字+%	1	corpus
+setting_value	冰霜枪冰冻敌人的时长	数字+%	1	corpus
+setting_value	短筒猎枪冷却时间	数字+%	1	corpus
+setting_value	生化之球冷却时间	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 裂地猛击	数字+%	1	corpus
+setting_value	火箭重锤击退倍率	数字+%	1	corpus
+setting_value	震地手雷击退倍率	数字+%	1	corpus
+setting_value	终极技能自动充能速度 引力乱流	数字+%	1	corpus
+setting_value	位移传动	布尔词	1	corpus
+setting_value	助推器	布尔词	1	corpus
+setting_value	终极技能自动充能速度 无极斩	数字+%	1	corpus
+setting_value	聚变连发枪	布尔词	1	corpus
+setting_value	微型飞弹	布尔词	1	corpus
+setting_value	推进器	布尔词	1	corpus
+setting_value	岚	布尔词	1	corpus
+setting_value	闪光弹	布尔词	1	corpus
+setting_value	强音	布尔词	1	corpus
+setting_value	音波	布尔词	1	corpus
+setting_value	聚焦光线	布尔词	1	corpus
+setting_value	飞行	布尔词	1	corpus
+setting_value	A-36战术榴弹	布尔词	1	corpus
+setting_value	终极技能（战术目镜）	布尔词	1	corpus
+setting_value	快速近身攻击	布尔词	1	corpus
+setting_value	终极技能自动充能速度 女武神	数字+%	1	corpus
+setting_value	强固防御	布尔词	1	corpus
+setting_value	能量标枪	布尔词	1	corpus
+setting_value	终极技能充能速度（增幅矩阵）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 增幅矩阵	数字+%	1	corpus
+setting_value	屏障护盾	布尔词	1	corpus
+setting_value	流星飞锤	布尔词	1	corpus
+setting_value	吞噬漩涡	布尔词	1	corpus
+setting_value	虚空屏障（智械形态）	布尔词	1	corpus
+setting_value	钻头突刺	布尔词	1	corpus
+setting_value	战斗时终极技能充能速度 惊涛破	数字+%	1	corpus
+setting_value	终极技能充能速度（惊涛破）	数字+%	1	corpus
+setting_value	翻江浪	布尔词	1	corpus
+setting_value	飞流步	布尔词	1	corpus
+setting_value	悍猛格挡	布尔词	1	corpus
+setting_value	裂地重拳	布尔词	1	corpus
+setting_value	滑翔推进	布尔词	1	corpus
+setting_value	火星套靴	布尔词	1	corpus
+setting_value	脉冲星飞雷	布尔词	1	corpus
+setting_value	超能环域	布尔词	1	corpus
+setting_value	暗影步	布尔词	1	corpus
+setting_value	燃火链式机枪	布尔词	1	corpus
+setting_value	爆烈链式机枪	布尔词	1	corpus
+setting_value	终极技能自动充能速度 笼中斗	数字+%	1	corpus
+setting_value	蛮力冲撞	布尔词	1	corpus
+setting_value	悬浮背包	布尔词	1	corpus
+setting_value	疾冲背包	布尔词	1	corpus
+setting_value	命令怒吼	布尔词	1	corpus
+setting_value	锯齿利刃（格雷西）	布尔词	1	corpus
+setting_value	屏障发射器	布尔词	1	corpus
+setting_value	战斗时终极技能充能速度 原始暴怒	数字+%	1	corpus
+setting_value	终极技能自动充能速度 原始暴怒	数字+%	1	corpus
+setting_value	影	布尔词	1	corpus
+setting_value	震荡地雷	布尔词	1	corpus
+setting_value	战斗时终极技能充能速度 护魂结界	数字+%	1	corpus
+setting_value	终极技能充能速度（护魂结界）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 护魂结界	数字+%	1	corpus
+setting_value	缚魂锁链	布尔词	1	corpus
+setting_value	回春疾行	布尔词	1	corpus
+setting_value	生命之树生命值	数字+%	1	corpus
+setting_value	动力铁球	布尔词	1	corpus
+setting_value	地雷禁区击退距离	数字+%	1	corpus
+setting_value	工程抓钩	布尔词	1	corpus
+setting_value	重力坠击	布尔词	1	corpus
+setting_value	传送面板	布尔词	1	corpus
+setting_value	冰墙	布尔词	1	corpus
+setting_value	暴雪冰冻最小值	数字+%	1	corpus
+setting_value	短筒猎枪	布尔词	1	corpus
+setting_value	禁止开镜狙击	布尔词	1	corpus
+setting_value	消散	布尔词	1	corpus
+setting_value	生化之球	布尔词	1	corpus
+setting_value	冲锋	布尔词	1	corpus
+setting_value	锚点无人机	布尔词	1	corpus
+setting_value	震地手雷	布尔词	1	corpus
+setting_value	实验屏障	布尔词	1	corpus
+setting_value	废品压缩器	布尔词	1	corpus
+setting_value	链钩	布尔词	1	corpus
+setting_value	屏障阵列	布尔词	1	corpus
+setting_value	战斗时终极技能充能速度 全景牢笼	数字+%	1	corpus
+setting_value	终极技能充能速度（全景牢笼）	数字+%	1	corpus
+setting_value	终极技能屏障生命值倍率（全景牢笼）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 全景牢笼	数字+%	1	corpus
+setting_value	音速斥力场	布尔词	1	corpus
+setting_value	瞬	布尔词	1	corpus
+setting_value	终极技能充能速度（狐）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 狐	数字+%	1	corpus
+setting_value	呼噜噜	布尔词	1	corpus
+setting_value	救生索	布尔词	1	corpus
+setting_value	狂跃	布尔词	1	corpus
+setting_value	在线修复	布尔词	1	corpus
+setting_value	赛博空间	布尔词	1	corpus
+setting_value	战斗时终极技能充能速度 红外侦测	数字+%	1	corpus
+setting_value	抓钩	布尔词	1	corpus
+setting_value	终极技能充能速度（红外侦测）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 红外侦测	数字+%	1	corpus
+setting_value	为防止进不去练枪房的情况，开始游戏后数秒才加载地图内容	数字	1	corpus
+setting_value	圣诞节生态监测站	词	1	corpus
+setting_value	飞空斩击距离	空	1	corpus
+setting_value	悍猛格挡充能速度	数字+%	1	corpus
+setting_value	废品压缩器冷却时间	数字+%	1	corpus
+setting_value	狂跃距离	数字+%	1	corpus
+setting_value	终极技能	布尔词	1	corpus
+setting_value	太阳能上限	数字+%	1	corpus
+setting_value	太阳能充能速度	数字+%	1	corpus
+setting_value	赛博手雷冷却时间	数字+%	1	corpus
+setting_value	A-36战术榴弹冷却时间	数字+%	1	corpus
+setting_value	A-36战术榴弹击退倍率	数字+%	1	corpus
+setting_value	切换模式冷却时间	数字+%	1	corpus
+setting_value	纵情狂飙无限持续时间	布尔词	1	corpus
+setting_value	燃火链式机枪点燃速度	数字+%	1	corpus
+setting_value	锯齿利刃击退倍率	数字+%	1	corpus
+setting_value	替魂纸人持续时间倍率	数字+%	1	corpus
+setting_value	生命之握冷却时间	数字+%	1	corpus
+setting_value	焕生无人机持续时间倍率	数字+%	1	corpus
+setting_value	迅影疾行冷却时间	数字+%	1	corpus
+setting_value	迅影疾行持续时间倍率	数字+%	1	corpus
+setting_value	呼噜噜冷却时间	数字+%	1	corpus
+setting_value	咻咻飞最大时间	数字+%	1	corpus
+setting_value	救生索冷却时间	数字+%	1	corpus
+setting_value	随时安装最新的抢先体验更新	布尔词	1	corpus
+setting_value	治疗光塔冷却时间	数字+%	1	corpus
+setting_value	终极技能充能速度（桎梏灼日）	数字+%	1	corpus
+setting_value	终极技能充能速度（流星索）	数字+%	1	corpus
+setting_value	交叉枪决冷却时间	数字+%	1	corpus
+setting_value	终极技能充能速度（炸弹轮胎）	数字+%	1	corpus
+setting_value	战斗区域限____？	词	1	corpus
+setting_value	显示自定义房间规则？（默认为关）	布尔词	1	corpus
+setting_value	本房间为____房间？	词	1	corpus
+setting_value	组队行为____？	词	1	corpus
+setting_value	队伍界面	布尔词	1	corpus
+setting_value	终极技能充能速度（神射手）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 神射手	数字+%	1	corpus
+setting_value	虹吸冲击枪持续时间倍率	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 毁天灭地	数字+%	1	corpus
+setting_value	终极技能自动充能速度 毁天灭地	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 杀戮狂宴	数字+%	1	corpus
+setting_value	纵情狂飙持续时间倍率	数字+%	1	corpus
+setting_value	终极技能自动充能速度 杀戮狂宴	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 火箭弹幕	数字+%	1	corpus
+setting_value	疾冲背包冷却时间	数字+%	1	corpus
+setting_value	终极技能充能速度（火箭弹幕）	数字+%	1	corpus
+setting_value	终极技能自动充能速度 火箭弹幕	数字+%	1	corpus
+setting_value	花瓣平台冷却时间	数字+%	1	corpus
+setting_value	终极技能自动充能速度 开路先锋	数字+%	1	corpus
+setting_value	实验屏障冷却时间	数字+%	1	corpus
+setting_value	战斗时终极技能充能速度 千针雨	数字+%	1	corpus
+setting_value	终极技能自动充能速度 千针雨	数字+%	1	corpus
+setting_value	屏障护盾冷却时间	数字+%	1	corpus
+setting_value	燃火链式机枪点燃持续时间	数字+%	1	corpus
+setting_value	¢ 资金获取倍率	数字	1	corpus
+setting_value	触发降低负载代码的强度（数值越低，触发越快）	数字	1	corpus
+setting_value	起始资金	数字	1	corpus
+setting_value	选择游戏结束阶段	词	1	corpus
+setting_value	允许切换英雄	布尔词	1	corpus
+setting_value	随机英雄复生	布尔词	1	corpus
+setting_value	终极技能自动充能速度 鸡飞狗跳	数字+%	1	corpus
+setting_value	TS-1推进速度	数字+%	1	corpus
+setting_value	TS-1行走速度	数字+%	1	corpus
+setting_value	首先激活的控制点	词	1	corpus
+setting_value	开局符文刷新次数	数字	1	corpus
+setting_value	新符文降临间隔	数字	1	corpus
+setting_value	最大符文数量（过高会导致崩房及文本不显示！）	数字	1	corpus
+setting_value	每轮符文提供的刷新次数	数字	1	corpus
+setting_value	游戏时间设置	词	1	corpus
+setting_value	比赛语音聊天	布尔词	1	probes
+setting_value	英雄限制	布尔词	1	probes
+setting_value	终极技能自动充能速度 鸡飞狗跳	数字+%	1	probes
+setting_value	重生时终极技能充能完毕	布尔词	1	probes
+setting_value	玩家断线时暂停游戏	布尔词	1	probes
+setting_value	最低延迟（毫秒）	数字	1	probes
+setting_value	终极技能充能速度（鸡飞狗跳）	数字+%	1	probes
+setting_value	职责限制	词	1	probes
+setting_value	终极技能充能速度（鸡飞狗跳改）	数字+%	1	probes
+setting_value	获胜分数	数字	1	probes
+setting_value	技能冷却时间	数字+%	1	probes
+setting_value	终极技能充能速度（地壳震击）	数字+%	1	probes
+setting_value	战斗时终极技能充能速度 斩地巨剑	数字+%	1	probes
+setting_value	终极技能充能速度（斩地巨剑）	数字+%	1	probes
+setting_value	终极技能自动充能速度 斩地巨剑	数字+%	1	probes
+setting_value	悍猛格挡充能速度	数字+%	1	probes
+setting_value	原始暴怒近身攻击击退倍率	数字+%	1	probes
+setting_value	喷射背包击退倍率	数字+%	1	probes
+setting_value	投射物重力	数字+%	1	probes
+setting_value	充能速度 充能射击	数字+%	1	probes
+setting_value	暴雪冰冻敌人的速度	数字+%	1	probes
+setting_value	部署炮台冷却时间	数字+%	1	probes
+setting_value	幽灵形态	布尔词	1	probes
+setting_value	赛博空间	布尔词	1	probes
+setting_value	终极技能自动充能速度	数字+%	1	probes
+setting_value	助推器充能速度	数字+%	1	probes
+setting_value	微型飞弹冷却时间	数字+%	1	probes
+setting_value	终极技能充能速度（自毁）	数字+%	1	probes
+setting_value	覆盖协议击退倍率	数字+%	1	probes
+setting_value	战斗时终极技能充能速度 诛	数字+%	1	probes
+setting_value	纵情狂飙持续时间倍率	数字+%	1	probes
+setting_value	心脏过载治疗量	数字+%	1	probes
+setting_value	生命之握和愈疗灵花射程	数字+%	1	probes
+setting_value	生命之树生命值	数字+%	1	probes
+setting_value	花瓣平台生命值	数字+%	1	probes
+setting_value	地雷禁区击退距离	数字+%	1	probes
+setting_value	工程抓钩冷却时间	数字+%	1	probes
+setting_value	感应护盾冷却时间	数字+%	1	probes
+setting_value	战斗时终极技能充能速度 地雷禁区	数字+%	1	probes
+setting_value	重力坠击冷却时间	数字+%	1	probes
+setting_value	生化之球伤害最大值	数字+%	1	probes
+setting_value	战斗时终极技能充能速度 开路先锋	数字+%	1	probes
+setting_value	战斗时终极技能充能速度 全景牢笼	数字+%	1	probes
+setting_value	“瞬”距离倍率	数字+%	1	probes
+setting_value	终极技能自动充能速度 狐	数字+%	1	probes
+setting_value	生物猫爪弹射程	数字+%	1	probes
+setting_value	尖刺墙冷却时间	数字+%	1	probes
+setting_value	尖刺墙生命值	数字+%	1	probes
+setting_value	尖刺护体移动速度惩罚	数字+%	1	probes
+setting_value	鸣谢	词	1	probes
+setting_value	队伍1获胜所需分数	数字	1	probes
+setting_value	队伍2获胜所需分数	数字	1	probes
+setting_value	急救包刷新	词	1	probes
