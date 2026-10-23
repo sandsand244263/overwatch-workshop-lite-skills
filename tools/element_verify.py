@@ -9,9 +9,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from element_count2 import estimate2
+import local_paths
 
-PROBE = r"C:\Users\Administrator\Desktop\工坊测试\探针"
-REAL = r"C:\Users\Administrator\Desktop\工坊测试\真实模式"
+# 探针与真实模式都放在本机（不进仓库）：local_paths.json 的 probe_dir / corpus，或环境变量
+PROBE = local_paths.get("probe_dir", "WS_PROBE_DIR")
+REAL = local_paths.corpus_dir()
 
 SAMPLES = [
     (os.path.join(PROBE, "探针_E0_百条动作.ow"), 201),
@@ -32,6 +34,9 @@ SAMPLES = [
 
 
 def main():
+    if not PROBE or not REAL:
+        print("没有探针/语料目录：%s" % local_paths.hint())
+        return 2
     bad = 0
     print("%-30s %8s %8s %6s" % ("样本", "实测", "预测", "误差"))
     print("-" * 60)

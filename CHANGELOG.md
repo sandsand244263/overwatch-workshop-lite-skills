@@ -14,6 +14,15 @@
 
 ---
 
+## [3.4.3] - 2026-10-23
+
+补完 3.4.2 没扫干净的最后一处本机路径。
+
+- `tools/element_verify.py` 里写死的 `C:\Users\...\Desktop\工坊测试` 改为本机配置（`local_paths.json` 的 `probe_dir` / 环境变量 `WS_PROBE_DIR`）
+- 删掉公开仓里重复留存的一份旧探针（`probes/negative/good-dropdown.ow`，已移到正样本目录）
+
+---
+
 ## [3.4.2] - 2026-10-23
 
 公开仓不再带本机绝对路径。
