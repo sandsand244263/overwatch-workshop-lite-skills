@@ -681,6 +681,13 @@ def check_reassign_create(text, problems):
     2026-10-23 实机：HUD 规则里用 `创建HUD文本(…, 字符串, 默认可见度)` 每 0.5 秒调一次，
     游戏里完全看不到 HUD。要出现，首次必须带可见性：`可见` 或 `可见和字符串`。
     """
+    # 文件里只要有一处用「可见 / 可见和字符串」创建过，就说明文本会出现，
+    # 后续用「字符串」原地更新是正确套路，不该报。
+    creates = any("创建HUD文本(" in strip_noise(l) and
+                  ("可见和字符串" in l or re.search(r",\s*可见\s*,", l))
+                  for l in text.split("\n"))
+    if creates:
+        return
     for ln, line in enumerate(text.split("\n"), 1):
         s = strip_noise(line).strip()
         if not s:
