@@ -2125,6 +2125,34 @@ def check_map_codes(text, problems, strict=False):
 _MAP_POOLS = {"map": None}
 
 
+def _judge_map(i, mp, mode, problems, traits, pools, strict):
+    """单张地图 × 单个模式的判定（check_map_mode 的实际逻辑）。"""
+    # 已验证的硬规则优先：无目标点的图 + 目标类模式 = 一定失败（实测报「无效的地图设置」）
+    if traits.get(mp) == "无" and mode in OBJECTIVE_MODES:
+        problems.append((i, "error",
+                         "「%s」没有目标点，不能用于「%s」（游戏会报「无效的地图设置」）；"
+                         "改用该模式的默认地图，或换一张有目标点的图" % (mp, mode)))
+        return
+    if mode in pools and not _in_pool(mp, pools[mode]):
+        shown = "、".join(sorted(pools[mode])[:6])
+        more = "…" if len(pools[mode]) > 6 else ""
+        sev = "error" if strict else "warning"
+        problems.append((i, sev,
+                         "「%s」在「%s」下选不到（导入会报「尚未选择地图」）；"
+                         "该模式可用：%s%s" % (mp, mode, shown, more)))
+
+
+def _in_pool(mp, pool):
+    """地图是否在该模式的池子里——**必须精确命中**。
+
+    池子里的写法就是该模式的唯一合法写法：同一个地区在有的模式里以「整图」出现（突击模式 → 伊利奥斯），
+    在有的模式里以「场景」出现（死斗 → 伊利奥斯废墟）。两者不能互相替代：
+    2026-10-23 实机，突击模式写 伊利奥斯废墟、死斗写 伊利奥斯，都被游戏拒掉（报「尚未选择地图」）。
+    所以不做前缀匹配，否则会把这类真错误静默成通过。
+    """
+    return mp in pool
+
+
 def check_map_mode(text, problems, traits=None, pools=None, strict=False):
     """地图是否属于该模式的地图池。
 
@@ -2134,6 +2162,10 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
 
     模式必须按「块栈」跟踪：`禁用 占领要点 { }` 不是当前模式；裸标签行（模式名、`启用地图`）
     与 `{` 分两行，需要 pending 缓冲。
+
+    2026-10-23 修：以前只有「名字 + 时段编号」的行会被检查，**只写地图名（文档推荐的写法）
+    会被当成裸标签行缓冲掉**，池子数据实际上从未生效。现在 `启用地图` 块里的一行就是地图，
+    不论带不带编号都查。
     """
     traits = traits if traits is not None else load_map_traits()
     pools = pools if pools is not None else load_map_pools()
@@ -2158,37 +2190,26 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
             stack.append((label, is_mode))
             pending = None
             continue
+        labels = [l for l, _m in stack]
+        modes = [l for l, m in stack if m]
+        # 启用地图 块里的一行 = 一张地图（可能带时段编号），只写名字也必须查
+        if labels and labels[-1] == "启用地图" and modes:
+            _judge_map(i, st.split()[0], modes[-1], problems, traits, pools, strict)
+            continue
         if (":" not in st and "：" not in st and ";" not in st and "(" not in st
                 and not re.search(r"\s[0-9A-Fa-f]{4,}\.[0-9A-Fa-f]{2,}$", st)
                 and not re.search(r"\s\d{3,}$", st)):
             pending = st
             continue
-        labels = [l for l, _m in stack]
         if "启用地图" not in labels:
             continue
-        modes = [l for l, m in stack if m]
         if not modes:
             continue
         mode = modes[-1]
         m = re.match(r"^([^\s]+)(?:\s+(?:[0-9A-Fa-f]{4,}\.[0-9A-Fa-f]{2,}|\d{6,}))?$", st)
         if not m:
             continue
-        mp = m.group(1).strip()
-        # 已验证的硬规则优先：无目标点的图 + 目标类模式 = 一定失败（实测报「无效的地图设置」）
-        if traits.get(mp) == "无" and mode in OBJECTIVE_MODES:
-            problems.append((i, "error",
-                             "「%s」没有目标点，不能用于「%s」（游戏会报「无效的地图设置」）；"
-                             "改用该模式的默认地图，或换一张有目标点的图" % (mp, mode)))
-            continue
-        if mode in pools:
-            if mp in pools[mode]:
-                continue
-            shown = "、".join(sorted(pools[mode])[:6])
-            more = "…" if len(pools[mode]) > 6 else ""
-            sev = "error" if strict else "warning"
-            problems.append((i, sev,
-                             "「%s」不在「%s」的地图池里，导入时可能报「无效的地图设置」；"
-                             "该模式可用：%s%s" % (mp, mode, shown, more)))
+        _judge_map(i, m.group(1).strip(), mode, problems, traits, pools, strict)
 
 
 
