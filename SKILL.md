@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.10.20
+version: 3.10.21
 author: 用户
 platforms: [windows]
 metadata:
@@ -124,6 +124,9 @@ python tools/ws.py diff --prev <旧> --cur <新>           # 两版数据全量�
 7. **改数据前先 `ws.py diff`**：无差异才动别的。
 
 > 验收/探针/发版的完整流程见 [docs/acceptance-flow.md](./docs/acceptance-flow.md)（三层仓分工、探针纪律、发版自检清单）。
+
+> 改动交接给自己/别人：先看 `HANDOFF.md`（在私有仓，含当前状态、已定结论、待办与写码硬规则）。
+> 验收/探针/发版流程见 [docs/acceptance-flow.md](./docs/acceptance-flow.md)。
 
 ## 版本更新：一条命令自更新
 
