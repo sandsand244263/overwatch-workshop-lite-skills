@@ -675,6 +675,25 @@ def check_hero_rule_multiplier(text, problems):
                          "只想留一个就把另一个改回 100%%" % (hero, rule, hero * rule / 100)))
 
 
+def check_reassign_create(text, problems):
+    """`重新赋值` 选「字符串」= 只改已有文本，不会创建 → 屏幕上永远没有东西。
+
+    2026-10-23 实机：HUD 规则里用 `创建HUD文本(…, 字符串, 默认可见度)` 每 0.5 秒调一次，
+    游戏里完全看不到 HUD。要出现，首次必须带可见性：`可见` 或 `可见和字符串`。
+    """
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if "创建HUD文本(" in s and re.search(r",\s*字符串\s*,\s*默认可见度\s*\)", s):
+            problems.append((ln, "warning",
+                             "创建HUD文本 的「重新赋值: 字符串」只改已有文本，不会创建；"
+                             "第一次要用「可见和字符串」，否则屏幕上什么都看不到"))
+        if "创建效果(" in s and re.search(r",\s*无\s*\)\s*;?\s*$", s):
+            problems.append((ln, "warning",
+                             "创建效果 的「重新赋值: 无」等于什么都不做；要显示得选「可见」或带位置/半径的那几项"))
+
+
 def check_health_percent_param(text, problems):
     """`设置最大生命值` 的参数是**百分比**（100 = 原值），不是绝对血量。
 
@@ -3413,6 +3432,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_reassign_create(text, problems)
     check_health_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
