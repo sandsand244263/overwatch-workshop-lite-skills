@@ -28,6 +28,7 @@
 | 13 | 事件参数取值、地图 id 为 0、变量名只差大小写、子程序声明未调用、变量声明未赋值 | — |
 | 14 | 元素数接近上限（16384~32768） | 估算不精确，只提示 |
 | 15 | 地图编号前缀对、但编号表里查不到 | `地图编号 972777519512068999 不在已知编号表里（可能抄错一位，游戏会拒绝导入）` |
+| 16 | 大厅栏位越过实测边界 | `玩家上限 队伍1 的值 13 超过上限 12` / `队伍1 + 队伍2 合计 13 人，超过大厅总共 12 个栏位` / `合计 0 人，大厅至少要留 1 个栏位` —— 边界来自界面滑杆（`data/setting-ranges-lobby.tsv`），**不是**游戏数据里的 min/max，所以只提示不拦 |
 
 ## 数据 ID 层（error，对照 `data/` 当前版本表）
 
@@ -95,10 +96,11 @@
 | G | 语义类：`持续` 规则不循环、`While` 无退出、HUD 数量上限 | **能导入但行为不对** | 高（只能靠实测，见 `docs/pitfalls-runtime.md`） |
 | H | 元素数只是估算（系数 2.12），不等于游戏诊断面板真值 | 临界判断会偏 | 中 |
 | I | 设置键只在「设置块里、且不在英雄块里」查；英雄块键走技能名检查 | 英雄块里的非技能键改名会漏 | 中 |
+| J | 不按大厅栏位推算可用扩展点数（`可用点数 = 4 × 空栏位数`） | 栏位写小、扩展开多时算不出超没超 | 中（大厅键常被整段省略，输入不可靠，见 `docs/extensions.md`） |
 
 ## 反向用例（防退化）
 
-`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**16 个**）。
+`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**27 个**）。
 `python tools/ws.py check-all` 会同时跑正样本（必须全过）和反向用例（必须报出预期错误）。
 
 **只测正样本是不够的**——校验器最容易的退化方式，是"什么都放行"。
@@ -116,6 +118,8 @@
 | `rule-too-long.ow` | 单规则 98KB |
 | `element-over-limit.ow` | 元素数上限 |
 | `value-as-action.ow` / `bare-function.ow` / `event-missing-param.ow` / `event-player-in-global.ow` / `setting-out-of-range.ow` / `missing-var-block.ow` | 格式层 |
+| `map-bad-variant.ow` | 地图编号抄错一位 |
+| `lobby-over-limit.ow` / `lobby-spectator-over.ow` / `lobby-zero-slots.ow` | 大厅栏位：两队合计超 12、观战超上限、两队都是 0 |
 
 正样本 `tools/probes/name-tables.ow` 专门锁"合法名字不该报错"：英雄名、按钮名、技能名、
 设置键、事件名、子程序声明+调用各走一遍。

@@ -23,3 +23,6 @@ bad-dropdown.ow	只能填
 map-bad-variant.ow	不在已知编号表里
 map-objective-mismatch.ow	没有目标点	没有目标点的地图配目标类模式
 map-pool-miss.ow	的地图池里	地图不在该模式池里
+lobby-over-limit.ow	超过大厅总共	两队 7+6 = 13，超过大厅 12 个栏位
+lobby-spectator-over.ow	超过上限 12	观战者写 999
+lobby-zero-slots.ow	至少要留 1 个栏位	两队都写 0，开不了局

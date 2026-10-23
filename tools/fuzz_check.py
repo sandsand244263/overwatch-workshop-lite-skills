@@ -131,15 +131,22 @@ MUTATIONS = [
 
 
 def check_file(path):
+    """返回 (必改条数, 提示条数)。
+
+    两档分开统计：必改是「会挡导入」的硬错；提示级（如大厅边界、皮肤上限）
+    只要报出来也算「发现」，否则一堆提示级检查坏了也看不出来（同 E-15 的教训）。
+    """
     probs = core.full_lint(path, DATA)
-    return [p for p in probs if p[1] == "error"]
+    errs = [p for p in probs if p[1] == "error"]
+    warns = [p for p in probs if p[1] != "error"]
+    return len(errs), len(warns)
 
 
 def run_one(path, rounds, verbose=False):
     base, _enc = core.read_text(path)
     stat = {}
     for name, fn in MUTATIONS:
-        hit = miss = 0
+        hit = hit_warn = miss = 0
         misses = []
         for _ in range(rounds):
             mutated = fn(base)
@@ -149,21 +156,24 @@ def run_one(path, rounds, verbose=False):
             os.close(fd)
             with open(tmp, "w", encoding="utf-8", newline="\n") as f:
                 f.write(mutated)
-            errs = check_file(tmp)
+            n_err, n_warn = check_file(tmp)
             os.remove(tmp)
-            if errs:
+            if n_err:
                 hit += 1
+            elif n_warn:
+                hit_warn += 1
             else:
                 miss += 1
                 diffs = [(i + 1, a, b) for i, (a, b) in
                          enumerate(zip(base.split("\n"), mutated.split("\n"))) if a != b]
                 if diffs:
                     misses.append(diffs[0])
-        if hit + miss:
-            stat[name] = (hit, miss, misses[:2])
+        if hit + hit_warn + miss:
+            stat[name] = (hit, hit_warn, miss, misses[:2])
             if verbose and miss:
                 print("   ✗ %s：漏报 %d/%d，例：第 %s 行 %r → %r"
-                      % (name, miss, hit + miss, misses[0][0], misses[0][1][:60], misses[0][2][:60]))
+                      % (name, miss, hit + hit_warn + miss, misses[0][0],
+                         misses[0][1][:60], misses[0][2][:60]))
     return stat
 
 
@@ -188,18 +198,21 @@ def main():
     for path in files:
         print("\n== %s" % os.path.basename(path))
         stat = run_one(path, a.rounds, verbose=a.verbose)
-        for name, (hit, miss, misses) in stat.items():
-            t = total.setdefault(name, [0, 0])
+        for name, (hit, hit_warn, miss, misses) in stat.items():
+            t = total.setdefault(name, [0, 0, 0])
             t[0] += hit
-            t[1] += miss
-            print("   %-22s 检出 %2d / %2d" % (name, hit, hit + miss))
+            t[1] += hit_warn
+            t[2] += miss
+            print("   %-22s 检出 %2d / %2d%s" % (name, hit, hit + hit_warn + miss,
+                                                 "（其中提示级 %d）" % hit_warn if hit_warn else ""))
 
     print("\n== 合计")
     bad = 0
-    for name, (hit, miss) in sorted(total.items(), key=lambda kv: kv[1][1], reverse=True):
-        n = hit + miss
-        rate = 100.0 * hit / n if n else 0
-        print("   %-22s %5.1f%%  (%d/%d)" % (name, rate, hit, n))
+    for name, (hit, hit_warn, miss) in sorted(total.items(), key=lambda kv: kv[1][2], reverse=True):
+        n = hit + hit_warn + miss
+        rate = 100.0 * (hit + hit_warn) / n if n else 0
+        extra = "（提示级 %d，占 %.0f%%）" % (hit_warn, 100.0 * hit_warn / n) if hit_warn else ""
+        print("   %-22s %5.1f%%  (%d/%d)%s" % (name, rate, hit + hit_warn, n, extra))
         if miss:
             bad += miss
     print("\n总漏报 %d 处" % bad)

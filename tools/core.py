@@ -416,16 +416,39 @@ def load_event_param_words(path):
     return out
 
 
+def _opt_float(s):
+    """空串 / None -> None（表示「这一侧边界没有证据」），否则 float。"""
+    s = (s or "").strip()
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
 def load_setting_ranges(path):
-    """设置键 -> (min, max)。同名键取最宽区间。"""
+    """设置键 -> (min, max, level)。同名键以后读到的为准。
+
+    两张表合并：`setting-ranges.tsv`（游戏数据里的 min/max，error 级）+
+    `setting-ranges-lobby.tsv`（大厅页只能在界面里看滑杆，warning 级）。
+    边界可以只有一侧：没证据的那一侧留空，宁可只查单边，也不凭空编一个
+    上下限去误报（见 DECISIONS D-042）。
+    """
     import csv as _csv
     out = {}
-    if os.path.isfile(path):
-        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
-            try:
-                out[r["key"]] = (float(r["min"]), float(r["max"]))
-            except (KeyError, ValueError):
+    for fp in (path, os.path.join(os.path.dirname(path), "setting-ranges-lobby.tsv")):
+        if not os.path.isfile(fp):
+            continue
+        for r in _csv.DictReader(open(fp, encoding="utf-8"), delimiter="\t"):
+            key = (r.get("key") or "").strip()
+            if not key:
                 continue
+            lo, hi = _opt_float(r.get("min")), _opt_float(r.get("max"))
+            if lo is None and hi is None:
+                continue
+            level = (r.get("level") or "error").strip() or "error"
+            out[key] = (lo, hi, level)
     return out
 
 
@@ -460,7 +483,11 @@ def check_event_player_scope(text, problems):
 
 
 def check_setting_range(text, ranges, problems):
-    """设置块的数值不能超出范围（如 获胜得分 是 1-9）。"""
+    """设置块的数值不能超出已知边界（如 获胜得分 是 1-9）。
+
+    边界可能只有一侧（大厅页只能看到滑杆最大值）；只有一侧有证据时就只查那一侧。
+    level 跟着数据来源走：游戏数据里的 min/max 是 error，实机看到的滑杆边界是 warning。
+    """
     if not ranges:
         return
     for idx, line in enumerate(text.split("\n"), 1):
@@ -468,11 +495,55 @@ def check_setting_range(text, ranges, problems):
         if not m:
             continue
         key, val = m.group(1).strip(), float(m.group(2))
-        if key in ranges:
-            lo, hi = ranges[key]
-            if val < lo or val > hi:
-                problems.append((idx, "error",
-                                 "%s 的值 %s 超出范围（%g~%g）" % (key, m.group(2), lo, hi)))
+        if key not in ranges:
+            continue
+        lo, hi, level = ranges[key]
+        if lo is None and hi is None:
+            continue
+        if not ((hi is not None and val > hi) or (lo is not None and val < lo)):
+            continue
+        if lo is None:
+            msg = "%s 的值 %s 超过上限 %g" % (key, m.group(2), hi)
+        elif hi is None:
+            msg = "%s 的值 %s 低于下限 %g" % (key, m.group(2), lo)
+        else:
+            msg = "%s 的值 %s 超出范围（%g~%g）" % (key, m.group(2), lo, hi)
+        problems.append((idx, level, msg))
+
+
+LOBBY_TEAM_SLOTS = 12      # 大厅总栏位：队伍1 + 队伍2 之和的上限（实机确认）
+
+
+def check_lobby_team_sum(text, problems):
+    """大厅栏位：两队玩家上限之和要落在 1~12 之间。
+
+    2026-10-23 用户实机确认：
+      - 队伍1 + 队伍2 加起来最多 12 人，所以 6+6、8+4、12+0 都行，7+6 不行
+        （逐键单看都没超，只有加起来才露陷）；
+      - 最少 1 人才能开局，所以 0+0 不行，但 12+0、6+0 这种「一队空」是合法的。
+
+    等级跟大厅其他边界一致：warning（边界来自界面观察，不是游戏数据）。
+    栏位还跟扩展点数挂钩（可用点数 = 4 × 空栏位数，见 docs/extensions.md 第七节），
+    但因为大厅键在真实文件里常被整段省略，这里不按栏位去推算扩展点数。
+    """
+    vals = {}
+    for idx, line in enumerate(text.split("\n"), 1):
+        m = re.match(r"^\s*玩家上限\s*队伍([12])\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
+        if m:
+            vals[m.group(1)] = (idx, float(m.group(2)))
+    if len(vals) < 2:
+        return
+    total = vals["1"][1] + vals["2"][1]
+    idx = max(vals["1"][0], vals["2"][0])
+    if vals["1"][1] > LOBBY_TEAM_SLOTS or vals["2"][1] > LOBBY_TEAM_SLOTS:
+        return          # 单键已经超了，逐键的「超出范围」会报，别重复提示
+    if total > LOBBY_TEAM_SLOTS:
+        problems.append((idx, "warning",
+                         "玩家上限 队伍1 + 队伍2 合计 %g 人，超过大厅总共 %d 个栏位"
+                         % (total, LOBBY_TEAM_SLOTS)))
+    elif total < 1:
+        problems.append((idx, "warning",
+                         "玩家上限 队伍1 + 队伍2 合计 0 人，大厅至少要留 1 个栏位才能开局"))
 
 
 def load_element_kinds(path):
@@ -2569,6 +2640,12 @@ SUGGESTIONS = [
      "复用变量：把只在一个规则里用的临时变量合并"),
     (r"超出范围（",
      "改成范围内的值；默认值用 python tools/ws.py defaults 设置键名 查"),
+    (r"超过上限 ",
+     "大厅项在游戏里滑杆滑到最右就是这个数，写更大不会生效"),
+    (r"超过大厅总共",
+     "两队上限加起来不能超过 12：6+6、8+4、12+0 都行，7+6 不行；单人模式写 12+0"),
+    (r"至少要留 1 个栏位",
+     "至少给一队留 1 人；只开一队的话写 12+0 或 1+0，两队都 0 开不了局"),
     (r"是布尔项，只能写 开启 / 关闭",
      "写成 开启 或 关闭，不要写 是/否/true"),
     (r"这个位置要写 全部禁用",
@@ -2879,6 +2956,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
+    check_lobby_team_sum(text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
