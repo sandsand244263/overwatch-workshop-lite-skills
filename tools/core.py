@@ -912,13 +912,16 @@ def load_key_parent_layers(path=None):
 
 
 def check_setting_key_layers(text, problems):
-    """设置键挂进了实测会拒它的那个模式块。
+    """设置键写进了实测会拒它的那个「模式块」。
 
-    实测 2026-10-23：
-      · W1/W2：随机英雄复生 / 允许切换英雄 写进「模式 > 决斗先锋」→ 被拒；
-      · X2：同样两个键写进「模式 > 综合」→ 通过；
-      · T1：写进「模式 > 死斗」→ 通过（死斗挂了 008 英雄 schema）
-    所以判定是「键 × 该模式」的否定式，不是「只能挂综合」。
+    只报**实机验证过的组合**（`data/key-parent-layers.tsv` 的 forbidden_parents）：
+      · 随机英雄复生 / 允许切换英雄 写进「模式 > 决斗先锋」→ 被拒（W1/W2）
+      · 同样两个键写进「模式 > 综合」→ 通过（X2）；写进「模式 > 死斗」→ 通过（V1）
+
+    为什么不做通用规则：曾经按「该模式挂载的 schema 里有没有这个键」整表判（schema-keys +
+    mode-schemas 交叉），模型在 6 个实机点上只错 1 个（别名条目那条），但一放到真实语料上
+    就 5 个文件误报——因为 schema 归属不等于导入器接受集（别名/Category 那一层数据还没拿到）。
+    按 D-006「误报比漏报更伤」，先只保留硬证据，等拿到 per-(schema,key) 的 Category 再扩。
     """
     layers = load_key_parent_layers()
     if not layers:
@@ -946,16 +949,13 @@ def check_setting_key_layers(text, problems):
             if not m or not stack:
                 continue
             key = m.group(1).strip()
-            bad = layers.get(key)
-            if not bad:
-                continue
+            bad = layers.get(key) or set()
             parent = stack[-1]
             if parent in modes and parent in bad:
                 problems.append((ln, "error",
                                  "「%s」不能写在「%s」块里——这个组合实测被拒（导入报"
                                  "「之后应有一个游戏模式设置」）。改写进「模式 > 综合」，"
-                                 "或换一个挂了它所属 schema 的模式"
-                                 % (key, parent)))
+                                 "或换一个挂了它所属 schema 的模式" % (key, parent)))
             continue
         pending = s
 
