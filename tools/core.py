@@ -643,6 +643,29 @@ def check_lobby_ffa_slots(text, problems):
                              "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
 
 
+def check_probe_output(path, text, problems):
+    """实验探针（`tools/probes/lab/`）的读数必须走 `记入查看器`。
+
+    2026-10-23 教训：给用户实机跑的文件如果用 `大字体信息` 显示结果，用户只能手抄或截图；
+    查看器面板能一键「将当前记录复制到剪贴板」。这条本来是 SKILL.md 的生成纪律，
+    但写探针时没加载 SKILL.md 就会漏 —— 所以放到校验器里守门。
+    只对 lab/ 目录生效，不动历史探针（那 13 个用 HUD 的是故意测 HUD 本身）。
+    """
+    p = (path or "").replace("\\", "/")
+    if "/probes/lab/" not in p:
+        return
+    if "记入查看器" not in text:
+        problems.append((0, "warning",
+                         "实验探针里没有任何 记入查看器：用户拿不到结果，别用屏幕文字"))
+        return
+    for i, line in enumerate(text.split("\n"), 1):
+        if "大字体信息" in line or "小字体信息" in line:
+            problems.append((i, "warning",
+                             "实验探针用 大字体信息/小字体信息 显示结果：屏幕字只能手抄或截图，"
+                             "改用 记入查看器（面板一键复制）"))
+            break
+
+
 def load_element_kinds(path):
     """元素名 -> 动作 / 值 / 事件 / 扩展。"""
     import csv as _csv
@@ -3063,6 +3086,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
