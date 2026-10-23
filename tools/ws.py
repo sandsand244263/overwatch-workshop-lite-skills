@@ -468,7 +468,11 @@ def cmd_scaffold(a):
 
 
 def cmd_selftest(args):
-    """工具自身的体检：同名函数重复定义会让旧版本静默生效（已踩过一次）。"""
+    """工具自身的体检：同名函数重复定义会让旧版本静默生效（已踩过一次）。
+
+    同时检查版本号一致性：SKILL.md / VERSION / marketplace.json 三处不一致，
+    会让自更新判断错乱（升不上去或反复提示）。
+    """
     import ast, collections, glob, os
     here = os.path.dirname(os.path.abspath(__file__))
     bad = 0
@@ -485,6 +489,27 @@ def cmd_selftest(args):
         if dup:
             print("✗ %s 重复定义（后定义的会静默生效）：%s" % (os.path.basename(f), dup))
             bad += 1
+    # 版本号三处一致性
+    ver_file = ""
+    vp = os.path.join(ROOT, "VERSION")
+    if os.path.isfile(vp):
+        ver_file = open(vp, encoding="utf-8").read().strip()
+    ver_skill = _skill_version() or ""
+    ver_mk = ""
+    mp = os.path.join(ROOT, ".claude-plugin", "marketplace.json")
+    if os.path.isfile(mp):
+        try:
+            ver_mk = (json.load(open(mp, encoding="utf-8")) or {}).get("version", "")
+        except (OSError, ValueError):
+            ver_mk = "读取失败"
+    versions = {"VERSION": ver_file, "SKILL.md": ver_skill, "marketplace.json": ver_mk}
+    uniq = {v for v in versions.values() if v}
+    if len(uniq) > 1:
+        print("✗ 版本号不一致：%s" % versions)
+        bad += 1
+    else:
+        print("版本号一致：v%s" % (ver_file or "?"))
+
     print("工具自检：%s" % ("通过" if bad == 0 else "%d 个文件有问题" % bad))
     return 0 if bad == 0 else 1
 

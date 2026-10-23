@@ -3541,6 +3541,24 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     if raw.count('"') % 2:
         problems.append((0, "error", "双引号数量是奇数，有字符串没闭合"))
 
+    # 同类提示合并：同一个文件里「英雄页 × 规则 相乘」和「导出吞值」重复三五条时，
+    # 逐条报会把真正要注意的东西淹掉（暴打大锤3 一次 7 条、找蛋躲猫猫 2 条同键）。
+    def _group(kind, match, summary):
+        hit = [p for p in problems if match(p[2])]
+        if len(hit) < 3:
+            return
+        lines = [p[0] for p in hit if p[0]]
+        for p in hit:
+            problems.remove(p)
+        problems.append((lines[0] if lines else 0, "warning",
+                         summary % (len(hit), ", ".join(str(x) for x in lines[:8]))))
+
+    _group("mult", lambda m: m.startswith("英雄页") and "× 规则" in m,
+           "%d 处「英雄页设置 × 规则设置」同时存在（见第 %s 行）：两者相乘，"
+           "只想留一个就把另一边改回 100%%")
+    _group("swallow", lambda m: "导出已知会把它吞掉" in m,
+           "%d 处设置项没有值（第 %s 行），都是导出吞值的已知缺陷：补上真实数值即可")
+
     seen, unique = set(), []
     for item in problems:
         line_no, level, msg = item[0], item[1], item[2]
