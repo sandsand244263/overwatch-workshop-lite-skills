@@ -689,9 +689,6 @@ def check_reassign_create(text, problems):
             problems.append((ln, "warning",
                              "创建HUD文本 的「重新赋值: 字符串」只改已有文本，不会创建；"
                              "第一次要用「可见和字符串」，否则屏幕上什么都看不到"))
-        if "创建效果(" in s and re.search(r",\s*无\s*\)\s*;?\s*$", s):
-            problems.append((ln, "warning",
-                             "创建效果 的「重新赋值: 无」等于什么都不做；要显示得选「可见」或带位置/半径的那几项"))
 
 
 def check_health_percent_param(text, problems):
