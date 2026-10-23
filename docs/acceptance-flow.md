@@ -71,7 +71,7 @@ gh release create vX.Y.Z --title "vX.Y.Z" --notes "- 一句一条"
 发版前自检（缺一不发）：
 
 - [ ] `selftest` 通过
-- [ ] `check-all` 全过（反向用例数要跟着涨）
+- [ ] `check-all` 全过（反向用例数要跟着涨）——**看「正样本 N 个：N 通过 / 0 失败」那一行**，只看最后的反向用例统计会漏掉正样本失败
 - [ ] `calib` 偏差 0
 - [ ] 有语料时 `corpus` 无新增 error
 - [ ] SKILL.md / VERSION / CHANGELOG / marketplace.json 版本号一致

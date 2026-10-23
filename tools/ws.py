@@ -65,15 +65,21 @@ def _base_options():
     return _OPT_CACHE
 
 
+LAST_CHECK = {}   # cmd_check 最近一次统计，供 check-all 打正样本汇总
+
+
 def cmd_check(args):
     """校验。默认输出分两段：必改（会挡导入）/ 提示（多数可忽略）。
 
     --json 时只输出结构化结果，供编辑器与 CI 使用。
     """
+    global LAST_CHECK
     sigs, labels, settings = load()
     failed = 0
+    seen = 0
     report = []
     for path in args.files:
+        seen += 1
         name = os.path.basename(path)
         if not os.path.isfile(path):
             if getattr(args, "json", False):
@@ -128,6 +134,7 @@ def cmd_check(args):
 
     if getattr(args, "json", False):
         print(json.dumps(report, ensure_ascii=False, indent=2))
+    LAST_CHECK = {"total": seen, "failed": failed}
     return 1 if failed else 0
 
 
@@ -137,6 +144,13 @@ def cmd_check_all(args):
             sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "calib", "*.ow"))) + \
             sorted(glob.glob(os.path.join(ROOT, "tools", "probes", "samples", "*.ow")))
     rc = cmd_check(type("A", (), {"files": files, "max_warn": 20, "json": False})())
+    # 正样本汇总必须打出来：以前只有每个文件的 ✓/✗ 和最后的反向用例统计，
+    # 正样本失败时结论行看不出问题（2026-10-23 golden.ow 就因此漏过一次）
+    st = LAST_CHECK or {}
+    print("\n正样本 %d 个：%d 通过 / %d 失败"
+          % (st.get("total", 0), st.get("total", 0) - st.get("failed", 0), st.get("failed", 0)))
+    if st.get("failed"):
+        rc = 1
 
     # 反向用例：坏文件必须报出预期错误，没报出来就是校验器退化
     neg_dir = os.path.join(ROOT, "tools", "probes", "negative")
@@ -233,31 +247,39 @@ def cmd_map_code(args):
 
 
 def cmd_count(args):
-    """元素数估算：给出区间而不是单值。
+    """元素数估算：探针级给精确值，真实规模给区间。
 
-    实测两组：
-      · 小探针（200~300 元素）：估 143/实 138、248/253、272/278——偏差 ±4% 内
-      · 真实模式（5 个，6千~3.3万元素）：实测都是**低估** −4.1% / −5.5% / −11.2% / −18.8% / −12.0%
-    所以区间按 ×0.80 ~ ×1.06 给，并说明大模式多半会更多（D-065 修订）。
+    实测依据（43 个标定探针 + 私有仓 corpus/real-totals.tsv 的 5 个真实模式）：
+      · 探针级（<2000 元素）：模型偏差 ≤6 个元素，可以直接用
+      · 真实模式（6千~3.3万）：模型一律**偏低**，真实值 = 估算 ×1.04 ~ ×1.23
+        （−4.1% / −5.5% / −11.2% / −18.8% / −12.0%，与规模无关、与任何单一结构都不相关）
+    所以区间只向上给（×1.03 ~ ×1.25，上界比实测最高增幅再留余量），判上限按上界判。
     """
     from element_count2 import estimate2
     from element_count import estimate, describe
+    CAP, SMALL = 32768, 2000
+    RATIO_LO, RATIO_HI = 1.03, 1.25
     for path in args.files:
+        name = os.path.basename(path)
         if getattr(args, "legacy", False):
             est, detail = estimate(path, load()[0], load()[1])
-            print("%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail)))
+            print("%s：预计 %d 个元素（%s）" % (name, est, describe(detail)))
             continue
         est = estimate2(path)
-        lo, hi = int(est * 0.80), int(est * 1.06) + 1
-        tip = ""
-        if est >= 20000:
-            tip = "；这个量级历史上偏低 5~19%，别贴着 32768 用"
-        print("%s：约 %d 个元素（游戏里可能显示 %d ~ %d%s）"
-              % (os.path.basename(path), est, lo, hi, tip))
-        if hi >= 30000:
-            print("  ⚠ 已经接近 32768 上限，请进游戏看「显示诊断结果 → 总计元素数量」确认，别只信估算。")
+        if est < SMALL:
+            print("%s：约 %d 个元素（探针级规模，实测偏差 ≤6 个）" % (name, est))
+            print("  离 32768 还很远，估算误差不影响。")
+            continue
+        lo, hi = int(est * RATIO_LO), int(est * RATIO_HI) + 1
+        print("%s：模型估 %d，真实值多半在 %d ~ %d" % (name, est, lo, hi))
+        print("  （真实模式模型一律偏低，上界按最坏情况算；最终数字以游戏「显示诊断结果 → 总计元素数量」为准）")
+        if lo > CAP:
+            print("  ✗ 必定超上限：按最低增幅也算到 %d，已过 32768，先压元素（见 docs/cost-patterns.md）" % lo)
+        elif hi > CAP:
+            print("  ⚠ 可能超上限：最坏情况 %d（超 %d），真实值只要落在 32768 以上就导不进去，别赌"
+                  % (hi, hi - CAP))
         else:
-            print("  上限 32768；离上限还远，估算误差不影响。")
+            print("  上限 32768，按最坏情况还余 %d 个。" % (CAP - hi))
     return 0
 
 
@@ -761,8 +783,9 @@ def cmd_totals(args):
         print("没有实测表：%s" % path)
         return 2
     rows = list(_csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"))
-    print("%-26s %8s %8s %8s" % ("文件", "实测", "估算", "偏差"))
+    print("%-26s %8s %8s %8s %8s" % ("文件", "实测", "估算", "偏差", "真实/估算"))
     tot_r = tot_e = 0
+    ratios = []
     for r in rows:
         name = (r.get("file") or "").strip()
         if not name:
@@ -780,11 +803,18 @@ def cmd_totals(args):
         est = estimate2(f)
         tot_r += real
         tot_e += est
-        print("%-26s %8d %8d %+8d (%+.1f%%)"
-              % (name, real, est, est - real, (est - real) * 100.0 / real))
+        ratio = real / float(est) if est else 0
+        ratios.append(ratio)
+        print("%-26s %8d %8d %+8d (%+.1f%%) %8.3f"
+              % (name, real, est, est - real, (est - real) * 100.0 / real, ratio))
     if tot_r:
-        print("%-26s %8d %8d %+8d (%+.1f%%)"
-              % ("合计", tot_r, tot_e, tot_e - tot_r, (tot_e - tot_r) * 100.0 / tot_r))
+        print("%-26s %8d %8d %+8d (%+.1f%%) %8.3f"
+              % ("合计", tot_r, tot_e, tot_e - tot_r, (tot_e - tot_r) * 100.0 / tot_r,
+                 tot_r / float(tot_e) if tot_e else 0))
+    if ratios:
+        # 判定用区间（count 的 ×1.03 ~ ×1.25 就来自这里：实测最低/最高增幅各留一点余量）
+        print("实测「真实/估算」倍率 %.3f ~ %.3f → count 按 ×1.03 ~ ×1.25 给区间"
+              % (min(ratios), max(ratios)))
     return 0
 
 def cmd_calib(a):
