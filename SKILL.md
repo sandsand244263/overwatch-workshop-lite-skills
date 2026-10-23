@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.10.23
+version: 3.10.24
 author: 用户
 platforms: [windows]
 metadata:
@@ -234,6 +234,7 @@ python tools/ws.py doc --search 数组       # 按关键词搜说明
 | 要动地图 / 时段 / 模式名 | `ws.py map-code`、查池子 | `docs/pitfalls-map.md` |
 | 写动作、字符串、变量、数组 | `ws.py doc <动作>` | `docs/pitfalls-syntax.md`、`docs/syntax.md` |
 | 规则不跑 / 计分不对 / 不结束 | 实机诊断 | `docs/pitfalls-runtime.md`、`docs/diagnostics.md` |
+| 能导入但行为不对（该循环的不循环、触发次数不对） | 对照执行模型表 | `docs/pitfalls-runtime.md`、`docs/limits.md` 三之二 |
 | 怀疑导出失真 | `ws.py fix 文件.ow` | `docs/pitfalls-export.md` |
 | 「多少个元素」「快到上限了」 | `ws.py count 文件.ow` | `docs/limits.md`、`docs/cost-patterns.md` |
 | 调英雄数值 | `ws.py stats <英雄>` | `docs/hero-stats.md` |
