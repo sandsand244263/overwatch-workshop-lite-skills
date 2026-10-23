@@ -117,13 +117,42 @@ def _iter_calls(text, name):
         yield m.start(), m.end(), i - 1
 
 
+def _no_slots_from_data():
+    """从数据里找「选项里有 全部禁用」的参数位：{(函数名, 参数序)} → 排序元组。
+
+    比硬编码表靠谱：导出会在任何 dropdown 槽写「无」，游戏只认「全部禁用」。
+    """
+    import csv as _csv
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "data", "param-options.tsv")
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    try:
+        with open(path, encoding="utf-8-sig") as f:
+            for row in _csv.DictReader(f, delimiter="\t"):
+                elem = (row.get("element") or row.get("元素") or "").strip()
+                idx = (row.get("index") or row.get("序号") or "").strip()
+                opts = (row.get("options") or row.get("选项") or "")
+                if not elem or not idx.isdigit():
+                    continue
+                if "全部禁用" in opts:
+                    out.setdefault(elem, set()).add(int(idx))
+    except (OSError, ValueError):
+        return out
+    return out
+
+
 def fix_none_args(text):
     """导出写「无」、编辑器要「全部禁用」的位置。返回 (新文本, 修改处数)。
 
     要点：必须用括号配对找实参，不能靠正则——实参里常有 数组(颜色(...)) 这种嵌套。
     """
     changes = 0
-    for name, slots in NO_TO_DISABLED.items():
+    table = dict(NO_TO_DISABLED)
+    for name, idxs in _no_slots_from_data().items():
+        table[name] = tuple(sorted(set(table.get(name, ())) | idxs))
+    for name, slots in table.items():
         while True:
             hit = None
             for start, body_start, close in _iter_calls(text, name):

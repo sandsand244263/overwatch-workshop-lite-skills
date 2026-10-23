@@ -290,7 +290,7 @@ FOR_PREFIX = re.compile(r"For\s+$")
 VARIADIC = {"数组", "自定义字符串", "字符串"}
 
 
-def scan_calls(text, sigs, labels, problems, options=None):
+def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None):
     options = options or {}
     i, n = 0, len(text)
     while i < n:
@@ -326,6 +326,18 @@ def scan_calls(text, sigs, labels, problems, options=None):
                 line = text[:start].count("\n") + 1
                 arg_pos = split_args_pos(inner, i + 1) if inner.strip() else []
                 arg_list = [a.strip() for a, _p in arg_pos]
+
+                # 数据驱动：这个槽的选项里只要有「全部禁用」，「无」就是导出噪声 → 必改
+                _dd_slots = {}
+                for (_elem, _idx), _opts in (dropdowns or {}).items():
+                    if _elem == name:
+                        _dd_slots[_idx] = _opts
+                for _slot, _opts in _dd_slots.items():
+                    if len(arg_list) > _slot and arg_list[_slot] == "无" and "全部禁用" in _opts:
+                        problems.append((line, "error",
+                                         "%s 第 %d 个参数要选项，导出把「全部禁用」写成了「无」；"
+                                         "改成 全部禁用（ws.py fix 文件 --fix-bools 可自动改）"
+                                         % (name, _slot + 1)))
 
                 for slot in (VERIFIED_NO_SLOTS.get(name) or {}).get("slots", ()):
                     if len(arg_list) >= abs(slot) and arg_list[slot] == "无":
@@ -2179,6 +2191,68 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
                              "该模式可用：%s%s" % (mp, mode, shown, more)))
 
 
+
+def load_importer_verified(path=None):
+    """{ (key, layer): 拒绝理由 } —— 实机确认过「这个键写在这层会被游戏拒绝」。
+
+    数据表 data/importer-verified.tsv：key / layer / mode / result / note / source
+    只认 result=rejected 的行；ok 与 unknown 都不动校验。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "importer-verified.tsv"))
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            if (row.get("result") or "").strip().lower() != "rejected":
+                continue
+            key = (row.get("key") or "").strip()
+            layer = (row.get("layer") or "").strip()
+            if key:
+                out[(key, layer)] = (row.get("note") or "").strip()
+    return out
+
+
+def check_importer_verified(text, problems, types=None):
+    """实机确认被拒的「键 + 层」组合 → 必改，不再让用户重新试一遍。"""
+    table = load_importer_verified()
+    if not table:
+        return
+    types = types or load_setting_types()
+    lines = text.split("\n")
+    stack, pending = [], None
+    for i, raw in enumerate(lines, 1):
+        st = strip_noise(raw).strip()
+        if not st:
+            continue
+        if st in BLOCK_KEYWORDS or st.startswith("规则("):
+            pending = "规则" if st.startswith("规则(") else st
+            if st.endswith("{"):
+                stack.append(pending)
+                pending = None
+            continue
+        if st.startswith("{"):
+            stack.append(pending if pending else (stack[-1] if stack else None))
+            pending = None
+            continue
+        if st.startswith("}"):
+            if stack:
+                stack.pop()
+            continue
+        m = re.match(r"^([^:：]{1,40})\s*[:：]\s*\S", st)
+        if not m:
+            if st not in BLOCK_KEYWORDS:
+                pending = st
+            continue
+        key = m.group(1).strip()
+        layer = stack[-1] if stack else None
+        note = table.get((key, layer))
+        if note:
+            problems.append((i, "error",
+                             "「%s」写在「%s」里会被游戏拒绝（实机确认）：%s"
+                             % (key, layer, note)))
+
+
 def check_setting_belongs(text, problems, types=None):
     """设置键必须写在它所属的层里（模式名块 / 综合 / 英雄 / 武器）。
 
@@ -2222,7 +2296,7 @@ def check_setting_belongs(text, problems, types=None):
         if layer not in all_schemas:
             continue
         if layer == "综合":
-            continue          # 综合是通用层：实测 复生时间 写在 综合 是合法的
+            continue          # 综合是通用层：实测 复生时间/随机英雄复生 写在 综合 都合法
         if "综合" in (info.get("schemas") or ()):
             continue          # 属于「综合」的通用键，写在任意模式块里都合法
         if key in COMMON_MODE_KEYS:
@@ -2250,15 +2324,16 @@ def collapse_export_noise(problems, path=None):
     逐条报没有意义——用户要做的是先跑 `ws.py fix`，不是手改几十行。
     判定用条数阈值：少量命中仍逐条报（手写文件改起来需要行号）。
     """
-    hits = [p for p in problems if any(m in p[2] for m in EXPORT_NOISE_MARKS)]
+    # 布尔项写「禁用/启用」现在是必改（实机确认会整块被拒），不再并进这条提示，
+    # 否则 3 处布尔 + 22 处「无」会被合成一条 warning，真正的拦路问题就被藏起来了。
+    marks = [m for m in EXPORT_NOISE_MARKS if m not in ("是布尔项",)]
+    hits = [p for p in problems if any(m in p[2] for m in marks) and "是布尔项" not in p[2]]
     if len(hits) < EXPORT_SUMMARY_MIN:
         return problems
-    rest = [p for p in problems if not any(m in p[2] for m in EXPORT_NOISE_MARKS)]
-    bools = sum(1 for p in hits if "是布尔项" in p[2])
-    nones = len(hits) - bools
-    tip = ("这份文件像是游戏导出的（%d 处布尔项写成显示词、%d 处写成「无」）："
+    rest = [p for p in problems if not (any(m in p[2] for m in marks) and "是布尔项" not in p[2])]
+    tip = ("这份文件像是游戏导出的（%d 处槽位写成「无」）："
            "导入前先跑 python tools/ws.py fix 文件 --fix-bools，别手改这 %d 行"
-           % (bools, nones, len(hits)))
+           % (len(hits), len(hits)))
     rest.append((hits[0][0], "warning", tip))
     rest.sort(key=lambda p: (p[0] or 0))
     return rest
@@ -2285,9 +2360,10 @@ def check_setting_bools(text, problems, types=None):
             # 注意：语料里到处都是 禁用，那是**导出产物**（导出写显示词，导入只认 开启/关闭），
             # 不能拿语料证明「禁用 合法」。详见 docs/settings-map.md 第二节、E-22。
 
-            problems.append((i, "warning",
-                             "「%s」是布尔项，这里写的是「%s」；多数情况要写 开启/关闭，"
-                             "但个别模式接受 禁用（实测：目标点决胜机制/推进背包 写禁用被拒）"
+            problems.append((i, "error",
+                             "「%s」是布尔项，这里写的是「%s」——导入只认 开启/关闭。"
+                             "导出文件里到处都是这类显示词，导入前先跑 ws.py fix 文件 --fix-bools"
+                             "（实测 2026-10-23：队伍界面/阵亡镜头 写 禁用 整块被拒，改成 关闭 就通过）"
                              % (key, val)))
 
 
@@ -3482,7 +3558,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
 
     all_vars = declared["全局"] | declared["玩家"]
     hero_names = load_hero_names()
-    scan_calls(masked, sigs, labels, problems, options)
+    scan_calls(masked, sigs, labels, problems, options, dropdowns)
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
@@ -3513,6 +3589,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_map_codes(text, problems, strict=strict)
     check_map_mode(text, problems, strict=strict)
     check_setting_belongs(text, problems)
+    check_importer_verified(text, problems)
     check_setting_bools(text, problems)
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))

@@ -235,8 +235,10 @@ def cmd_map_code(args):
 def cmd_count(args):
     """元素数估算：给出区间而不是单值。
 
-    三份完整模式样本（2026-10-23）实测：估 143/实 138（+3.6%）、估 248/实 253（-2.0%）、
-    估 272/实 278（-2.2%）——误差稳定在 ±4% 内，所以按 ×0.96 ~ ×1.06 给区间（D-065）。
+    实测两组：
+      · 小探针（200~300 元素）：估 143/实 138、248/253、272/278——偏差 ±4% 内
+      · 真实模式（5 个，6千~3.3万元素）：实测都是**低估** −4.1% / −5.5% / −11.2% / −18.8% / −12.0%
+    所以区间按 ×0.80 ~ ×1.06 给，并说明大模式多半会更多（D-065 修订）。
     """
     from element_count2 import estimate2
     from element_count import estimate, describe
@@ -246,9 +248,12 @@ def cmd_count(args):
             print("%s：预计 %d 个元素（%s）" % (os.path.basename(path), est, describe(detail)))
             continue
         est = estimate2(path)
-        lo, hi = int(est * 0.96), int(est * 1.06) + 1
-        print("%s：约 %d 个元素（游戏里一般显示 %d ~ %d，±4%%）"
-              % (os.path.basename(path), est, lo, hi))
+        lo, hi = int(est * 0.80), int(est * 1.06) + 1
+        tip = ""
+        if est >= 20000:
+            tip = "；这个量级历史上偏低 5~19%，别贴着 32768 用"
+        print("%s：约 %d 个元素（游戏里可能显示 %d ~ %d%s）"
+              % (os.path.basename(path), est, lo, hi, tip))
         if hi >= 30000:
             print("  ⚠ 已经接近 32768 上限，请进游戏看「显示诊断结果 → 总计元素数量」确认，别只信估算。")
         else:
