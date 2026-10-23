@@ -24,7 +24,7 @@ map-bad-variant.ow	不在已知编号表里
 map-objective-mismatch.ow	没有目标点	没有目标点的地图配目标类模式
 map-pool-miss.ow	的地图池里	地图不在该模式池里
 lobby-over-limit.ow	超过大厅总共	两队 7+6 = 13，超过大厅 12 个栏位
-lobby-spectator-over.ow	超过上限 12	观战者写 999
+lobby-spectator-over.ow	观战者人数上限 的值 999	观战者写 999（超出 0~12）
 lobby-zero-slots.ow	至少要留 1 个栏位	两队都写 0，开不了局
 lobby-one-team-twelve.ow	只写了 玩家上限	只写 队伍1: 12，另一队走默认值
 lobby-ffa-in-team-mode.ow	必须写 0	团队模式却写了自由混战 10
