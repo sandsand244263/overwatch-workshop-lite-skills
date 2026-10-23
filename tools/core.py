@@ -883,6 +883,85 @@ def check_maps_not_in_editor(text, problems):
                 break
 
 
+_KEY_PARENT_LAYERS = {"t": None}
+
+# 这些模式上「键挂错层」有实机证据，可以报必改；其余模式先只提示（未验证）
+KEY_LAYER_VERIFIED_MODES = {"决斗先锋"}
+
+
+def load_key_parent_layers(path=None):
+    """{设置键: 允许的父级块集合} —— data/key-parent-layers.tsv。
+
+    只收**已经有实机证据**的键：语料里它只出现在「综合」下，且实测写进具体模式块会被拒。
+    不要凭语料有无就整表生成：反例「显示英雄位置」语料里只出现在 决斗先锋 下，
+    但写进「综合」实机是通的（X1/X2），说明语料覆盖不等于合法集合。
+    """
+    if _KEY_PARENT_LAYERS["t"] is not None:
+        return _KEY_PARENT_LAYERS["t"]
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "key-parent-layers.tsv"))
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                k = (row.get("key") or "").strip()
+                allowed = (row.get("allowed_parents") or "").strip()
+                if k and allowed:
+                    out[k] = set(x.strip() for x in allowed.split("|") if x.strip())
+    _KEY_PARENT_LAYERS["t"] = out
+    return out
+
+
+def check_setting_key_layers(text, problems):
+    """设置键挂在错的层：键只属于「模式 > 综合」，却写进了某个具体模式块。
+
+    实测 2026-10-23（W1/W2 vs X2）：随机英雄复生 / 允许切换英雄 写在「模式 > 决斗先锋」里，
+    两个值词变体都被拒，报「…之后应有一个游戏模式设置」；写进「模式 > 综合」就通过。
+    """
+    layers = load_key_parent_layers()
+    if not layers:
+        return
+    modes = load_mode_name_set()
+    stack, pending = [], None
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if s == "{":
+            stack.append(pending or (stack[-1] if stack else None))
+            pending = None
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            pending = None
+            continue
+        if s.endswith("{"):
+            pending = s[:-1].strip()
+            continue
+        if ":" in s or "：" in s:
+            m = re.match(r"^([^:：]{1,40})\s*[:：]\s*\S", s)
+            if not m or not stack:
+                continue
+            key = m.group(1).strip()
+            allowed = layers.get(key)
+            if not allowed:
+                continue
+            parent = stack[-1]
+            # 只有挂在「具体模式块」下才算错；挂在 综合 / 别的层不动
+            if parent in modes and parent not in allowed:
+                # 严重度按证据分档：只在实际测过的模式上报必改，其余先提示
+                # （2026-10-23 只测了 决斗先锋；其余 20 个模式是否同样受限未验证，
+                #   报成必改会把 35 个合成样本全判红，属于误报洪水）
+                sev = "error" if parent in KEY_LAYER_VERIFIED_MODES else "warning"
+                problems.append((ln, sev,
+                                 "「%s」不该写在「%s」块里——它属于「%s」层"
+                                 "（2026-10-23 实机：写进「决斗先锋」块被拒，报"
+                                 "「之后应有一个游戏模式设置」；写进 综合 通过）"
+                                 % (key, parent, "、".join(sorted(allowed)))))
+            continue
+        pending = s
+
+
 def check_block_layers(text, problems):
     """块套错层：父级从来不在语料里出现过 → 导入基本必失败。
 
@@ -2367,14 +2446,37 @@ def collapse_export_noise(problems, path=None):
     return rest
 
 
-def check_setting_bools(text, problems, types=None):
-    """布尔项在 .ow 里只能写 开启 / 关闭（或 是 / 否）；「禁用」是界面词，导入会失败。
+_LOBBY_KEYS = {"set": None}
 
-    实测：目标点决胜机制 / 推进背包 / 尖刺墙 写成「禁用」都被拒。
+
+def load_lobby_keys(path=None):
+    """大厅键集合（data/lobby-keys.tsv 的 key 列）。大厅键在 .ow 里确实写 是/否。"""
+    if _LOBBY_KEYS["set"] is not None:
+        return _LOBBY_KEYS["set"]
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "lobby-keys.tsv"))
+    out = set()
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                k = (row.get("key") or "").strip()
+                if k:
+                    out.add(k)
+    _LOBBY_KEYS["set"] = out
+    return out
+
+
+def check_setting_bools(text, problems, types=None, lobby_keys=None):
+    """布尔项在 .ow 里只能写 开启 / 关闭；「禁用/启用」是界面词，「是/否」也不认。
+
+    实测（2026-10-23，一次性探针 W3/W4、W5/W6、W7/W8）：
+      · 竞技比赛规则 / 控制点A 写 启用 → 整块被拒；写 开启 → 通过
+      · 得分需我方旗帜在基地中 / 闪电赛旗帜位置 写 是 → 被拒；写 开启 → 通过
+    大厅键例外：`队列中的玩家可以加入: 是` 是导出原文，大厅块用 是/否。
     """
     types = types or load_setting_types()
     if not types:
         return
+    lobby_keys = lobby_keys if lobby_keys is not None else load_lobby_keys()
     for i, raw in enumerate(text.split("\n"), 1):
         st = strip_noise(raw).strip()
         m = re.match(r"^([^:：]{1,40})\s*[:：]\s*([^\s]+)\s*$", st)
@@ -2392,6 +2494,12 @@ def check_setting_bools(text, problems, types=None):
                              "「%s」是布尔项，这里写的是「%s」——导入只认 开启/关闭。"
                              "导出文件里到处都是这类显示词，导入前先跑 ws.py fix 文件 --fix-bools"
                              "（实测 2026-10-23：队伍界面/阵亡镜头 写 禁用 整块被拒，改成 关闭 就通过）"
+                             % (key, val)))
+        elif val in ("是", "否") and key not in lobby_keys:
+            problems.append((i, "error",
+                             "「%s」是布尔项，这里写的是「%s」——导入只认 开启/关闭。"
+                             "（实测 2026-10-23：勇夺锦旗的 得分需我方旗帜在基地中 / 闪电赛旗帜位置 "
+                             "写「是」被拒，改成 开启 通过；大厅块是另一套，那里可以用 是/否）"
                              % (key, val)))
 
 
@@ -3599,6 +3707,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_hero_enable_layer(text, problems)
     check_maps_not_in_editor(text, problems)
     check_block_layers(text, problems)
+    check_setting_key_layers(text, problems)
     check_probe_output(path, text, problems)
     check_probe_invisible(path, text, problems)
     check_event_player_scope(text, problems)
