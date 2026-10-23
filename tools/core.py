@@ -643,6 +643,43 @@ def check_lobby_ffa_slots(text, problems):
                              "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
 
 
+def check_hero_enable_layer(text, problems):
+    """`启用英雄` 必须写在 `英雄 > 综合` 里，挂在 `英雄` 直属层导入会失败。
+
+    2026-10-23 实机：写成 英雄 { 启用英雄 { 路霸 } } 报
+    「第38行的"200% })"之后应有一个队伍设置」——报错文案完全不提「启用英雄」，容易查错方向。
+    合法父级：`综合`（猪猪钩钩乐·原版）或 `队伍1` / `队伍2`（找蛋躲猫猫，两个都是能玩的真实模式）。
+    只有直接挂在 `英雄` 下才是错的——游戏那句报错「之后应有一个队伍设置」就是这么来的。
+    """
+    stack, pending = [], None
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if s == "启用英雄":
+            parent = stack[-1] if stack else "顶层"
+            if parent not in ("综合", "队伍1", "队伍2"):
+                problems.append((ln, "error",
+                                 "「启用英雄」要写在 英雄 > 综合 里面，现在挂在「%s」下；"
+                                 "导入会报「之后应有一个队伍设置」" % parent))
+            pending = "启用英雄"
+            continue
+        if s == "{":
+            stack.append(pending or (stack[-1] if stack else None))
+            pending = None
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            pending = None
+            continue
+        if s.endswith("{"):
+            pending = s[:-1].strip()
+            continue
+        if ":" not in s and "：" not in s and "(" not in s and not s.startswith("禁用地图"):
+            pending = s
+
+
 def check_probe_output(path, text, problems):
     """实验探针（`tools/probes/lab/`）的读数必须走 `记入查看器`。
 
@@ -3086,6 +3123,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_hero_enable_layer(text, problems)
     check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)

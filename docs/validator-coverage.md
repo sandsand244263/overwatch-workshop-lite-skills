@@ -17,6 +17,7 @@
 | 7 | 块级结构：重复块、`}` 后多分号、尾逗号、缺分号（动作行 / 条件行）、条件缺比较、`===` | — |
 | 8 | 作用域：持续-全局规则里用 `事件玩家` | `「持续 - 全局」规则里不能用 事件玩家` |
 | 9 | 值函数当动作 / 动作写进条件 | `「比赛结束」是值函数…不能单独当动作写` |
+| 11 | `英雄` 块层级：`启用英雄` 必须写在 综合 / 队伍1 / 队伍2 里 | `「启用英雄」要写在 英雄 > 综合 里面，现在挂在「英雄」下；导入会报「之后应有一个队伍设置」` |
 | 10 | 大厅栏位与模式匹配 | `观战者人数上限 的值 999 超过上限 12` / `队伍1 + 队伍2 合计 13 人，超过大厅总共 12 个栏位` / `只写了 玩家上限 队伍1 = 8…合计 13 超过 12` / `团队模式下 自由混战人数上限 必须写 0` / `死斗类模式里 自由混战人数上限 至少 1` —— 游戏统一报「无效的队伍设置」（数据在 `data/setting-ranges-lobby.tsv`） |
 
 ## 现在会查（warning 级，不拦但提示）
@@ -102,7 +103,7 @@
 
 ## 反向用例（防退化）
 
-`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**31 个**）。
+`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**32 个**）。
 `python tools/ws.py check-all` 会同时跑正样本（必须全过）和反向用例（必须报出预期错误）。
 
 **只测正样本是不够的**——校验器最容易的退化方式，是"什么都放行"。
@@ -121,6 +122,7 @@
 | `element-over-limit.ow` | 元素数上限 |
 | `value-as-action.ow` / `bare-function.ow` / `event-missing-param.ow` / `event-player-in-global.ow` / `setting-out-of-range.ow` / `missing-var-block.ow` | 格式层 |
 | `map-bad-variant.ow` | 地图编号抄错一位 |
+| `hero-block-wrong-layer.ow` | 英雄块层级（`启用英雄` 挂在 `英雄` 直属层） |
 | `lobby-over-limit.ow` / `lobby-spectator-over.ow` / `lobby-zero-slots.ow` / `lobby-one-team-twelve.ow` / `lobby-one-team-eight.ow` / `lobby-ffa-in-team-mode.ow` / `lobby-ffa-zero-in-deathmatch.ow` | 大厅栏位：两队合计超 12、观战超上限、两队都是 0、只写一队写满 12、团队模式占混战栏位、死斗没混战栏位 |
 
 正样本 `tools/probes/name-tables.ow` 专门锁"合法名字不该报错"：英雄名、按钮名、技能名、
