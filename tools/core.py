@@ -785,6 +785,43 @@ def load_mode_name_set():
     return out
 
 
+def load_maps_not_in_editor(path=None):
+    """{地图名: (主图, 说明)} —— 数据表里有、但编辑器「启用地图」里选不到的名字。
+
+    来源：data/map-not-in-editor.tsv（用户实机核对，2026-10-23：釜山系只有「釜山」一个入口）。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "map-not-in-editor.tsv"))
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            name = (row.get("name") or "").strip()
+            if name:
+                out[name] = ((row.get("base") or "").strip(), (row.get("reason") or "").strip())
+    return out
+
+
+def check_maps_not_in_editor(text, problems):
+    """写了编辑器里选不到的地图变体 → 提示改用主图名。
+
+    游戏侧表现通常是「无效的地图设置」，而玩家在编辑器里根本找不到这个名字，很难自己想到。
+    """
+    table = load_maps_not_in_editor()
+    if not table:
+        return
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        for name, (base, reason) in table.items():
+            if name in s:
+                problems.append((ln, "warning",
+                                 "「%s」不能单独写（%s）；写成「%s」即可"
+                                 % (name, reason or "它属于主图", base or name)))
+                break
+
+
 def check_block_layers(text, problems):
     """块套错层：父级从来不在语料里出现过 → 导入基本必失败。
 
@@ -3360,6 +3397,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
+    check_maps_not_in_editor(text, problems)
     check_block_layers(text, problems)
     check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)
