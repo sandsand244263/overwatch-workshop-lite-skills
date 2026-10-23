@@ -1028,6 +1028,23 @@ def _prev_continues(lines, i):
     return False
 
 
+def _next_continues(lines, i):
+    """往下看第一条非空行，是否以运算符开头（跨行语句的下半截）。
+
+    真实语料里的写法（8 个模式实测）：
+        相距距离(事件玩家, 目标) > 20
+        && 事件玩家.生命值 < 50;
+    上一行结尾没有运算符，靠下一行开头的 `&&` / `||` / `);` 接着写。
+    """
+    j = i
+    while j < len(lines):
+        s = strip_noise(lines[j]).strip()
+        if s:
+            return bool(re.match(r"^(&&|\|\||==|!=|>=|<=|=|>|<|\+|-|\*|/|\?|,|\.|\)|:)", s))
+        j += 1
+    return False
+
+
 def _is_default_var(name):
     """工坊内置变量：全局/玩家的 A~Z 共 26 个（索引 0~25），不声明也存在。"""
     return len(name) == 1 and "A" <= name <= "Z"
@@ -2794,6 +2811,12 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         if block == "条件":
             # 跨行条件：把语句拼完整再判（实测「相距距离(…) > 20」会被折成多行）
             if not stripped.endswith(";"):
+                # 2026-10-23 补：括号平衡、本身是个完整条件、上下行都没接着写 → 就是漏了分号
+                if (opens <= 0 and COMPARISON.search(stripped)
+                        and not _line_continues(stripped)
+                        and not _prev_continues(lines, ln - 1)
+                        and not _next_continues(lines, ln)):
+                    problems.append((ln, "error", "条件行缺少分号"))
                 cond_buf.append(stripped)
                 continue
             full = " ".join(cond_buf + [stripped]) if cond_buf else stripped
@@ -2808,10 +2831,14 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
 
         if block in ("动作", "子程序"):
             # 跨行语句：本行以运算符结尾，或上一行是以运算符结尾（实测真实模式大量使用）
-            cont_end = bool(re.search(r"(=|==|!=|&&|\\|\\||\?|:|\+|-|\*|/|,|!)$", stripped))
+            # 2026-10-23 修：这里原来自带一份正则，转义写坏后变成「匹配任何行尾」，
+            # 于是这条检查长期空转（fuzz 里「删掉一个分号」只有 40% 命中率，全靠别的检查兜到）。
+            # 现在统一用 _line_continues，并补「下一行以运算符开头」的跨行写法。
+            cont_end = _line_continues(stripped)
             prev_cont = _prev_continues(lines, ln - 1)
+            next_cont = _next_continues(lines, ln)
             if (not stripped.endswith(";") and not stripped.endswith("{") and opens <= 0
-                    and not cont_end and not prev_cont):
+                    and not cont_end and not prev_cont and not next_cont):
                 problems.append((ln, "error", "语句缺少分号"))
             if re.search(r",\s*\)", stripped):
                 problems.append((ln, "error", "不允许尾逗号"))
