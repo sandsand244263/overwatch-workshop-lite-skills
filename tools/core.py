@@ -514,6 +514,7 @@ def check_setting_range(text, ranges, problems):
 
 
 LOBBY_TEAM_SLOTS = 12      # 大厅总栏位：队伍1 + 队伍2 之和的上限（实机确认）
+LOBBY_TEAM_DEFAULT = 5     # 新建房间时两队默认各 5 人（2026-10-23 实机）
 
 # 大厅里带滑杆的数值键：越界时游戏统一报「无效的队伍设置」（errors.tsv 65729）
 LOBBY_LIMIT_KEYS = ("玩家上限 队伍1", "玩家上限 队伍2",
@@ -542,13 +543,15 @@ def check_lobby_team_sum(text, problems):
     if not vals:
         return
     if len(vals) == 1:
-        # 只写了一队：另一队用大厅默认值（至少 1 人）。写到 12 就必定超，导入报「无效的队伍设置」。
+        # 只写了一队：另一队保持大厅默认 5 人，所以单队最多写到 7（5+7=12）
         team, (idx, v) = next(iter(vals.items()))
-        if v > LOBBY_TEAM_SLOTS - 1:
+        if v + LOBBY_TEAM_DEFAULT > LOBBY_TEAM_SLOTS:
             problems.append((idx, "error",
-                             "只写了 玩家上限 队伍%s = %g，另一队会用大厅默认值（至少 1 人），"
-                             "合计超过 %d 个栏位（游戏导入会报「无效的队伍设置」）；把另一队显式写 0"
-                             % (team, v, LOBBY_TEAM_SLOTS)))
+                             "只写了 玩家上限 队伍%s = %g，另一队没写、按大厅默认 %d 人算，"
+                             "合计 %g 超过 %d 个栏位（游戏导入会报「无效的队伍设置」）；"
+                             "要么把另一队显式写出来，要么单队不超过 %d"
+                             % (team, v, LOBBY_TEAM_DEFAULT, v + LOBBY_TEAM_DEFAULT,
+                                LOBBY_TEAM_SLOTS, LOBBY_TEAM_SLOTS - LOBBY_TEAM_DEFAULT)))
         return
     total = vals["1"][1] + vals["2"][1]
     idx = max(vals["1"][0], vals["2"][0])
@@ -2743,7 +2746,7 @@ SUGGESTIONS = [
     (r"死斗类模式里 自由混战人数上限 至少 1",
      "死斗写 1 以上（少人数死斗也留 1 个自由混战栏位），或者干脆不写这个键"),
     (r"只写了 玩家上限",
-     "另一队也显式写出来：12+0、6+6；只写一队时另一队走默认值，合计会超 12"),
+     "另一队也显式写出来（12+0、6+6）；只写一队时另一队按默认 5 人算，单队最多写 7"),
     (r"超过大厅总共",
      "两队上限加起来不能超过 12：6+6、8+4、12+0 都行，7+6 不行；单人模式写 12+0"),
     (r"至少要留 1 个栏位",
