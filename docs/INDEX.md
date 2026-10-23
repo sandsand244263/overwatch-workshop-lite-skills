@@ -8,6 +8,7 @@
 | [ui-workflow.md](./ui-workflow.md) | 游戏界面操作：导出/导入/分享/预设/诊断 | 不知道怎么在游戏里点 |
 | [errors.md](./errors.md) | 报错原文 → 原因 → 改法（实测） | 手里有一句游戏报错 |
 | [pitfalls.md](./pitfalls.md) | 避坑总索引 + 必查清单 | 每次都该扫一眼 |
+| [rules.tsv](./rules.tsv) | **判定表**：一条实测结论一行（禁止写法 / 正确写法 / 依据 E-xx / 检查状态） | 写码前查 `ws.py rule <关键词>` |
 | [pitfalls-map.md](./pitfalls-map.md) | 地图池、时段编号、模式名写法 | 动地图设置 |
 | [pitfalls-syntax.md](./pitfalls-syntax.md) | 字符串/队伍参数/变量/子程序/数组 | 写动作和表达式 |
 | [pitfalls-runtime.md](./pitfalls-runtime.md) | 规则何时跑、循环、计分、胜负、HUD | 行为不对 |
@@ -30,3 +31,24 @@
 | [ui-notes.md](./ui-notes.md) | 编辑器 UI 观察 | 对照界面 |
 | [ecosystem.md](./ecosystem.md) | 社区工具与资源 | 找外部资料 |
 | [sources.md](./sources.md) | 数据来源与权威性排序 | 怀疑数据过期 |
+
+---
+
+## `data/` 文件清单（工具的数据源，只由 `ws.py gen` / `enrich.py` 生成，禁止手改）
+
+| 文件 | 内容 |
+|---|---|
+| `signatures.md` | 225 动作 + 266 值函数的参数签名（含类型与下拉可选值） |
+| `settings.tsv` | 269 设置键：类型与可写值 |
+| `schema-keys.tsv` | schema → 键名（475 条），设置项归属的权威来源 |
+| `mode-schemas.tsv` | 模式 → schema 列表（137 模式） |
+| `hero-schemas.tsv` | 英雄 → schema 列表（135 英雄） |
+| `maps.tsv` | 291 地图名 + GUID + 变体标记 |
+| `events.tsv` | 14 个事件 + 参数位 |
+| `strings.md` | 615 条文本选项（`字符串(...)` 只能用这里面的） |
+| `defaults.tsv` | 参数省略时的默认值 |
+| `enums.md` | 英雄 / 地图 / 下拉选项全集 |
+| `action-tags.tsv` | 484 动作的功能分类 |
+| `meta.json` | 数据基线的 build 与导出日期 |
+
+**不要直接读这些表**，用命令查：`ws.py doc` / `keyinfo` / `stats` / `defaults` / `map-code` / `modes`。
