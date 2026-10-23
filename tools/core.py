@@ -856,10 +856,16 @@ def load_maps_not_in_editor(path=None):
     return out
 
 
+TOKEN_SPLIT = re.compile(r"[\s(),;:：，；（）\[\]{}]+")
+
+
 def check_maps_not_in_editor(text, problems):
     """写了编辑器里选不到的地图变体 → 提示改用主图名。
 
     游戏侧表现通常是「无效的地图设置」，而玩家在编辑器里根本找不到这个名字，很难自己想到。
+
+    按**整词**匹配，不做子串匹配：`春节釜山寺院` 是池子里真实存在的条目（勇夺锦旗有），
+    用子串匹配会把它误判成「釜山寺院」（2026-10-23 实测到的误报）。
     """
     table = load_maps_not_in_editor()
     if not table:
@@ -868,8 +874,9 @@ def check_maps_not_in_editor(text, problems):
         s = strip_noise(line).strip()
         if not s:
             continue
+        tokens = set(t for t in TOKEN_SPLIT.split(s) if t)
         for name, (base, reason) in table.items():
-            if name in s:
+            if name in tokens:
                 problems.append((ln, "warning",
                                  "「%s」不能单独写（%s）；写成「%s」即可"
                                  % (name, reason or "它属于主图", base or name)))
