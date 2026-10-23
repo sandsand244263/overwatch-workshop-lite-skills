@@ -6,6 +6,7 @@
   python tools/ws.py count  模式.ow                   元素数估算
   python tools/ws.py defaults 创建HUD文本              查参数默认值（省略时游戏用什么）
   python tools/ws.py publish 模式.ow --outdir out [--obf numbers,vars]
+  python tools/ws.py readlog [--list|--raw|--expect c1=2]  读工坊日志（游戏自己落盘）
   python tools/ws.py gen --src 导出目录                 重新生成 data/
   python tools/ws.py diff --prev 旧导出 --cur 新导出     全量对照
 
@@ -567,6 +568,12 @@ def cmd_corpus(args):
     return sp.call(cmd)
 
 
+def cmd_readlog(args):
+    """转调 tools/logread.py：读游戏自动落盘的工坊查看器日志。"""
+    import logread
+    return logread.run(args)
+
+
 
 def _mask_strings(line):
     """脱敏：把长字符串内容换成 …，保留键名和结构。"""
@@ -1039,6 +1046,14 @@ def main():
     p.add_argument("--prev", required=True)
     p.add_argument("--cur", required=True)
     p.set_defaults(func=lambda a: __import__("data_diff").main_with_args(a))
+
+    p = sub.add_parser("readlog", help="读工坊查看器日志（游戏自动落盘，不用用户复制）")
+    p.add_argument("--dir", help="日志目录，默认 %%USERPROFILE%%\\Documents\\Overwatch\\Workshop")
+    p.add_argument("--file", help="指定日志文件（不给就取最新的那个）")
+    p.add_argument("--list", action="store_true", help="列出最近 10 个日志文件")
+    p.add_argument("--raw", action="store_true", help="全部记录原样打印")
+    p.add_argument("--expect", help="对期望值，例如 c1=2,c2=2,c3=1")
+    p.set_defaults(func=cmd_readlog)
 
     args = ap.parse_args()
     return args.func(args)
