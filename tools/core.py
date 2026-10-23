@@ -69,6 +69,10 @@ VERIFIED_NO_SLOTS = {
     "设置不可见": {"slots": {-1}},
 }
 
+# 语料实测：写在任意模式块下都能导入的「通用模式键」（不受层检查约束）。
+# 依据：塔萨达练枪房 / 暴打大锤3 等真实模式在 占领要点、团队死斗、攻防作战… 下都写了这些键且能导入。
+COMMON_MODE_KEYS = {"复生时间", "英雄限制"}
+
 # 模式 > 综合 块里实测能导入的键（其余报「综合 { 之后应有一个游戏模式设置」）。
 # 数据里的设置分类（技能/武器/决斗先锋…）跟 .ow 的块结构不是一回事，推不出来，只能靠实测。
 GENERAL_KEYS = ("允许切换英雄", "复生时间", "急救包刷新", "游戏模式开始", "英雄限制",
@@ -2221,6 +2225,8 @@ def check_setting_belongs(text, problems, types=None):
             continue          # 综合是通用层：实测 复生时间 写在 综合 是合法的
         if "综合" in (info.get("schemas") or ()):
             continue          # 属于「综合」的通用键，写在任意模式块里都合法
+        if key in COMMON_MODE_KEYS:
+            continue          # 语料实测写在任意模式块都能导入（复生时间 / 英雄限制 等）
                               # （真实语料：急救包刷新 / 游戏模式开始 写在 决斗先锋 里能导入）
         if (layer, key) in load_setting_compat():
             continue          # 真实导入验证过的组合
@@ -2286,7 +2292,7 @@ def check_setting_bools(text, problems, types=None):
 
 
 # 已知「导出会把值吞掉」的键（behavior-notes.tsv 有记录）
-KNOWN_SWALLOWED_VALUES = {"招架姿态恢复倍率"}
+KNOWN_SWALLOWED_VALUES = {"招架姿态恢复倍率", "飞空斩击距离"}
 
 
 def check_empty_setting_values(text, problems):
@@ -2330,13 +2336,16 @@ def check_empty_setting_values(text, problems):
                                  % key))
 
 
-def check_balance(text, problems, strict=False):
+def check_balance(text, problems, strict=False, raw_masked=None):
     """全局括号配对 + 每条规则里 While/If/For 与 End; 的配对。
 
     实测：删掉一个右括号或一个 End;，绝大多数校验器抓不到，但游戏直接报错。
+
+    括号数必须在**合并折行之前**的原文上统计：语料里有 `…)),//【点位1】` 这种
+    行内注释，合并之后 `//` 会把同行后面的代码一起吃掉，导致少一个括号（假警报）。
     """
     strict_balance = [strict]
-    masked = mask_text(text)
+    masked = raw_masked if raw_masked is not None else mask_text(text)
     opens, closes = masked.count("("), masked.count(")")
     if opens != closes:
         problems.append((0, "error",
@@ -3506,7 +3515,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_belongs(text, problems)
     check_setting_bools(text, problems)
     check_empty_setting_values(text, problems)
-    check_balance(text, problems, strict=strict)
+    check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
     check_team_values(text, problems)
     check_game_end_actions(text, problems)
