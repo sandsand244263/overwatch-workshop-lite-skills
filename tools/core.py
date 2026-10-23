@@ -645,6 +645,36 @@ def check_lobby_ffa_slots(text, problems):
 
 
 
+def check_hero_rule_multiplier(text, problems):
+    """英雄页的「受到伤害量」和规则里的 `设置受到伤害` 是**相乘**，不是覆盖。
+
+    2026-10-23 实机（T15，E-20）：
+      英雄 200% + 规则不动 → 打 100 掉 200
+      英雄 200% + 规则 50%  → 打 100 掉 100（100 × 0.5 × 2.0）
+    所以两边都写时实际倍率是两个数相乘，作者常以为是后者覆盖前者，只报提示不报错。
+    """
+    hero = None
+    for m in re.finditer(r"(?m)^[ \t]*受到伤害量\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*%", text):
+        hero = float(m.group(1))
+        break
+    if hero is None or abs(hero - 100) < 1e-9:
+        return
+    for m in re.finditer(r"设置受到伤害\(([^;\n]*)\)", text):
+        args = m.group(1).split(",")
+        if len(args) < 2:
+            continue
+        try:
+            rule = float(args[-1].strip().rstrip("%").strip())
+        except ValueError:
+            continue          # 写成表达式（如 较大(20, 事件玩家.x)）就不猜
+        if abs(rule - 100) < 1e-9:
+            continue
+        ln = text.count("\n", 0, m.start()) + 1
+        problems.append((ln, "warning",
+                         "英雄页 受到伤害量 %g%% × 规则 设置受到伤害 %g%% = 实际 %g%%（两者相乘，不是覆盖）；"
+                         "只想留一个就把另一个改回 100%%" % (hero, rule, hero * rule / 100)))
+
+
 def check_percent_operator(text, problems):
     """规则里的 `%` 是**取余运算符**，不是百分号。
 
@@ -3173,6 +3203,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
+    check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
     check_probe_output(path, text, problems)
