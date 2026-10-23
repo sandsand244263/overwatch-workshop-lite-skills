@@ -17,7 +17,7 @@ rule-too-long.ow	超过单条规则 98KB
 element-over-limit.ow	超过 32768 上限
 bad-dropdown-value.ow	第 5 个参数只能填
 ffa-draw.ow	在死斗里无效
-team-param-shuangfang.ow	的队伍参数不能写
+team-param-shuangfang.ow	个参数是队伍，只能写
 bare-string-arg.ow	不能直接写字符串
 bad-dropdown.ow	只能填
 map-bad-variant.ow	不在已知编号表里
@@ -35,3 +35,5 @@ team-word-in-player-slot.ow	队伍筛选词	播放效果(双方, …)：可见�
 percent-in-number.ow	「%」在工坊里是取余运算符	设置受到伤害(…, 50%)，游戏报「"50%"之后应有一个值」
 local-value-into-global.ow	全局变量不能存局部值	裸赋值 全局.x = 生命值(本地玩家)，游戏报「局部值只能用于视觉效果或HUD动作」
 hero-block-wrong-layer.ow	「启用英雄」要写在 英雄 > 综合	启用英雄 挂在 英雄 直属层（游戏报「之后应有一个队伍设置」）
+team-all-word.ow	个参数是队伍，只能写	玩家数量(全部)：`全部` 只在事件行合法
+hero-bare-word.ow	个参数是英雄，要写成 英雄(	生成机器人(死神, …)：裸英雄名游戏报「之后应有一个值」

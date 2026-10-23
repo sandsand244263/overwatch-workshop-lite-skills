@@ -1907,7 +1907,11 @@ def _var_block_span(text):
 STRING_WRAPPERS = {"自定义字符串", "字符串"}
 
 
-TEAM_WORDS = {"所有队伍", "队伍1", "队伍2", "双方", "全部", "队伍"}
+TEAM_VALUES = {"所有队伍", "队伍1", "队伍2"}
+# 宽松集：这些词「看着像队伍词」，出现在 Team 参数里要报错。
+# 实测（2026-10-23）：`玩家数量(全部)` 游戏报「之后应有一个值」——`全部` / `双方`
+# 只在事件块的选择器行里合法，不是队伍值。
+TEAM_WORDS = TEAM_VALUES | {"双方", "全部", "队伍"}
 
 
 _PARAM_TYPES = {"map": None}
@@ -1935,8 +1939,12 @@ def load_param_types(path=None):
 
 
 def check_team_slots(text, problems, types=None):
-    """类型是 Team 的参数只能填队伍词（实测 所有队伍→全部队伍 整类漏报）。
+    """类型是 Team 的参数只能填队伍值：所有队伍 / 队伍1 / 队伍2。
 
+    实测两处（2026-10-23）：
+      - `玩家数量(全部)` → 游戏报「第48行的"玩家数量("之后应有一个值」
+      - `范围内玩家(…, 8, 双方, 关闭)` → 「第 44 行的"8,"之后应有一个值」
+    `全部` / `双方` 只在事件块的选择器行里合法，不是队伍值。
     参数类型来自 data/param-options.tsv（signatures 里很多元素只存了参数个数）。
     """
     types = types or load_param_types()
@@ -1961,17 +1969,56 @@ def check_team_slots(text, problems, types=None):
                 if i >= len(args):
                     continue
                 val = args[i].strip()
-                if val in TEAM_WORDS:
+                if val in TEAM_VALUES:
                     continue
                 # 只抓「裸词写成队伍词的样子」；表达式（对方队伍(…)）是合法的
-                if any(ch in val for ch in "()[]."):
+                if any(ch in val for ch in "()[]. "):
                     continue
                 if not (("队伍" in val) or val.startswith(("全部", "双方"))):
                     continue
                 line = text.count("\n", 0, m.start()) + 1
                 problems.append((line, "error",
                                  "%s 第 %d 个参数是队伍，只能写 所有队伍 / 队伍1 / 队伍2；这里写的是「%s」"
+                                 "（`全部` / `双方` 只在事件块的选择器行里用）"
                                  % (fn, i + 1, val)))
+
+
+def check_hero_slots(text, problems, types=None, heroes=None):
+    """类型是 Hero 的参数必须写成 英雄(名字)。
+
+    实测（2026-10-23）：`生成机器人(死神, 队伍1, …)` 游戏报
+    「第49行的"生成机器人("之后应有一个值」——裸写英雄名不认，
+    语料里一律是 `生成机器人(英雄(破坏球), …)`。
+    """
+    types = types or load_param_types()
+    heroes = heroes if heroes is not None else load_hero_names()
+    if not types or not heroes:
+        return
+    for fn, imap in types.items():
+        slots = [i for i, t in imap.items() if t == "Hero"]
+        if not slots:
+            continue
+        for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(fn) + r"\(", text):
+            depth, j = 0, m.end() - 1
+            while j < len(text):
+                if text[j] == "(":
+                    depth += 1
+                elif text[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            args = _top_level_args(text[m.end():j])
+            for i in slots:
+                if i >= len(args):
+                    continue
+                val = args[i].strip()
+                if val not in heroes:
+                    continue
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append((line, "error",
+                                 "%s 第 %d 个参数是英雄，要写成 英雄(%s)；裸写英雄名游戏报"
+                                 "「\"%s(\"之后应有一个值」" % (fn, i + 1, val, fn)))
 
 
 def check_bare_var_assign(text, problems):
@@ -2652,31 +2699,6 @@ def check_victory_in_loop(text, problems):
             if ("中断" not in ahead) and ("返回" not in ahead):
                 problems.append((i + 1, "warning",
                                  "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
-
-
-def check_team_values(text, problems):
-    """队伍类参数的取值：用 所有队伍 / 队伍1 / 队伍2，不是事件筛选词「双方」。
-
-    实测：`范围内玩家(眼睛位置(事件玩家), 8, 双方, 关闭)` 游戏报
-    「第 44 行的"8,"之后应有一个值」——因为「双方」不是合法队伍值。
-    """
-    if "双方" not in text:
-        return
-    for m in re.finditer(r"(范围内玩家|范围内全部玩家|最近的玩家|玩家在范围内)\(", text):
-        i = m.end(); depth = 1
-        while i < len(text) and depth > 0:
-            if text[i] == "(":
-                depth += 1
-            elif text[i] == ")":
-                depth -= 1
-            i += 1
-        body = text[m.end():i - 1]
-        if "双方" not in body:
-            continue
-        line = text.count("\n", 0, m.start()) + 1
-        problems.append((line, "error",
-                         "%s 的队伍参数不能写「双方」（那是事件筛选词）；"
-                         "改用 所有队伍 / 队伍1 / 队伍2" % m.group(1)))
 
 
 def check_game_end_actions(text, problems):
@@ -3386,8 +3408,9 @@ def mask_text(text):
 SUGGESTIONS = [
     (r"第 \d+ 个参数只能填 (.+?)；这里写的是「(.+?)」",
      "把「{1}」换成列表里的一个合法值"),
-    (r"的队伍参数不能写「双方」",
-     "改成 所有队伍（或 队伍1 / 队伍2）；「双方」只能用在事件行"),
+    (r"个参数是队伍，只能写",
+     "队伍值只认 所有队伍 / 队伍1 / 队伍2；「双方」「全部」只能用在事件行"),
+    (r"个参数是英雄，要写成 英雄\(", "包一层：英雄(名字)。.ow 里没有裸英雄名"),
     (r"参数里不能直接写字符串",
      "包一层：自定义字符串(\"你的文字\")。注意 .ow 里没有裸字符串"),
     (r"是动作，不能写在条件里",
@@ -3759,6 +3782,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_local_values(text, problems)
     check_dropdown_values(text, problems, dropdowns)
     check_team_slots(text, problems)
+    check_hero_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_bare_strings(text, problems)
     check_map_codes(text, problems, strict=strict)
@@ -3769,7 +3793,6 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
-    check_team_values(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
