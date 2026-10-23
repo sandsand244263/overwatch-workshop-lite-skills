@@ -885,16 +885,16 @@ def check_maps_not_in_editor(text, problems):
 
 _KEY_PARENT_LAYERS = {"t": None}
 
-# 这些模式上「键挂错层」有实机证据，可以报必改；其余模式先只提示（未验证）
-KEY_LAYER_VERIFIED_MODES = {"决斗先锋"}
-
 
 def load_key_parent_layers(path=None):
-    """{设置键: 允许的父级块集合} —— data/key-parent-layers.tsv。
+    """{设置键: 禁止写入的父级块集合} —— data/key-parent-layers.tsv。
 
-    只收**已经有实机证据**的键：语料里它只出现在「综合」下，且实测写进具体模式块会被拒。
-    不要凭语料有无就整表生成：反例「显示英雄位置」语料里只出现在 决斗先锋 下，
-    但写进「综合」实机是通的（X1/X2），说明语料覆盖不等于合法集合。
+    只收**已经有实机证据**的组合，而且是「键 × 具体模式」的否定式：
+      · 随机英雄复生 / 允许切换英雄 写在「决斗先锋」块内被拒（W1/W2），
+        但写在「死斗」块内通过（T1）、写在「模式 > 综合」通过（X2）
+      · 机制：该模式的 schema 列表里只有 Category=None 的别名，真条目在 008 英雄；
+        挂了 008 的模式（死斗）就能在模式块里写
+    所以**不要**把它当成「这些键只能挂综合」——那是早期误判。
     """
     if _KEY_PARENT_LAYERS["t"] is not None:
         return _KEY_PARENT_LAYERS["t"]
@@ -904,18 +904,21 @@ def load_key_parent_layers(path=None):
         with open(path, encoding="utf-8-sig") as f:
             for row in csv.DictReader(f, delimiter="\t"):
                 k = (row.get("key") or "").strip()
-                allowed = (row.get("allowed_parents") or "").strip()
-                if k and allowed:
-                    out[k] = set(x.strip() for x in allowed.split("|") if x.strip())
+                bad = (row.get("forbidden_parents") or "").strip()
+                if k and bad:
+                    out[k] = set(x.strip() for x in bad.split("|") if x.strip())
     _KEY_PARENT_LAYERS["t"] = out
     return out
 
 
 def check_setting_key_layers(text, problems):
-    """设置键挂在错的层：键只属于「模式 > 综合」，却写进了某个具体模式块。
+    """设置键挂进了实测会拒它的那个模式块。
 
-    实测 2026-10-23（W1/W2 vs X2）：随机英雄复生 / 允许切换英雄 写在「模式 > 决斗先锋」里，
-    两个值词变体都被拒，报「…之后应有一个游戏模式设置」；写进「模式 > 综合」就通过。
+    实测 2026-10-23：
+      · W1/W2：随机英雄复生 / 允许切换英雄 写进「模式 > 决斗先锋」→ 被拒；
+      · X2：同样两个键写进「模式 > 综合」→ 通过；
+      · T1：写进「模式 > 死斗」→ 通过（死斗挂了 008 英雄 schema）
+    所以判定是「键 × 该模式」的否定式，不是「只能挂综合」。
     """
     layers = load_key_parent_layers()
     if not layers:
@@ -943,21 +946,16 @@ def check_setting_key_layers(text, problems):
             if not m or not stack:
                 continue
             key = m.group(1).strip()
-            allowed = layers.get(key)
-            if not allowed:
+            bad = layers.get(key)
+            if not bad:
                 continue
             parent = stack[-1]
-            # 只有挂在「具体模式块」下才算错；挂在 综合 / 别的层不动
-            if parent in modes and parent not in allowed:
-                # 严重度按证据分档：只在实际测过的模式上报必改，其余先提示
-                # （2026-10-23 只测了 决斗先锋；其余 20 个模式是否同样受限未验证，
-                #   报成必改会把 35 个合成样本全判红，属于误报洪水）
-                sev = "error" if parent in KEY_LAYER_VERIFIED_MODES else "warning"
-                problems.append((ln, sev,
-                                 "「%s」不该写在「%s」块里——它属于「%s」层"
-                                 "（2026-10-23 实机：写进「决斗先锋」块被拒，报"
-                                 "「之后应有一个游戏模式设置」；写进 综合 通过）"
-                                 % (key, parent, "、".join(sorted(allowed)))))
+            if parent in modes and parent in bad:
+                problems.append((ln, "error",
+                                 "「%s」不能写在「%s」块里——这个组合实测被拒（导入报"
+                                 "「之后应有一个游戏模式设置」）。改写进「模式 > 综合」，"
+                                 "或换一个挂了它所属 schema 的模式"
+                                 % (key, parent)))
             continue
         pending = s
 
@@ -2042,6 +2040,40 @@ VICTORY_ACTIONS = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为�
 _SETTING_TYPES = {"map": None}
 
 
+_MODE_SCHEMAS = {"map": None}
+
+
+def _load_mode_schemas(path=None):
+    """{模式: {schema 名}} —— data/mode-schemas.tsv（21 模式的 schema 组合）。
+
+    用途：判断「某个键写在某个模式块里」是否可能合法——该模式挂载的 schema 里
+    只要包含这个键就合法。2026-10-23 T1 实测：死斗挂 008 英雄，英雄页的键写在死斗块内导入通过。
+    """
+    if _MODE_SCHEMAS["map"] is not None:
+        return _MODE_SCHEMAS["map"]
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "mode-schemas.tsv"))
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                mode = (row.get("mode") or "").strip()
+                raw = (row.get("schemas") or "").strip()
+                if not mode or not raw:
+                    continue
+                names = set()
+                for part in raw.split("|"):
+                    p = part.strip()
+                    if not p:
+                        continue
+                    if re.fullmatch(r"[0-9A-Fa-f]{12}\.[0-9A-Fa-f]{3}", p):
+                        continue      # 少数行写的是 guid，没有名字就跳过（宁可不判）
+                    names.add(p)
+                # mode-schemas 里的 ow_name 用的是「攻击/护送」这类显示名，统一成块名
+                out[mode] = names
+    _MODE_SCHEMAS["map"] = out
+    return out
+
+
 def load_setting_types(path=None):
     """{键: {type, on, off, schemas}} —— 来自 data/setting-schemas.tsv。"""
     path = os.path.abspath(path or os.path.join(DATA_DIR, "setting-schemas.tsv"))
@@ -2413,9 +2445,15 @@ def check_setting_belongs(text, problems, types=None):
             continue          # 真实导入验证过的组合
         if layer in info["schemas"]:
             continue
+        # 挂在具体模式块下：该模式挂载的 schema 里只要有这个键，就合法
+        # （2026-10-23 T1 实测：死斗挂了 008 英雄，英雄页的键写在死斗块内导入通过）
+        if layer in _load_mode_schemas():
+            if {s for s in info["schemas"] if s} & _load_mode_schemas()[layer]:
+                continue
         where = "、".join(sorted(x for x in info["schemas"] if x))
         problems.append((i, "warning",
-                         "「%s」属于「%s」层，这里写在「%s」里；导入会报「之后应有一个游戏模式设置」"
+                         "「%s」属于「%s」层，这里写在「%s」里；语料里没见过这个组合，"
+                         "不确定就当它会报「之后应有一个游戏模式设置」"
                          % (key, where, layer)))
 
 
