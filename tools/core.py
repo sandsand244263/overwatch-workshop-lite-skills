@@ -745,6 +745,96 @@ def check_hero_enable_layer(text, problems):
             pending = s
 
 
+_CORPUS_PARENTS = {"map": None}
+
+
+def load_corpus_block_parents(path=None):
+    """{子块: {语料里出现过的父块}} —— 来自 data/format-spec-corpus.tsv（kind=block_parent）。
+
+    这一层游戏数据里没有（导出器自己套的壳），只能用真实语料定。
+    注意边界：语料只证明**结构**，不证明值合法（见 E-22）。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "format-spec-corpus.tsv"))
+    if _CORPUS_PARENTS["map"] is not None:
+        return _CORPUS_PARENTS["map"]
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                if (row.get("kind") or "") != "block_parent":
+                    continue
+                child = (row.get("subject") or "").strip()
+                parent = (row.get("context") or "").strip()
+                if child and parent:
+                    out.setdefault(child, set()).add(parent)
+    _CORPUS_PARENTS["map"] = out
+    return out
+
+
+def load_mode_name_set():
+    """{模式名 / ow_name} —— 来自 data/mode-list.tsv。"""
+    out = set()
+    path = os.path.join(DATA_DIR, "mode-list.tsv")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                for col in ("mode", "ow_name"):
+                    v = (row.get(col) or "").strip()
+                    if v and v != "全部":
+                        out.add(v)
+    return out
+
+
+def check_block_layers(text, problems):
+    """块套错层：父级从来不在语料里出现过 → 导入基本必失败。
+
+    规则来源（都由数据/语料给，不硬编码）：
+      英雄名      → 父级 ∈ 综合 / 队伍1 / 队伍2
+      模式名      → 父级 = 模式
+      其它块      → 父级 ∈ format-spec-corpus.tsv 里该块出现过的父级
+    只对 `设置` 树生效；规则体里的 事件/动作/条件 不参与。
+    """
+    parents = load_corpus_block_parents()
+    if not parents:
+        return
+    heroes = load_hero_names()
+    modes = load_mode_name_set()
+    stack, pending = [], None
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if s == "{":
+            child = pending or (stack[-1] if stack else None)
+            parent = (stack[-1] if stack else None) or "顶层"
+            if child:
+                if child in heroes:
+                    allowed = {"综合", "队伍1", "队伍2"}
+                elif child in modes:
+                    allowed = {"模式"}
+                else:
+                    allowed = parents.get(child)
+                inside = (parent in SETTINGS_BLOCKS or parent in ("综合", "队伍1", "队伍2")
+                          or parent in modes)
+                if allowed and inside and parent not in allowed:
+                    problems.append((ln, "warning",
+                                     "「%s」不该直接挂在「%s」下；语料里它只出现在：%s"
+                                     % (child, parent, "、".join(sorted(allowed)))))
+            stack.append(child)
+            pending = None
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            pending = None
+            continue
+        if s.endswith("{"):
+            pending = s[:-1].strip()
+            continue
+        if ":" not in s and "：" not in s and "(" not in s:
+            pending = s
+
+
 def check_probe_output(path, text, problems):
     """实验探针（`tools/probes/lab/`）的读数必须走 `记入查看器`。
 
@@ -1044,6 +1134,27 @@ def load_setting_keys(path=None):
 def load_event_names(path=None):
     """事件名集合（data/events.tsv）。"""
     return _name_set("events.tsv", "event", path)
+
+
+def load_extra_ability_names(path=None):
+    """从 data/ability-values.tsv 补一批名字：技能全名 + 括号里的形态/武器名。
+
+    例：「锯齿利刃（格雷西）」→ 补 锯齿利刃（格雷西） 与 格雷西。
+    真实语料里 hero 设置键写成「锯齿利刃（格雷西）冷却时间」，只查 abilities.tsv 会误报缺项。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "ability-values.tsv"))
+    out = set()
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            name = (row.get("ability") or row.get("技能") or "").strip()
+            if not name:
+                continue
+            out.add(name)
+            for inner in re.findall(r"[（(]([^（）()]{1,20})[）)]", name):
+                out.add(inner.strip())
+    return out
 
 
 def load_ability_names(path=None):
@@ -2052,10 +2163,15 @@ def check_setting_bools(text, problems, types=None):
                              % (key, val)))
 
 
+# 已知「导出会把值吞掉」的键（behavior-notes.tsv 有记录）
+KNOWN_SWALLOWED_VALUES = {"招架姿态恢复倍率"}
+
+
 def check_empty_setting_values(text, problems):
     """设置行写成 `键:` 但值为空——游戏会报「之后应有一个数字/选项」。
 
-    实测：导出会把某些值吞掉（招架姿态恢复倍率:）。
+    实测：导出会把某些值吞掉（招架姿态恢复倍率:）。这类键报提示而不是必改：
+    文件本身是导出产物，值是被导出弄丢的，补上真实数值即可。
     """
     in_settings = False
     depth = 0
@@ -2081,9 +2197,15 @@ def check_empty_setting_values(text, problems):
             continue
         m = re.match(r"^([^:：]{1,40})\s*[:：]\s*$", st)
         if m:
-            problems.append((i, "error",
-                             "设置项「%s」没有值（导出会把某些值吞掉）；游戏会报「之后应有一个数字 / 一个设置选项」"
-                             % m.group(1).strip()))
+            key = m.group(1).strip()
+            if key in KNOWN_SWALLOWED_VALUES:
+                problems.append((i, "warning",
+                                 "设置项「%s」没有值——导出已知会把它吞掉（behavior-notes 有记录）；"
+                                 "补上真实数值即可" % key))
+            else:
+                problems.append((i, "error",
+                                 "设置项「%s」没有值（导出会把某些值吞掉）；游戏会报「之后应有一个数字 / 一个设置选项」"
+                                 % key))
 
 
 def check_balance(text, problems, strict=False):
@@ -3238,6 +3360,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
+    check_block_layers(text, problems)
     check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
@@ -3272,7 +3395,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     # 数据 ID 层：名字必须还在当前版本表里
     check_hero_names(masked, problems, hero_names, all_vars)
     check_button_names(masked, problems, load_button_names())
-    check_ability_names(text, problems, load_ability_names(), hero_names)
+    check_ability_names(text, problems, set(load_ability_names()) | load_extra_ability_names(), hero_names)
     check_setting_keys(text, problems, load_setting_keys())
     check_event_names(masked, problems, load_event_names())
     # 类型层：完整性 + 上限
