@@ -937,6 +937,23 @@ def load_element_kinds(path):
     return out
 
 
+def check_action_as_value(text, kinds, problems):
+    """赋值右边直接写了一个「动作」函数 → 游戏报「"="之后应有一个值」。
+
+    实机：`事件玩家.hudId = 创建HUD文本(…)` 报「第111行的"="之后应有一个值」。
+    正确写法是先调动作，再用值函数取结果：`创建HUD文本(…); 事件玩家.hudId = 上一个文本ID;`
+    """
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s or s.startswith("//"):
+            continue
+        m = re.search(r"[-+*/]?=(?!=)\s*([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", s)
+        if m and kinds.get(m.group(1)) == "动作":
+            problems.append((ln, "error",
+                             "「%s」是动作，不能写在等号右边取值；先单独调用它，再用对应的值函数取结果"
+                             "（如 上一个文本ID / 上一个效果ID）。游戏会报「\"=\"之后应有一个值」" % m.group(1)))
+
+
 def check_element_kind(text, kinds, problems):
     """动作块里不能放值函数；条件块里不能放动作。
 
@@ -3439,6 +3456,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_probe_output(path, text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
+    check_action_as_value(masked, kinds or {}, problems)
     check_string_interp(text, problems)
     check_arg_count(masked, problems)
     check_types(masked, problems, labels)
