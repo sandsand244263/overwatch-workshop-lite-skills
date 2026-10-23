@@ -1986,6 +1986,9 @@ def check_setting_belongs(text, problems, types=None):
             continue
         if layer == "综合":
             continue          # 综合是通用层：实测 复生时间 写在 综合 是合法的
+        if "综合" in (info.get("schemas") or ()):
+            continue          # 属于「综合」的通用键，写在任意模式块里都合法
+                              # （真实语料：急救包刷新 / 游戏模式开始 写在 决斗先锋 里能导入）
         if (layer, key) in load_setting_compat():
             continue          # 真实导入验证过的组合
         if layer in info["schemas"]:
@@ -1995,6 +1998,31 @@ def check_setting_belongs(text, problems, types=None):
                          "「%s」属于「%s」层，这里写在「%s」里；导入会报「之后应有一个游戏模式设置」"
                          % (key, where, layer)))
 
+
+
+EXPORT_NOISE_MARKS = ("导出后写作「无」", "是布尔项，这里写的是")
+EXPORT_SUMMARY_MIN = 8      # 攒够这么多条，基本就是整份导出文件，不必逐条刷屏
+
+
+def collapse_export_noise(problems, path=None):
+    """整份文件像「游戏导出的」时，把导出声明的噪声合成一条，并指向 fix。
+
+    导出会改两处：布尔项写显示词（启用/禁用）、某些槽位写「无」。
+    逐条报没有意义——用户要做的是先跑 `ws.py fix`，不是手改几十行。
+    判定用条数阈值：少量命中仍逐条报（手写文件改起来需要行号）。
+    """
+    hits = [p for p in problems if any(m in p[2] for m in EXPORT_NOISE_MARKS)]
+    if len(hits) < EXPORT_SUMMARY_MIN:
+        return problems
+    rest = [p for p in problems if not any(m in p[2] for m in EXPORT_NOISE_MARKS)]
+    bools = sum(1 for p in hits if "是布尔项" in p[2])
+    nones = len(hits) - bools
+    tip = ("这份文件像是游戏导出的（%d 处布尔项写成显示词、%d 处写成「无」）："
+           "导入前先跑 python tools/ws.py fix 文件 --fix-bools，别手改这 %d 行"
+           % (bools, nones, len(hits)))
+    rest.append((hits[0][0], "warning", tip))
+    rest.sort(key=lambda p: (p[0] or 0))
+    return rest
 
 
 def check_setting_bools(text, problems, types=None):
@@ -3265,7 +3293,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             continue
         seen.add(key)
         unique.append((line_no, level, msg))
-    return unique
+    return collapse_export_noise(unique, path)
 
 
 
