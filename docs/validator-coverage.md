@@ -63,6 +63,7 @@
 | 子程序事件 `子程序; X;` 但 X 没声明 | error | `事件里的子程序 X 找不到对应的子程序声明` |
 | 子程序声明了从未被调用 | warning | `子程序 X 声明了但从未被调用` |
 | 变量声明了从未赋值 | warning | `变量 X 声明了但从未赋值，会一直是 0`（认 `=` / `+=` / 数组下标赋值 / For 控制变量） |
+| 全局变量存了「本地玩家」的局部值（函数式 + 裸赋值两种写法） | error | `全局变量不能存局部值（含「本地玩家」）；游戏会报「局部值只能用于视觉效果或HUD动作」` |
 | 单条规则 > 98KB（100352 字节） | error | `规则「…」有 N 字节，超过单条规则 98KB…拆成多条规则` |
 | 预计元素数 > 32768 | error | `预计元素数约 N，超过 32768 上限` |
 | 预计元素数 16384~32768 | warning | `已接近 32768 上限（估算不精确，仅提示）` |
@@ -103,7 +104,7 @@
 
 ## 反向用例（防退化）
 
-`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**32 个**）。
+`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**33 个**）。
 `python tools/ws.py check-all` 会同时跑正样本（必须全过）和反向用例（必须报出预期错误）。
 
 **只测正样本是不够的**——校验器最容易的退化方式，是"什么都放行"。
@@ -123,6 +124,7 @@
 | `value-as-action.ow` / `bare-function.ow` / `event-missing-param.ow` / `event-player-in-global.ow` / `setting-out-of-range.ow` / `missing-var-block.ow` | 格式层 |
 | `map-bad-variant.ow` | 地图编号抄错一位 |
 | `hero-block-wrong-layer.ow` | 英雄块层级（`启用英雄` 挂在 `英雄` 直属层） |
+| `local-value-into-global.ow` | 全局变量存局部值（裸赋值写法） |
 | `lobby-over-limit.ow` / `lobby-spectator-over.ow` / `lobby-zero-slots.ow` / `lobby-one-team-twelve.ow` / `lobby-one-team-eight.ow` / `lobby-ffa-in-team-mode.ow` / `lobby-ffa-zero-in-deathmatch.ow` | 大厅栏位：两队合计超 12、观战超上限、两队都是 0、只写一队写满 12、团队模式占混战栏位、死斗没混战栏位 |
 
 正样本 `tools/probes/name-tables.ow` 专门锁"合法名字不该报错"：英雄名、按钮名、技能名、

@@ -416,6 +416,7 @@ def load_event_param_words(path):
     return out
 
 
+
 def _opt_float(s):
     """空串 / None -> None（表示「这一侧边界没有证据」），否则 float。"""
     s = (s or "").strip()
@@ -641,6 +642,7 @@ def check_lobby_ffa_slots(text, problems):
             problems.append((idx, "error",
                              "团队模式下 自由混战人数上限 必须写 0，这里写的是 %g"
                              "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
+
 
 
 def check_hero_enable_layer(text, problems):
@@ -2356,14 +2358,29 @@ HUD_ACTIONS = {
 
 
 def check_local_values(text, problems):
-    """全局变量不能存局部值（本地玩家相关），游戏报「局部值只能用于视觉效果或HUD动作」。"""
-    for m in re.finditer(r"(?:设置|修改)(?:全局)变量\(([^;\n]*)\)", text):
+    """全局变量不能存局部值（本地玩家相关），游戏报「局部值只能用于视觉效果或HUD动作」。
+
+    两种写法都要查：函数式 `设置全局变量(x, …本地玩家…)`，以及裸赋值 `全局.x = …本地玩家…;`
+    （2026-10-23 实机：探针里写 `全局.hpBefore = 生命值(本地玩家);` 就是栽在裸赋值这种写法上——
+    当时只查了函数式，这行没被拦住，游戏直接报错）。
+    """
+    seen = set()
+    for m in re.finditer(r"(?:设置|修改)全局变量\(([^;\n]*)\)", text):
         body = m.group(1)
         if "本地玩家" not in body:
             continue
+        seen.add(m.start())
         _add(problems, text, m.start(), "error",
              "全局变量不能存局部值（含「本地玩家」）；游戏会报"
              "「局部值只能用于视觉效果或HUD动作」，改用玩家变量或 事件玩家")
+    for m in re.finditer(r"(?m)^[ \t]*全局\.[A-Za-z_]\w*(?:\[[^\]\n]*\])?\s*=\s*([^;\n]*)", text):
+        if "本地玩家" not in m.group(1):
+            continue
+        if any(abs(m.start() - s) < 3 for s in seen):
+            continue
+        _add(problems, text, m.start(), "error",
+             "全局变量不能存局部值（含「本地玩家」）；游戏会报"
+             "「局部值只能用于视觉效果或HUD动作」，改用玩家变量（玩家.xxx）或 事件玩家")
 
 
 
