@@ -1657,6 +1657,10 @@ def _check_arg_type(name, idx, label, arg, pos, problems, text):
             _add(problems, text, pos, "error",
                  "%s %s 要的是「玩家」（玩家 / 玩家列表），这里填的是 %s；"
                  "游戏会报「之后应有一个玩家」" % (name, slot, a))
+        elif a in ("双方", "所有队伍", "全部队伍", "队伍1", "队伍2"):
+            _add(problems, text, pos, "error",
+                 "%s %s 要的是「玩家」，这里填的是队伍筛选词「%s」——那只用在事件行；"
+                 "换成 所有玩家(所有队伍)。游戏会报「之后应有一个值」" % (name, slot, a))
     elif ptype == "数值":
         if PLAYER_EXPR.match(a):
             _add(problems, text, pos, "error",
