@@ -508,10 +508,17 @@ def check_setting_range(text, ranges, problems):
             msg = "%s 的值 %s 低于下限 %g" % (key, m.group(2), lo)
         else:
             msg = "%s 的值 %s 超出范围（%g~%g）" % (key, m.group(2), lo, hi)
+        if key in LOBBY_LIMIT_KEYS:
+            msg += LOBBY_ERR
         problems.append((idx, level, msg))
 
 
 LOBBY_TEAM_SLOTS = 12      # 大厅总栏位：队伍1 + 队伍2 之和的上限（实机确认）
+
+# 大厅里带滑杆的数值键：越界时游戏统一报「无效的队伍设置」（errors.tsv 65729）
+LOBBY_LIMIT_KEYS = ("玩家上限 队伍1", "玩家上限 队伍2",
+                    "观战者人数上限", "自由混战人数上限")
+LOBBY_ERR = "；游戏导入会报「无效的队伍设置」"
 
 
 def check_lobby_team_sum(text, problems):
@@ -532,7 +539,16 @@ def check_lobby_team_sum(text, problems):
         m = re.match(r"^\s*玩家上限\s*队伍([12])\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
         if m:
             vals[m.group(1)] = (idx, float(m.group(2)))
-    if len(vals) < 2:
+    if not vals:
+        return
+    if len(vals) == 1:
+        # 只写了一队：另一队用大厅默认值（至少 1 人）。写到 12 就必定超，导入报「无效的队伍设置」。
+        team, (idx, v) = next(iter(vals.items()))
+        if v > LOBBY_TEAM_SLOTS - 1:
+            problems.append((idx, "error",
+                             "只写了 玩家上限 队伍%s = %g，另一队会用大厅默认值（至少 1 人），"
+                             "合计超过 %d 个栏位（游戏导入会报「无效的队伍设置」）；把另一队显式写 0"
+                             % (team, v, LOBBY_TEAM_SLOTS)))
         return
     total = vals["1"][1] + vals["2"][1]
     idx = max(vals["1"][0], vals["2"][0])
@@ -540,11 +556,88 @@ def check_lobby_team_sum(text, problems):
         return          # 单键已经超了，逐键的「超出范围」会报，别重复提示
     if total > LOBBY_TEAM_SLOTS:
         problems.append((idx, "error",
-                         "玩家上限 队伍1 + 队伍2 合计 %g 人，超过大厅总共 %d 个栏位"
-                         % (total, LOBBY_TEAM_SLOTS)))
+                         "玩家上限 队伍1 + 队伍2 合计 %g 人，超过大厅总共 %d 个栏位%s"
+                         % (total, LOBBY_TEAM_SLOTS, LOBBY_ERR)))
     elif total < 1:
         problems.append((idx, "warning",
                          "玩家上限 队伍1 + 队伍2 合计 0 人，大厅至少要留 1 个栏位才能开局"))
+
+
+FFA_MODES = ("死斗", "赏金猎手")          # 自由混战类（mode-list.tsv 里的模式，README 亦注明赏金猎手为 FFA）
+TEAM_MODES = ("占领要点", "攻击护送", "攻防作战", "攻防阵线", "机动推进",
+              "运载目标", "闪点作战", "决斗先锋", "勇夺锦旗", "团队死斗")
+
+
+def _mode_block_names(text):
+    """取 `设置 > 模式` 里列出的模式名（块内第一层的非键行）。
+
+    样本里两种写法都有：`死斗` 单独一行（没有花括号），或 `死斗` + `{ … }`。
+    认不出结构就返回空表，让调用方放弃判断（宁可漏报不误报）。
+    """
+    lines = text.split("\n")
+    try:
+        start = next(i for i, l in enumerate(lines) if l.strip() == "模式")
+    except StopIteration:
+        return []
+    names, depth, started = [], 0, False
+    for l in lines[start + 1:]:
+        s = l.strip()
+        if not started:
+            if s == "{":
+                started, depth = True, 1
+            elif s:
+                return []
+            continue
+        if not s:
+            continue
+        if s == "{":
+            depth += 1
+            continue
+        if s.startswith("}"):
+            depth -= 1
+            if depth <= 0:
+                break
+            continue
+        if depth == 1 and ":" not in s and "：" not in s:
+            names.append(s)
+        depth += s.count("{") - s.count("}")
+        if depth <= 0:
+            break
+    return names
+
+
+def check_lobby_ffa_slots(text, problems):
+    """`自由混战人数上限` 要看模式：团队模式必须 0，死斗类至少 1。
+
+    2026-10-23 用户实机：团队模式下自然混战栏位必须为 0（占着栏位大厅设置无效）；
+    死斗这类自由混战模式最低 1。认不出的模式、两种模式混写，一律不判。
+    """
+    names = [n for n in _mode_block_names(text) if n not in ("综合", "英雄", "地图工坊")]
+    if not names:
+        return
+    val = None
+    for idx, line in enumerate(text.split("\n"), 1):
+        m = re.match(r"^\s*自由混战人数上限\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
+        if m:
+            val = (idx, float(m.group(1)))
+            break
+    if val is None:
+        return
+    idx, v = val
+    ffa = [n for n in names if n.startswith(FFA_MODES)]
+    team = [n for n in names if n.startswith(TEAM_MODES)]
+    if len(ffa) + len(team) != len(names):
+        return                    # 有认不出的模式，不猜
+    if ffa and not team:
+        if v < 1:
+            problems.append((idx, "error",
+                             "死斗类模式里 自由混战人数上限 至少 1，这里写的是 %g"
+                             "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
+    elif team and not ffa:
+        if v > 0:
+            problems.append((idx, "error",
+                             "团队模式下 自由混战人数上限 必须写 0，这里写的是 %g"
+                             "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
 
 
 def load_element_kinds(path):
@@ -2645,6 +2738,12 @@ SUGGESTIONS = [
      "改成范围内的值；默认值用 python tools/ws.py defaults 设置键名 查"),
     (r"超过上限 ",
      "游戏里滑杆最右就是这个数；外部写更大，导入时会报错"),
+    (r"团队模式下 自由混战人数上限 必须写 0",
+     "写 0；团队模式不占自由混战栏位，写了数值大厅设置就无效"),
+    (r"死斗类模式里 自由混战人数上限 至少 1",
+     "死斗写 1 以上（少人数死斗也留 1 个自由混战栏位），或者干脆不写这个键"),
+    (r"只写了 玩家上限",
+     "另一队也显式写出来：12+0、6+6；只写一队时另一队走默认值，合计会超 12"),
     (r"超过大厅总共",
      "两队上限加起来不能超过 12：6+6、8+4、12+0 都行，7+6 不行；单人模式写 12+0"),
     (r"至少要留 1 个栏位",
@@ -2960,6 +3059,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
     check_lobby_team_sum(text, problems)
+    check_lobby_ffa_slots(text, problems)
     check_event_player_scope(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_string_interp(text, problems)
