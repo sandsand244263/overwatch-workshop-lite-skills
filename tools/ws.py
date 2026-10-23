@@ -1055,6 +1055,11 @@ def main():
     p.add_argument("--expect", help="对期望值，例如 c1=2,c2=2,c3=1")
     p.set_defaults(func=cmd_readlog)
 
+    p = sub.add_parser("rule", help="查判定表：实测结论怎么用（docs/rules.tsv）")
+    p.add_argument("query", nargs="*", help="关键词，空格分隔多个词")
+    p.add_argument("--list", action="store_true", help="列出全部场景")
+    p.set_defaults(func=lambda a: __import__("rules").run(a))
+
     args = ap.parse_args()
     return args.func(args)
 

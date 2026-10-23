@@ -37,3 +37,5 @@ local-value-into-global.ow	全局变量不能存局部值	裸赋值 全局.x = �
 hero-block-wrong-layer.ow	「启用英雄」要写在 英雄 > 综合	启用英雄 挂在 英雄 直属层（游戏报「之后应有一个队伍设置」）
 team-all-word.ow	个参数是队伍，只能写	玩家数量(全部)：`全部` 只在事件行合法
 hero-bare-word.ow	个参数是英雄，要写成 英雄(	生成机器人(死神, …)：裸英雄名游戏报「之后应有一个值」
+event-long-loop.ow	事件规则	事件规则里写 While(真)：忙时事件会丢（E-50）
+ffa-bot-team.ow	生成机器人会静默失败	死斗里 队伍1/队伍2 栏位为 0（E-49）

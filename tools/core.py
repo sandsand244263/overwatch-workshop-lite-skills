@@ -2701,6 +2701,107 @@ def check_victory_in_loop(text, problems):
                                  "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
 
 
+def _iter_rule_blocks(text):
+    """-> [(规则名, [(行号, 行)])]；不进入子程序块，够这几条提示用。"""
+    out, cur, name = [], None, None
+    for i, ln in enumerate(text.split("\n"), 1):
+        m = re.match(r'^\s*(?:禁用\s*)?规则\("([^"]*)"\)', ln)
+        if m:
+            if cur is not None:
+                out.append((name, cur))
+            name, cur = m.group(1), []
+            continue
+        if cur is not None:
+            cur.append((i, ln))
+    if cur is not None:
+        out.append((name, cur))
+    return out
+
+
+def _rule_event_lines(body):
+    ev, inside = [], False
+    for _ln, ln in body:
+        s = ln.strip()
+        if not inside and s == "事件":
+            inside = True
+            continue
+        if inside:
+            if s.startswith("{") or not s:
+                continue
+            if s.startswith("}"):
+                break
+            ev.append(s)
+    return ev
+
+
+def _is_ffa_mode(text):
+    """模式块里是否是自由混战（死斗）；团队死斗不算。"""
+    lines = [(i, ln) for i, ln in enumerate(text.split("\n"))
+             if not ln.strip().startswith("//")]
+    try:
+        k = next(i for i, ln in lines if ln.strip() == "模式")
+    except StopIteration:
+        return False
+    depth, modes = 0, []
+    for i, ln in lines:
+        if i <= k:
+            continue
+        t = ln.strip()
+        if t == "{":
+            depth += 1
+            continue
+        if t == "}":
+            depth -= 1
+            if depth <= 0:
+                break
+            continue
+        if depth == 1 and t and ":" not in t and "：" not in t:
+            modes.append(t)
+    return any(("死斗" in m) and ("团队" not in m) for m in modes)
+
+
+def check_rule_hints(text, problems):
+    """判定表里能给静态提示的三条（E-50 / E-32 / E-49）。
+
+    只报 warning（提示级），不判错：判定表 docs/rules.tsv 是它们的出处。
+    误报门槛 D-006：8 份真实语料合计 ≤3 条，目前 1 条（找蛋躲猫猫 的 HUD 循环）。
+    """
+    ffa = _is_ffa_mode(text)
+    for rname, body in _iter_rule_blocks(text):
+        ev = _rule_event_lines(body)
+        is_event_rule = bool(ev) and not any(e.startswith("持续") for e in ev) \
+            and not any(e.startswith("子程序") for e in ev)
+        for ln_no, ln in body:
+            s = ln.strip()
+            if is_event_rule and s.startswith("While(真)"):
+                problems.append((ln_no, "warning",
+                                 "事件规则「%s」里写了 While(真)：事件规则同一时刻只有一份执行，"
+                                 "循环期间来的同类事件会被直接丢弃（E-50）；"
+                                 "改成事件里只记标记，循环放到另一条 持续 - 全局 里轮询" % rname))
+            if ffa and "生成机器人(" in s and ("队伍1" in s or "队伍2" in s):
+                problems.append((ln_no, "warning",
+                                 "死斗里 队伍1/队伍2 没有栏位（栏位数 0），生成机器人会静默失败（E-49）；"
+                                 "队伍参数写 所有队伍，位置/方向可写 空"))
+        # 循环里只建 HUD 不删：会撞 128 条并存上限
+        stack = []
+        for ln_no, ln in body:
+            s = ln.strip()
+            if s.startswith("While(") or s.startswith("For "):
+                stack.append([ln_no, []])
+                continue
+            if s.startswith("End;"):
+                if stack:
+                    l0, items = stack.pop()
+                    blob = " ".join(items)
+                    if "创建HUD文本" in blob and "消除HUD文本" not in blob:
+                        problems.append((l0, "warning",
+                                         "循环里只 创建HUD文本、没先 消除HUD文本：每次创建都新建一条，"
+                                         "约 64 秒撞 128 条并存上限后 HUD 停更（E-32）；先删后建"))
+                continue
+            for fr in stack:
+                fr[1].append(s)
+
+
 def check_game_end_actions(text, problems):
     """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
 
@@ -3793,6 +3894,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
+    check_rule_hints(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
