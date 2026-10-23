@@ -517,6 +517,28 @@ def cmd_selftest(args):
         if dup:
             print("✗ %s 重复定义（后定义的会静默生效）：%s" % (os.path.basename(f), dup))
             bad += 1
+    # 判定表 ⇄ 表驱动检查 的漂移：表说已接但没实现，或实现了但表里没写（等于静默关闭）
+    try:
+        import rules as _rules
+        names = set()
+        for r in _rules.load():
+            for tok in (r.get("检查", "") or "").split(","):
+                tok = tok.strip()
+                if tok in ("", "不接", "已接(内建)"):
+                    continue
+                names.add(tok[3:] if tok.startswith("停用:") else tok)
+        reg = set(core.RULE_CHECKS)
+        ghost = names - reg
+        silent = reg - names
+        if ghost:
+            print("✗ 判定表写了检查名但代码里没有：%s" % ", ".join(sorted(ghost)))
+            bad += 1
+        if silent:
+            print("✗ 代码里有检查但判定表没写（等于静默关闭）：%s" % ", ".join(sorted(silent)))
+            bad += 1
+    except Exception as e:
+        print("✗ 判定表读不到，表驱动检查的开关无法核对：%s" % e)
+        bad += 1
     # 版本号三处一致性
     ver_file = ""
     vp = os.path.join(ROOT, "VERSION")
@@ -1059,6 +1081,17 @@ def main():
     p.add_argument("query", nargs="*", help="关键词，空格分隔多个词")
     p.add_argument("--list", action="store_true", help="列出全部场景")
     p.set_defaults(func=lambda a: __import__("rules").run(a))
+
+    p = sub.add_parser("verify", help="断言表验证闭环：列待验 / 回填等级 / 生成验证探针")
+    p.add_argument("query", nargs="*", help="关键词（不给就列出还没验的）")
+    p.add_argument("--set", help="回填哪一条（场景关键词）")
+    p.add_argument("--level", help="回填的证据等级：L1/L2/L3")
+    p.add_argument("--evidence", help="依据编号，例如 E-54")
+    p.add_argument("--date", help="验证日期，默认今天")
+    p.add_argument("--stale", type=int, help="列出超过 N 天没复核的已验条目")
+    p.add_argument("--scaffold", type=int, help="生成 N 格验证探针骨架")
+    p.add_argument("--out", help="--scaffold 的输出文件")
+    p.set_defaults(func=lambda a: __import__("facts").run(a))
 
     args = ap.parse_args()
     return args.func(args)

@@ -8,7 +8,7 @@
 | [ui-workflow.md](./ui-workflow.md) | 游戏界面操作：导出/导入/分享/预设/诊断 | 不知道怎么在游戏里点 |
 | [errors.md](./errors.md) | 报错原文 → 原因 → 改法（实测） | 手里有一句游戏报错 |
 | [pitfalls.md](./pitfalls.md) | 避坑总索引 + 必查清单 | 每次都该扫一眼 |
-| [rules.tsv](./rules.tsv) | **判定表**：一条实测结论一行（禁止写法 / 正确写法 / 依据 E-xx / 检查状态） | 写码前查 `ws.py rule <关键词>` |
+| [rules.tsv](./rules.tsv) | **断言表**：一条实测结论一行（禁止 / 正确 / 依据 / 证据等级 L0~L3 / 怎么验 / 检查开关） | 写码前查 `ws.py rule <关键词>`；不知道能不能做查 `ws.py verify` |
 | [pitfalls-map.md](./pitfalls-map.md) | 地图池、时段编号、模式名写法 | 动地图设置 |
 | [pitfalls-syntax.md](./pitfalls-syntax.md) | 字符串/队伍参数/变量/子程序/数组 | 写动作和表达式 |
 | [pitfalls-runtime.md](./pitfalls-runtime.md) | 规则何时跑、循环、计分、胜负、HUD | 行为不对 |

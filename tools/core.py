@@ -2763,9 +2763,12 @@ def _is_ffa_mode(text):
 def check_rule_hints(text, problems):
     """判定表里能给静态提示的三条（E-50 / E-32 / E-49）。
 
-    只报 warning（提示级），不判错：判定表 docs/rules.tsv 是它们的出处。
-    误报门槛 D-006：8 份真实语料合计 ≤3 条，目前 1 条（找蛋躲猫猫 的 HUD 循环）。
+    只报 warning（提示级），不判错。
+    **开关在 docs/rules.tsv 的「检查」列**：写检查名就启用，写「不接」就不跑。
+    表是开关、这里只有内容——所以改表不用改代码，反过来 selftest 会查漂移。
+    误报门槛 D-006：8 份真实语料合计 ≤3 条。
     """
+    on = enabled_rule_checks()
     ffa = _is_ffa_mode(text)
     for rname, body in _iter_rule_blocks(text):
         ev = _rule_event_lines(body)
@@ -2773,12 +2776,12 @@ def check_rule_hints(text, problems):
             and not any(e.startswith("子程序") for e in ev)
         for ln_no, ln in body:
             s = ln.strip()
-            if is_event_rule and s.startswith("While(真)"):
+            if "event-long-loop" in on and is_event_rule and s.startswith("While(真)"):
                 problems.append((ln_no, "warning",
                                  "事件规则「%s」里写了 While(真)：事件规则同一时刻只有一份执行，"
                                  "循环期间来的同类事件会被直接丢弃（E-50）；"
                                  "改成事件里只记标记，循环放到另一条 持续 - 全局 里轮询" % rname))
-            if ffa and "生成机器人(" in s and ("队伍1" in s or "队伍2" in s):
+            if "ffa-bot-team" in on and ffa and "生成机器人(" in s and ("队伍1" in s or "队伍2" in s):
                 problems.append((ln_no, "warning",
                                  "死斗里 队伍1/队伍2 没有栏位（栏位数 0），生成机器人会静默失败（E-49）；"
                                  "队伍参数写 所有队伍，位置/方向可写 空"))
@@ -2793,13 +2796,40 @@ def check_rule_hints(text, problems):
                 if stack:
                     l0, items = stack.pop()
                     blob = " ".join(items)
-                    if "创建HUD文本" in blob and "消除HUD文本" not in blob:
+                    if "hud-rebuild" in on and "创建HUD文本" in blob and "消除HUD文本" not in blob:
                         problems.append((l0, "warning",
                                          "循环里只 创建HUD文本、没先 消除HUD文本：每次创建都新建一条，"
                                          "约 64 秒撞 128 条并存上限后 HUD 停更（E-32）；先删后建"))
                 continue
             for fr in stack:
                 fr[1].append(s)
+
+
+RULE_CHECKS = {"event-long-loop", "hud-rebuild", "ffa-bot-team"}
+
+
+def enabled_rule_checks(path=None):
+    """从 docs/rules.tsv 的「检查」列读出要跑哪几条表驱动提示。
+
+    - 写检查名（`hud-rebuild`）→ 启用
+    - 写 `停用:hud-rebuild` → 已声明但故意关掉（selftest 不会当成漂移）
+    - 写 `不接` / `已接(内建)` → 跟这几条无关
+    读不到表时按全开处理（宁可多提示，也不静默失守）。
+    """
+    try:
+        import rules as _rules
+        rows = _rules.load(path)
+    except Exception:
+        return set(RULE_CHECKS)
+    if not rows:
+        return set(RULE_CHECKS)
+    on = set()
+    for r in rows:
+        for tok in (r.get("检查", "") or "").split(","):
+            tok = tok.strip()
+            if tok and not tok.startswith("停用:") and tok in RULE_CHECKS:
+                on.add(tok)
+    return on
 
 
 def check_game_end_actions(text, problems):

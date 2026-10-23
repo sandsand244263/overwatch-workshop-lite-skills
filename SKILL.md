@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.11.0
+version: 3.12.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -25,8 +25,21 @@ metadata:
 4. **动作目标慎用 `本地玩家`**：`伤害` / `隐藏英雄HUD` / `开始镜头` 写在 `持续 - 全局` 里对 `本地玩家` 无效
    （HUD 文本、玩家过滤、距离计算可以用）。这类「动身体/视角」的动作放 `每名玩家` + `事件玩家`。
 
-每条都有实机读数，依据查得到：`python tools/ws.py rule <关键词>`（判定表 `docs/rules.tsv`，21 条）。
-**别凭记忆写**——判定表是唯一可查入口，散文里可能有过期说法。
+每条都有实机读数，依据查得到：`python tools/ws.py rule <关键词>`（断言表 `docs/rules.tsv`，29 条）。
+**别凭记忆写**——断言表是唯一可查入口，散文里可能有过期说法。
+
+**断言表带证据等级，说话必须对上等级：**
+
+| 等级 | 含义 | 能不能当结论 |
+|---|---|---|
+| L0 | 数据里有 | 不能，只能说「未验证」 |
+| L1 | 结构成立、check 能过 | 不能，还没跑过 |
+| L2 | 实机导入成功 | 能说「这条路存在」 |
+| L3 | 行为符合预期（有读数） | 能说「这么做能达成效果」 |
+
+不知道某个效果能不能做：`python tools/ws.py verify`（列还没验的）→
+`verify --scaffold 10 --out 验证.ow`（生成 10 格探针）→ 用户跑一次 → `readlog --expect` 判 →
+`verify --set <场景> --level L3 --evidence E-54` 回填。**一次导入验 8~12 条，别一条一条问用户。**
 
 ## 命令
 
@@ -34,7 +47,8 @@ metadata:
 python tools/ws.py check 模式.ow                       # 交付前必跑，必须 0 error
 python tools/ws.py fix 模式.ow --fix-bools             # 导出文件修成可导入（导出文件不能直接导）
 python tools/ws.py readlog [--raw|--expect "c1=2"]     # 读工坊日志：实测读数自己取
-python tools/ws.py rule <关键词>                       # 查判定表（实测结论怎么用）
+python tools/ws.py rule <关键词>                       # 查断言表（带证据等级 L0~L3）
+python tools/ws.py verify [--scaffold 10 --out X.ow]  # 列出/生成还没验的断言验证探针
 python tools/ws.py scaffold --rule 名字 --out X.ow     # 起测试骨架（自带房间设置）
 python tools/ws.py count 模式.ow                       # 元素估算（真实模式偏低 4~19%，靠近上限别赌）
 python tools/ws.py doc <动作>                          # 官方说明 + 每个参数的可选值
