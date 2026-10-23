@@ -911,18 +911,18 @@ def check_block_layers(text, problems):
 
 
 def check_probe_invisible(path, text, problems):
-    """lab 里的验收探针必须把自己隐身（用户 2026-10-23 要求）。
+    """lab 里的验收探针要让屏幕干净（用户 2026-10-23 要求）。
 
-    理由：测试在工位/公开场合跑，屏幕上出现持枪角色太像在打游戏；
-    `设置不可见(所有玩家(所有队伍), 全部)` 之后画面只剩地图，看着像在调设置。
+    正确工具是 `隐藏英雄HUD` / `隐藏游戏模式HUD`（隐藏游戏自带 HUD），不是 `设置不可见`
+    ——后者只让别人看不见你，自己屏幕上照样持枪。两条都放规则最前面（开赛前就生效）。
     """
     p = (path or "").replace("\\", "/")
     if "probes/lab/" not in p:
         return
-    if "设置不可见" not in text:
+    if "隐藏英雄HUD" not in text and "隐藏游戏模式HUD" not in text:
         problems.append((0, "warning",
-                         "验收探针没加「设置不可见」：工位上测试会显示角色。"
-                         "加一句 设置不可见(所有玩家(所有队伍), 全部);"))
+                         "验收探针没有隐藏游戏自带 HUD：工位上屏幕会有血量/弹药/比分。"
+                         "规则最前面加 隐藏英雄HUD(所有玩家(所有队伍)); 隐藏游戏模式HUD(所有玩家(所有队伍));"))
 
 
 def check_probe_output(path, text, problems):

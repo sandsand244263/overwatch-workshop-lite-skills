@@ -23,6 +23,7 @@
 | [hero-stats.md](./hero-stats.md) | 54 英雄面板数值 | 调英雄数值 |
 | [hero-quickref.md](./hero-quickref.md) | 英雄速查 | 只想看一两个英雄 |
 | [element-reverse.md](./element-reverse.md) | 元素计数的实测推导记录（历史） | 想改估算模型 |
+| [acceptance-flow.md](./acceptance-flow.md) | 验收规范流程：三层仓分工、探针纪律、发版自检、回传后必做四件事 | 要加探针 / 要发版 / 不确定某文件该放哪个仓 |
 | [validator-coverage.md](./validator-coverage.md) | 校验器覆盖范围与漏报率测试 | 想改校验器 / 判断可信度 |
 | [diagnostics.md](./diagnostics.md) | 实机诊断方法（查看器日志等） | 要定位运行时问题 |
 | [samples.md](./samples.md) | 可运行样例清单 | 想找现成例子 |

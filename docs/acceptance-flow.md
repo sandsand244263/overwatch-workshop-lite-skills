@@ -1,0 +1,100 @@
+# 验收规范流程（内部研发用）
+
+> 这份文档说明：什么算「产品」、什么算「研发过程」，以及一次实测从设计到发版要走哪几步。
+> 只写结论和流程，不写单次实验细节（那些在 EVIDENCE.md）。
+
+## 一、三层仓的职责
+
+| 层 | 位置 | 放什么 | 判断标准 |
+|---|---|---|---|
+| **安装目录** | `…\hermes\skills\tools\WorkshopLite` | 与公开仓同步的那份，agent 运行时读它 | 这层的改动一律要能同步进公开仓 |
+| **公开仓** | `E:\工作内容\11_vibe-coding项目\workshop-lite` → GitHub | **发布的完整产品**：SKILL.md、data/、docs/、tools/、agents/、assets/、CHANGELOG | 「别人 clone 下来能不能直接用」——能，才放这 |
+| **私有仓** | `E:\工作内容\11_vibe-coding项目\workshop-lite-re` | **研发过程**：语料、EVIDENCE、DECISIONS、STATUS、维护脚本、一次性探针 | 「这是过程记录，不是产品功能」——放这 |
+
+### 边界判断
+
+- 验收模式 **A1 / A2**（可复现、别人照着就能验一遍）→ 公开仓 `tools/probes/lab/acceptance/`
+- 一次性对照探针 **A3 之后**（结论已进 docs）→ 私有仓 `acceptance-lab/`
+- 真实语料（别人没有、也不该有的模式）→ 私有仓 `corpus/real/`
+- 决策记录、证据表、待办 → 私有仓，永不公开
+
+## 二、探针规范（写错就白跑一次）
+
+1. **结果只走 `记入查看器`**，不用 `大字体信息`；面板底部能一键复制，用户直接粘贴回传。
+2. **屏幕要干净**：规则最前面（`等待直到(游戏正在进行中())` 之前）加
+   ```
+   隐藏英雄HUD(所有玩家(所有队伍));
+   隐藏游戏模式HUD(所有玩家(所有队伍));
+   ```
+   `设置不可见` 只是**让别人**看不见你，自己屏幕上照样持枪——不要拿它当隐蔽手段。
+3. **不要求用户观察或操作**：能自动触发的就自动触发（`While(真); 等待(3, 无视条件);`），
+   需要用眼睛确认的（HUD 显示与否这类）必须做成「一次并排对照 + 一条日志」。
+4. **一条日志最多 3 个值**（`自定义字符串` 只有 `{0}{1}{2}`），多了拆成两行。
+5. **每条日志带改前/改后两个读数**，别让用户解释。
+6. **自带房间设置**：从 `python tools/ws.py scaffold` 起手，即时开赛 + 随机英雄复生。
+7. **文件命名**：`A<n>_主题.ow`，放 `probes/lab/acceptance/`（公开）或 `acceptance-lab/`（私有）。
+8. **交付就打开**：给用户测试文件时，不要只贴路径——跑
+   `python tools/ws.py reveal 文件路径`，会用**记事本**直接打开文件内容。
+   不要开文件夹（还得自己找）、不要用 VS Code（抢焦点、加载整个工作区）。
+
+## 三、一次实测的标准流程
+
+```
+设计探针 → ws.py check（必过）→ 算元素数 → 用户导入跑 → 回传日志 + 诊断元素数
+   → 结论写 EVIDENCE（E-xx）→ 若牵涉取舍写 DECISIONS（D-xx）
+   → 更新 docs（pitfalls / validator-coverage / errors）→ 能自动查的补校验器 + 反向用例
+   → bump → 三仓同步 → tag + Release → 三仓干净
+```
+
+**缺一步就等于没做完**——尤其「补校验器」：只写文档、不写检查，下次还会踩。
+
+## 四、发版流程
+
+```bash
+cd <安装目录> && python tools/bump.py X.Y.Z
+cp -a data/. docs/. tools/ SKILL.md VERSION → 公开仓
+cd 公开仓 && python tools/ws.py selftest && check-all && calib
+git commit && git tag vX.Y.Z && git push origin HEAD --tags
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "- 一句一条"
+三仓各 commit；私有仓写 STATUS/DECISIONS/EVIDENCE
+```
+
+发版前自检（缺一不发）：
+
+- [ ] `selftest` 通过
+- [ ] `check-all` 全过（反向用例数要跟着涨）
+- [ ] `calib` 偏差 0
+- [ ] 有语料时 `corpus` 无新增 error
+- [ ] SKILL.md / VERSION / CHANGELOG / marketplace.json 版本号一致
+- [ ] 新增文档已进 `docs/INDEX.md`
+- [ ] 公开仓里没有一次性探针、语料、内部记录
+
+## 四点五、自更新前必须先发版（2026-10-23 踩过）
+
+`ws.py upgrade` 是**用远端覆盖本地**：本地 `tools/` 里还没发布的改动会被直接冲掉。
+2026-10-23 就是这么丢过 `upgrade` 命令本身和 `REPO` 常量，还把回退版发成了 v3.10.12。
+
+规矩：
+
+- 只在「本地改动已经发版/已提交」时跑 `upgrade`
+- 跑之前先 `git -C <安装目录> status --short`，有未提交改动就先提交
+- `upgrade --check` 会提醒这一点；真升级后用 `selftest` + `check-all` 复核，
+  并确认关键命令还在（`ws.py --help` 里能看到 `upgrade` / `reveal`）
+
+## 五、用户回传后必做的四件事
+
+| 观察到了什么 | 落到哪 |
+|---|---|
+| 数值 / 现象 | `EVIDENCE.md` 新增 E-xx（带表格，写清「改前 → 改后」） |
+| 「这个限制以后怎么处理」 | `DECISIONS.md` 新增 D-xx（一句话规则 + 依据） |
+| 会导不进去 / 会白屏 / 会停更的写法 | `docs/pitfalls-*.md` + 校验器检查 + 反向用例 |
+| 版本、待办状态 | `STATUS.md`（含回归基线数字） |
+
+## 六、已知的「只能靠眼睛」的项
+
+极少数结论无法由日志证明，必须一次并排对照让人看：
+
+- HUD / 地图文本 / 进度条**是否真的显示**
+- 特效颜色、镜头、角色可见性
+
+对这类项：一个文件里同时建 2~4 组，只差一个变量，日志打出每组 ID，用户只需回「哪几个看得到」。

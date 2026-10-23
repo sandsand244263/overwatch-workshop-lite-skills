@@ -22,6 +22,7 @@ import re
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 DATA = os.path.join(ROOT, "data")
+REPO = "sandsand244263/overwatch-workshop-lite-skills"
 sys.path.insert(0, TOOLS)
 
 import core  # noqa: E402
@@ -449,7 +450,8 @@ def cmd_scaffold(a):
 
     lines += ["", '规则("%s")' % a.rule, "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
               "\t动作", "\t{",
-              "\t\t设置不可见(所有玩家(所有队伍), 全部);   // 工位/公开场合测试时隐掉角色，屏幕不像在打游戏",
+              "\t\t隐藏英雄HUD(所有玩家(所有队伍));        // 屏幕干净：不显示血量/弹药/准星",
+              "\t\t隐藏游戏模式HUD(所有玩家(所有队伍));    // 屏幕干净：不显示比分/计时",
               '\t\t记入查看器(自定义字符串("[%s] 开始"));' % a.rule,
               "\t}", "}", ""]
     text = "\r\n".join(lines) + "\r\n"
@@ -873,6 +875,14 @@ def main():
     p.add_argument("--limit", type=int, default=40)
     p.set_defaults(func=cmd_stats)
 
+    p = sub.add_parser("reveal", help="在文件管理器里选中某个文件（交付测试文件用）")
+    p.add_argument("file")
+    p.set_defaults(func=cmd_reveal)
+    p = sub.add_parser("upgrade", help="从 GitHub 拉最新版本覆盖本技能（旧版自动备份）")
+    p.add_argument("--check", action="store_true", help="只报告能不能升级，不动文件")
+    p.add_argument("--force", action="store_true", help="版本相同也强制重装")
+    p.add_argument("--tag", default="", help="指定 tag，如 v3.10.13")
+    p.set_defaults(func=cmd_upgrade)
     p = sub.add_parser("update-check", help="查技能是否有新版本")
     p.set_defaults(func=cmd_update_check)
 
@@ -1242,6 +1252,139 @@ def _print_update_hint():
         cur, latest = hit
         print("  提示：技能有新版本 v%s（当前 v%s）" % (latest, cur))
         print("        升级：npx skills add %s" % REPO)
+
+
+
+def _http_get(url, timeout=30, binary=False):
+    """下载：先直连，失败再走本机 Clash 代理（127.0.0.1:7897）。"""
+    import urllib.request
+    req = urllib.request.Request(url, headers={"User-Agent": "workshop-lite"})
+    last = None
+    for proxies in (None, {"http": "http://127.0.0.1:7897", "https": "http://127.0.0.1:7897"}):
+        try:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxies or {}))
+            with opener.open(req, timeout=timeout) as r:
+                return r.read() if binary else r.read().decode("utf-8", "replace")
+        except Exception as e:      # noqa: BLE001
+            last = e
+    raise last
+
+
+def _find_editor():
+    """能打开纯文本的编辑器。用户要求用记事本，别动 VS Code（会抢焦点、加载整个工作区）。"""
+    import shutil as _sh
+    if os.name == "nt":
+        nt = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "System32", "notepad.exe")
+        if os.path.isfile(nt):
+            return nt
+        hit = _sh.which("notepad.exe")
+        if hit:
+            return hit
+    return _sh.which("gedit") or _sh.which("xdg-open") or None
+
+
+def cmd_reveal(args):
+    """直接用编辑器打开文件（交付测试文件时用）。
+
+    用户要的是「文件直接在我眼前打开」，不是开个文件夹去里面找。
+    """
+    import subprocess
+    path = os.path.abspath(args.file)
+    if not os.path.exists(path):
+        print("[错误] 找不到 %s" % path)
+        return 1
+    ed = _find_editor()
+    try:
+        if ed:
+            subprocess.Popen([ed, path], shell=ed.lower().endswith(".cmd"))
+            print("已用 %s 打开：%s" % (os.path.basename(ed), path))
+        elif os.name == "nt":
+            os.startfile(path)      # 交给系统关联程序
+            print("已用系统关联程序打开：%s" % path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path])
+    except Exception as e:          # noqa: BLE001
+        print("打开失败（%s）；文件在这里：%s" % (e, path))
+        return 1
+    return 0
+
+
+def cmd_upgrade(args):
+    """从 GitHub 拉最新版本覆盖本技能（旧 data/docs/tools 备份到 .backup-vX）。
+
+    注意：会覆盖 tools/ 等目录，跑之前先确认本地改动已经发版，否则会被冲掉。
+    """
+    import io, shutil, tarfile, tempfile
+    local = _skill_version() or "0"
+    try:
+        main = _http_get("https://raw.githubusercontent.com/%s/main/SKILL.md" % REPO, timeout=8)
+    except Exception as e:          # noqa: BLE001
+        print("查不到远端版本（%s）；先确认网络/代理。" % e)
+        return 1
+    remote = ""
+    for line in main.splitlines():
+        if line.startswith("version:"):
+            remote = line.split(":", 1)[1].strip()
+            break
+    if not remote:
+        print("远端 SKILL.md 里没有 version 行，放弃升级。")
+        return 1
+    print("本地 v%s → 远端 v%s" % (local, remote))
+    if remote == local and not args.force:
+        print("已是最新，无需升级。")
+        return 0
+    if args.check:
+        print("可升级；去掉 --check 才会覆盖（旧 data/docs/tools 备份到 .backup-v%s）。" % local)
+        print("注意：本地未发版的改动会被远端覆盖，先发版或先提交。")
+        return 1
+    url = "https://api.github.com/repos/%s/tarball/%s" % (REPO, args.tag or ("v" + remote))
+    print("下载 %s …" % url)
+    try:
+        blob = _http_get(url, timeout=180, binary=True)
+    except Exception as e:          # noqa: BLE001
+        print("下载失败：%s" % e)
+        return 1
+    tmp = tempfile.mkdtemp(prefix="wslite-")
+    try:
+        with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tg:
+            tg.extractall(tmp)
+        src = None
+        for root, _dirs, files in os.walk(tmp):
+            if "SKILL.md" in files and os.path.isdir(os.path.join(root, "tools")):
+                src = root
+                break
+        if not src:
+            print("压缩包里没找到 SKILL.md + tools/，放弃。")
+            return 1
+        backup = os.path.join(ROOT, ".backup-v%s" % local)
+        os.makedirs(backup, exist_ok=True)
+        for name in ("data", "docs", "tools"):
+            old = os.path.join(ROOT, name)
+            if os.path.isdir(old):
+                shutil.copytree(old, os.path.join(backup, name), dirs_exist_ok=True)
+        changed = 0
+        for name in ("SKILL.md", "VERSION", "data", "docs", "tools", "agents", "assets", "references", "scripts"):
+            s = os.path.join(src, name)
+            if not os.path.exists(s):
+                continue
+            d = os.path.join(ROOT, name)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+                changed += sum(len(f) for _r, _d2, f in os.walk(s))
+            else:
+                shutil.copy2(s, d)
+                changed += 1
+        for root, dirs, _f in os.walk(os.path.join(ROOT, "tools")):
+            for x in list(dirs):
+                if x == "__pycache__":
+                    shutil.rmtree(os.path.join(root, x), ignore_errors=True)
+        print("已升级到 v%s（覆盖 %d 个文件）。旧版备份：%s" % (remote, changed, backup))
+        print("下一步：python tools/ws.py selftest && python tools/ws.py check-all")
+        return 0
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def cmd_update_check(args):
