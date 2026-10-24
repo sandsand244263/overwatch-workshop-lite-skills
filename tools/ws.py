@@ -555,6 +555,20 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 「知道」六段回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
+    # 报错定位回归：真实报错原文 → 模板 → 行号（PLAN v5 A1 的判据）
+    try:
+        import locate_selftest as _loc
+        lt_problems, lt_summary = _loc.selftest_check()
+        if lt_problems:
+            print("✗ %s" % lt_summary)
+            for p in lt_problems:
+                print("    %s" % p)
+            bad += 1
+        else:
+            print(lt_summary)
+    except Exception as e:
+        print("✗ 报错定位回归跑不起来：%s: %s" % (type(e).__name__, e))
+        bad += 1
     # 版本号三处一致性
     ver_file = ""
     vp = os.path.join(ROOT, "VERSION")
@@ -969,6 +983,13 @@ def main():
     p.add_argument("keyword")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_explain)
+
+    p = sub.add_parser("locate", help="游戏报错原文 → 模板 → 第几行 → 改法（报错闭环）")
+    p.add_argument("error", help="游戏给的报错原文，整条粘进来")
+    p.add_argument("--file", default=None, help="当时导入的 .ow 文件（给了才能指行）")
+    p.add_argument("--context", type=int, default=2, help="报错行上下各显示几行")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=cmd_locate)
 
     p = sub.add_parser("知道", help="一条命令回答一个元素/设置键的全部已知事实（六段）")
     p.add_argument("name", nargs="?", default=None,
@@ -1623,6 +1644,16 @@ def cmd_explain(args):
     if len(hits) > args.limit:
         print("…共 %d 条，用 --limit 调整" % len(hits))
     return 0
+
+
+def cmd_locate(args):
+    """游戏报错原文 → 命中报错模板 → 文件第几行 → 一句话改法。
+
+    主线 A1：本地只能提前拦 27% 的解析器级报错，剩下靠这条兜底。
+    """
+    import locate
+    return locate.locate(args.error, DATA, file_path=args.file,
+                         radius=args.context, as_json=args.json)
 
 
 def _load_tsv(name):

@@ -45,6 +45,7 @@ metadata:
 
 ```bash
 python tools/ws.py check 模式.ow                       # 交付前必跑，必须 0 error
+python tools/ws.py locate "游戏报错原文" [--file 模式.ow]  # 报错 → 模板 → 第几行 → 改法（离线，一次到行）
 python tools/ws.py fix 模式.ow --fix-bools             # 导出文件修成可导入（导出文件不能直接导）
 python tools/ws.py readlog [--raw|--expect "c1=2"]     # 读工坊日志：实测读数自己取
 python tools/ws.py rule <关键词>                       # 查断言表（带证据等级 L0~L3）
@@ -64,7 +65,7 @@ python tools/ws.py upgrade --check                     # 开工前看版本；�
 | 用户的话 / 我在做什么 | 跑什么 | 读什么 |
 |---|---|---|
 | 「写个 XX 模式」 | `scaffold` 起手 → 写完 `check` | `docs/patterns.md` |
-| 「这个导不进去」/ 贴了游戏报错 | `check` | `docs/errors.md`（报错原文 → 真因 → 改法） |
+| 「这个导不进去」/ 贴了游戏报错 | `locate "报错原文" --file 模式.ow`（没文件时只给改法）→ `check` | `docs/errors.md`（报错原文 → 真因 → 改法） |
 | 能导入但行为不对 | `readlog` 取读数 → `rule` 查写法 | `docs/pitfalls-runtime.md` |
 | 写动作、字符串、变量、数组 | `doc <动作>` | `docs/pitfalls-syntax.md`、`docs/syntax.md` |
 | 这个元素能出现在哪 / 默认值多少 / 有什么坑 | `知道 <名字>` | —（六段答案都在这条命令里） |

@@ -51,6 +51,8 @@
 | REA 在 80MB 上撞响应预算 | `binary_overview` 跑 2823 秒后返回 `resource_constraint`（`result_budget_bytes ≈ 10MiB`，MCP 收包缓冲上限） | 要么先拿 5~10MB 的 PE 跑通流程，要么调 `REA_MCP_MAX_RESPONSE_BYTES`；别指望一次拉全量概览 |
 | Windows 上的 rizin 桥不可用 | `rea execute-rizin-command` → `ERR_REA_WINDOWS_NATIVE`；rizin 也没有 `pdc` 插件 | 反编译只能用 Ghidra；rizin 只当「字符串 / 反汇编局部函数」用 |
 | 字符串→引用的正确算法 | `axt` 依赖 `aa` 建库，80MB 上建不全，返回 0 行会被误读成「无引用」 | 用 **RIP 相对 disp32 反推**：对候选地址 A，找 `.text` 里满足 `p+7+disp32 == A` 的 lea（`48 8D 0D/05/15`…）。脚本见下 |
+| **`-postScript` 给绝对路径的 .java 会找不到** | `analyzeHeadless … -postScript "E:/…/X.java"` → `Failed to find script in any script directory` + `The class could not be found`（脚本本身没语法错；同一条命令换个路径就能跑） | 把脚本放到 **ASCII 路径**（如 `C:/Tools/ghidra-scripts/`），加 `-scriptPath C:/Tools/ghidra-scripts`，`-postScript` 只写文件名 |
+| protobuf 字段名字符串查不到引用 | `PBCGLogic*` / `CGGameRuleset*` 这些名字用 RIP 相对（0 处）和绝对 8 字节指针（0 处）都查不到引用 | 不是扫描坏了（同脚本对 `CustomGame.pb.cc` 路径串能算到 30 处）；protobuf 3.x 用 offset 表引用名字，**别拿「0 引用」当「没人用」** |
 
 ## 4. 还能用的锚点
 
@@ -97,6 +99,14 @@ CASC 探针必须 `Online=false`。
 
 ## 8. 现在还没解决的
 
+- **元素计价函数在 exe 里没找到（2026-10-24 专项，2 小时盒子里用了 55 分钟就撤回）**：
+  `.text` 里 `cmp …, 0x8000` 只有 17 处、逐个看过没有一个在数节点（唯一成组的是一段 32768 容量的缓冲追加）；
+  字符串里没有任何 element/count/budget 类锚点；protobuf 名字串查不到代码引用。
+  推论：**上限与计数大概率不在 exe 这条路径上**，下一步应该走 CASC（数据侧），别再烧时间反编译。
+  侦察脚本与反编译原文在研发仓 `tools-maintainer/v5-c1/`。
+- 5 个地址在现有工程里没有函数体（`0x14097aab4` `0x142d53740` `0x142d7d170` `0x142df9670` `0x143235fb8`）——
+  导入时 `ClearFlowAndRepairCmd` 超时留下的坑；要用得先补分析。
+- `cgLogicExtensions`（0x14364c7a0）像是 CVar 名，未查它是否与逻辑树相关。
 - `binary_overview` 的 10MiB 响应预算：抬到 64MiB 需要 REA 重启 + 客户端收包够大 + 结果本身够小，三条缺一不可，未实跑验证
 - enUS 报错表（本机只装了 zhCN 文本包）
 - `0x063` 表 54 条与 A 层 108 条的差集没对完
