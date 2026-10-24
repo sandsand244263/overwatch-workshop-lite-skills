@@ -1150,14 +1150,16 @@ EXTRA_SETTING_BLOCKS = ("综合", "英雄", "地图工坊")
 
 
 def check_mode_names(text, problems, modes=None):
-    """`设置 > 模式` 下的块名必须是工坊里真能选到的模式。
+    """`设置 > 模式` 下的块名必须是工坊里真能选到的模式（`data/mode-list.tsv`：21 条 = 14 个基础模式 + 6v6 变体）。
+
+    依据不是猜的：`acceptance-lab/map-pools/全地图池_21模式_314条.ow` 用这 21 个模式块
+    一个块列全该模式的 314 条地图，2026-10-23 **实机导入成功** —— 这 21 个名字游戏真认。
+    反之，内部数据里的 55 个模式里剩下的那批（动感斗球 / 怪鼠复仇 / 雪球攻势 / 剧情任务 /
+    英雄精通 / 镜影守望* / 幻变交锋* …）界面里选不到，写进 `.ow` 一步都过不去。
 
     两个合法形态：
       · 块头：`死斗 { … }`（名字也可能带全角冒号，比如 `星际守望：银河救兵`）
-      · 清单行：`禁用 勇夺锦旗`（语料实测写法，模式清单里的开/关项，不是块）
-
-    内部模式（动感斗球 / 怪鼠复仇 / 雪球攻势 / 剧情任务 / 英雄精通 / 镜影守望* / 幻变交锋* …）
-    界面里选不到，写进去导不进来 —— 这类名字在这里拦掉。
+      · 清单行 / 块头：`禁用 勇夺锦旗`（语料实测写法，前缀是开关词）
     """
     modes = modes if modes is not None else load_workshop_modes()
     if not modes:
@@ -1210,36 +1212,12 @@ def _check_mode_name(name, line_no, problems, modes):
         if name.startswith(prefix):
             name = name[len(prefix):].strip()
             break
-    if not name or name in EXTRA_SETTING_BLOCKS:
+    if not name or name in EXTRA_SETTING_BLOCKS or name in modes:
         return
-    if name in modes:
-        return
-    if name in load_unavailable_modes():
-        problems.append((line_no, "error",
-                         "「%s」工坊界面的模式列表里没有（只存在于游戏内部数据），写了导不进来。"
-                         "能用的模式：%s" % (name, _short_mode_list())))
-        return
-    # 两份数据对不上：内部数据有、工坊清单没收录。可能真选不到，也可能清单漏了，
-    # 一律只提示，让用户按「界面里能不能选到」自己判（宁可少报，D-006）。
-    problems.append((line_no, "warning",
-                     "「%s」不在工坊模式清单里（data/mode-list.tsv）。如果你在工坊里能选到它，"
-                     "这条忽略即可；选不到就说明是内部模式，写了导不进来" % name))
-
-
-def load_unavailable_modes(path=None):
-    """已确认「工坊界面选不到」的模式（`data/mode-unavailable.tsv`，每条带证据）。"""
-    if getattr(load_unavailable_modes, "_cache", None) is not None:
-        return load_unavailable_modes._cache
-    path = path or os.path.join(DATA_DIR, "mode-unavailable.tsv")
-    out = set()
-    if os.path.isfile(path):
-        import csv as _csv
-        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
-            v = (r.get("mode") or "").strip()
-            if v:
-                out.add(v)
-    load_unavailable_modes._cache = out
-    return out
+    problems.append((line_no, "error",
+                     "「%s」不是工坊里能选到的模式（内部数据里有，界面模式列表里没有，写了导不进来）。"
+                     "能用的模式：%s —— 完整清单见 data/mode-list.tsv"
+                     % (name, _short_mode_list())))
 
 
 def _short_mode_list(limit=12):
