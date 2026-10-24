@@ -77,8 +77,17 @@ CASC 探针必须 `Online=false`。
 
 ## 7. 反编译到底能不能用（2026-10-24 实测）
 
-**能，但导入很慢。** Ghidra headless 建工程：`analyzeHeadless <proj> owproj -import Overwatch.exe -max-cpu 2 -analysisTimeoutPerFile 2100`，
-`GHIDRA_HEADLESS_MAXMEM=4G` → **37 分 33 秒**建完（`Import succeeded`），峰值内存 1.97 GiB（4G 上限没顶满）。
+**能，但导入很慢，而且工程要留着别重建。**
+
+| 步骤 | 命令 | 实测 |
+|---|---|---|
+| 建工程（一次性） | `analyzeHeadless <工程目录> owproj -import Overwatch.exe -max-cpu 2 -analysisTimeoutPerFile 2100` | **37 分 33 秒**，`Import succeeded`，峰值 1.97 GiB |
+| 反编译任意函数 | `analyzeHeadless C:/Tools/ghidra-proj owproj -process -noanalysis -readOnly -postScript DecompileDump.java` | 一次一个函数，几十秒级 |
+
+- **现成工程在 `C:\Tools\ghidra-proj\owproj`（969 MB，别删）**。删了就得再等 37 分钟。
+- 堆上限用**环境变量** `GHIDRA_HEADLESS_MAXMEM=4G`（默认只有 2G），不是命令行 `-Xmx`。
+- `-readOnly` 能省掉 postScript 之后那段「ANALYZING changes made by post scripts」（不加会白跑十几分钟）。
+- 批量反编译要在**一个脚本里循环**（`DECOMP_LIMIT=N`），别 N 次启进程——每次启动大半时间在开 80MB 工程。
 
 - `Analysis timed out` **不等于失败**：PE 头、段表、符号、反汇编、函数识别都已完成并落盘，超时卡在收尾步骤
   `ClearFlowAndRepairCmd`（函数体修复）。工程可用，函数能反编译。
