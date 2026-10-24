@@ -1288,7 +1288,9 @@ def build_settings_block(mode, hero=None, lobby=False, allow_all=True, teams=Fal
         raise SystemExit("没有这个模式：%s\n可用的有：%s" % (mode, "、".join(known[:20]) + (" …" if len(known) > 20 else "")))
 
     allow = None if allow_all else _load_verified()
-    seen, body = set(), []
+    ranges = core.load_setting_ranges(os.path.join(DATA, "setting-ranges.tsv"))
+    bad_parent = core.load_key_parent_layers()
+    seen, body, common = set(), [], []
     for r in sorted(rows, key=lambda x: x["key"]):
         key = r["key"]
         if not key or key in seen:
@@ -1299,16 +1301,30 @@ def build_settings_block(mode, hero=None, lobby=False, allow_all=True, teams=Fal
         meta = vals.get((r["schema_guid"], key)) or vals.get((mode, key)) or vals.get((r["page"], key))
         if not meta:
             continue
-        body.append("\t\t\t%s: %s" % (key, meta["value"]))
-    if not body:
+        value = _clamp_setting_value(key, meta["value"], ranges)
+        line = "\t\t\t%s: %s" % (key, value)
+        # 实测被拒的组合（如 允许切换英雄 写在 决斗先锋 块内）改放 模式 > 综合，
+        # 否则生成出来的文件自己过不了 check（2026-10-24 55 个模式自查发现）
+        if mode in (bad_parent.get(key) or set()):
+            common.append(line)
+        else:
+            body.append(line)
+    if not body and not common:
         raise SystemExit("模式 %s 没有可写的键" % mode)
 
     lines = ["设置", "{"]
     if lobby:
-        lines += build_lobby_block(vals)
-    lines += ["\t模式", "\t{", "\t\t%s" % mode, "\t\t{"]
-    lines += body
-    lines += ["\t\t}", "\t}"]
+        lines += build_lobby_block(vals, mode=mode)
+    lines += ["\t模式", "\t{"]
+    if body:
+        lines += ["\t\t%s" % mode, "\t\t{"]
+        lines += body
+        lines += ["\t\t}"]
+    if common:
+        lines += ["", "\t\t综合", "\t\t{"]
+        lines += common
+        lines += ["\t\t}"]
+    lines += ["\t}"]
     if hero:
         hb = build_hero_block(hero, vals, teams=teams)
         if hb:
@@ -1328,13 +1344,46 @@ def _value_of(vals, schema, key):
     return meta["value"]
 
 
-def build_lobby_block(vals):
+def _clamp_setting_value(key, value, ranges):
+    """生成的默认值若超出权威范围，夹到最近的边界。
+
+    2026-10-24 自查发现：斗球推力倍率 / 排球推力倍率 权威范围是 1~3，
+    但生成器没有默认值就写 0，生成出来的文件被自己的 check 判「超出范围」。
+    宁可写边界值，也不写一个越界的数。
+    """
+    if not ranges or key not in ranges:
+        return value
+    lo, hi, _lv = ranges[key]
+    s = str(value).strip()
+    m = re.match(r"^(-?\d+(?:\.\d+)?)\s*(%?)$", s)
+    if not m:
+        return value
+    num, pct = float(m.group(1)), bool(m.group(2))
+    v = num / 100.0 if pct else num
+    new = v
+    if hi is not None and new > hi:
+        new = hi
+    if lo is not None and new < lo:
+        new = lo
+    if new == v:
+        return value                      # 没越界：原样返回，不动格式
+    return ("%g%%" % (new * 100)) if pct else ("%g" % new)
+
+
+def build_lobby_block(vals, mode=None):
     import csv
     path = os.path.join(DATA, "lobby-keys.tsv")
     rows = list(csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"))
     lines = ["\t大厅", "\t{"]
     for r in sorted(rows, key=lambda x: x["key"]):
         v = r.get("default_value") or _value_of(vals, "", r["key"])
+        # 自由混战人数上限 跟模式类型走：团队模式必须 0，死斗类至少 1
+        # （规则与 core.check_lobby_ffa_slots 同源；2026-10-24 自查：团队模式生成 10 会自打脸）
+        if mode and r["key"] == "自由混战人数上限":
+            if mode.startswith(core.TEAM_MODES):
+                v = "0"
+            elif mode.startswith(core.FFA_MODES):
+                v = v or "1"
         if v:
             lines.append("\t\t%s: %s" % (r["key"], v))
     lines.append("\t}")

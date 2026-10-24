@@ -1784,6 +1784,17 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
         m = re.match(r"^([^\s:：]{1,40})\s*[:：]\s*\S", s)
         if not m:
             continue
+        # 名字里带全角冒号的块头会被上面这个正则当成「键: 值」。
+        # 例：`星际守望：银河救兵` 下面跟一个 `{`，实际是模式块名，不是设置键。
+        # 判据只看下一行是不是 `{` —— 是块头就跳过（2026-10-24 自查 55 个模式时发现）。
+        nxt = ""
+        for j in range(idx + 1, len(lines)):
+            if lines[j].strip():
+                nxt = lines[j].strip()
+                break
+        if nxt.startswith("{"):
+            pending = s
+            continue
         key = m.group(1)
         if key in setting_keys or key in SETTING_KEY_WHITELIST:
             continue

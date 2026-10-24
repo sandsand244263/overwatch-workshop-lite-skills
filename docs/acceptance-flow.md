@@ -115,6 +115,7 @@ gh release create vX.Y.Z --title "vX.Y.Z" --notes "- 一句一条"
 - [ ] `check-all` 全过（反向用例数要跟着涨）——**看「正样本 N 个：N 通过 / 0 失败」那一行**，只看最后的反向用例统计会漏掉正样本失败
 - [ ] `calib` 偏差 0
 - [ ] 有语料时 `corpus` 无新增 error
+- [ ] **`selfcheck_modes` 55/55 干净**（生成器与校验器不许自相矛盾；2026-10-24 第一次跑抓到 16 个）
 - [ ] SKILL.md / VERSION / CHANGELOG / marketplace.json 版本号一致
 - [ ] 新增文档已进 `docs/INDEX.md`
 - [ ] 公开仓里没有一次性探针、语料、内部记录
