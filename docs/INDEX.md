@@ -24,6 +24,7 @@
 | [hero-stats.md](./hero-stats.md) | 54 英雄面板数值 | 调英雄数值 |
 | [hero-quickref.md](./hero-quickref.md) | 英雄速查 | 只想看一两个英雄 |
 | [element-reverse.md](./element-reverse.md) | 元素计数的实测推导记录（历史） | 想改估算模型 |
+| [reverse-notes.md](./reverse-notes.md) | **二进制/CASC 逆向**：报错文案在哪、什么工具在 80MB 上不可信、可用锚点、脚本位置 | 要做逆向 / 想拿报错全集 |
 | [acceptance-flow.md](./acceptance-flow.md) | 验收规范流程：三层仓分工、探针纪律、发版自检、回传后必做四件事 | 要加探针 / 要发版 / 不确定某文件该放哪个仓 |
 | [validator-coverage.md](./validator-coverage.md) | 校验器覆盖范围与漏报率测试 | 想改校验器 / 判断可信度 |
 | [diagnostics.md](./diagnostics.md) | 实机诊断方法（查看器日志等） | 要定位运行时问题 |
@@ -51,4 +52,25 @@
 | `action-tags.tsv` | 484 动作的功能分类 |
 | `meta.json` | 数据基线的 build 与导出日期 |
 
-**不要直接读这些表**，用命令查：`ws.py doc` / `keyinfo` / `stats` / `defaults` / `map-code` / `modes`。
+### 阶段 1 新增（S1a / S1b 表 + 两个生成脚本）
+
+| 文件 | 内容 | 谁生成 / 怎么验 |
+|---|---|---|
+| [`action-blocks.tsv`](../data/action-blocks.tsv) | 505 行（动作 225 / 值 261 / 条件 5 / 事件 14）× 五个块位置（事件块 / 持续-全局 / 持续-每名玩家 / 条件块 / 子程序体），四态取值：`是` / `否(数据:…)` / `未验证`，附语料出现次数与「冲突」列 | `python tools/gen_action_blocks.py`；`--check` 只比对不写盘（漂移退出 1） |
+| [`element-completeness.tsv`](../data/element-completeness.tsv) | 752 行：动作 / 值 / 设置键 三类 × 三向差集（现有表有·语料有 / 现有表有·语料没有 / 语料有·现有表没有） | 同上 |
+| [`defaults-full.tsv`](../data/defaults-full.tsv) | 831 行：400 元素的全部参数 —— 默认值 + **默认值性质**（字面值 / 类型占位 / 下拉默认档 / 无记录）+ 来源 + 尾参可省 + 语料反例数 + 等级 | `python tools/gen_element_facts.py`；`--check` 0 漂移、`--no-corpus` 无语料也能跑 |
+| [`dropdown-aliases.tsv`](../data/dropdown-aliases.tsv) | 406 行：下拉槽 / 布尔项 / 队伍 / 英雄 / 扩展独占取值 —— 规范词 × 别名 × 别名是否被接受 × 是否导出显示词 | 同上 |
+| [`param-exceptions.tsv`](../data/param-exceptions.tsv) | 6 行：签名说可省但引擎要求写（1 正向）+ 签名列了参数而语料一致少写（5 反向） | 同上 |
+| [`limits-mutex.tsv`](../data/limits-mutex.tsv) | 23 行：上限 10 / 互斥 7 / 百分比 3 / 合法写法 2 / 运行时 1 | 同上 |
+
+### 阶段 2 新增（报错文案全集）
+
+| 文件 | 内容 | 谁生成 / 怎么验 |
+|---|---|---|
+| [`errors-full.tsv`](../data/errors-full.tsv) | 136 行 = 108 解析器级 + 12 导入界面 + 16 本轮补录；列：原文模板 / 槽数与含义 / 归属 8 类 / 触发条件 / 真因 / 改法 / 现有校验器能提前报三档 / 检查类别 / 断言引用 / 证据 L0·L1 / 出处（guid + idx + errors.tsv 行号） | `python tools/gen_errors.py`；`--check` 只比对（漂移退出 1），`--stats` 出分类统计，`--emit-doc` 导出 `docs/errors.md` 用的表；输入是 CASC `0x07C` 文本表与 `errors.tsv`，只读 |
+| [`gen_errors.py`](../tools/gen_errors.py) | 报错文案全集的生成器：两表 join（按 `key_index` 对 `字符串ID`，逐条校验原文一致）+ 分类表（漏一条直接报错）+ 槽位声明校验 + 可复现输出（两次 md5 一致） | `python tools/gen_errors.py --stats` 自查 |
+
+**查元素表不要直接读文件**：`python tools/ws.py 知道 <名字>` 一条命令出六段（身份 / 参数 / 能出现在哪 / 取值 / 已知坑 / 出处），
+`--brief` 只给身份 + 已知坑，`--json` 给结构化版本，`--audit` 全量自查（0 崩溃 / 0 缺段 + 未答清单）。
+
+**不要直接读这些表**，用命令查：`ws.py 知道` / `doc` / `keyinfo` / `stats` / `defaults` / `map-code` / `modes`。

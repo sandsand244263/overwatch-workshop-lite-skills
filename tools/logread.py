@@ -93,6 +93,252 @@ def _num(x):
     return float(x) if ("." in x) else int(x)
 
 
+# ---------------------------------------------------------------- 期望表 (.tsv)
+# 列：格号 / 结构说明 / 期望 / 容差 / 依据 / 备注
+# 判读结论只有四档：通过 / 不符 / 未出现 / 超容差。
+EXPECT_COLS = ("格号", "结构说明", "期望", "容差", "依据", "备注")
+ABSENT_WORDS = ("未出现", "缺席", "none", "absent")
+_NUM_RE = re.compile(r"^[+-]?\d+(?:\.\d+)?$")
+_PM_RE = re.compile(r"^([+-]?\d+(?:\.\d+)?)±([+-]?\d+(?:\.\d+)?)$")
+_TOL_RE = re.compile(r"^(?:±|\+/-)([+]?\d+(?:\.\d+)?)$")
+_CMP_RE = re.compile(r"^(>=|<=|==|=|>|<|≥|≤)([+-]?\d+(?:\.\d+)?)$")
+_RANGE_RE = re.compile(r"^([+-]?\d+(?:\.\d+)?)\.\.([+-]?\d+(?:\.\d+)?)$")
+_OP_MAP = {"≥": ">=", "≤": "<=", "=": "=="}
+
+
+def _as_num(s):
+    """把一段文本变成数字；不是数字返回 None（绝不默认成 0）。"""
+    s = (s or "").strip()
+    return float(s) if _NUM_RE.match(s) else None
+
+
+def parse_constraint(raw, where, errors, allow_absent=False):
+    """解析一个判定条件。看不懂就记 error 并返回 None——不静默跳过。
+
+    支持：空 / *（不判）、未出现（只用于「期望」列）、12、12.5、
+         12±2、>=10、>10、<=10、<10、==10、10..20
+    """
+    s = (raw or "").strip().replace(" ", "")
+    if s in ("", "*"):
+        return {"kind": "any"}
+    if s in ABSENT_WORDS:
+        if allow_absent:
+            return {"kind": "absent"}
+        errors.append("%s：「%s」只能写在期望列（意思是这个格子的键不该出现在日志里）" % (where, raw))
+        return None
+    m = _PM_RE.match(s)
+    if m:
+        v, t = float(m.group(1)), abs(float(m.group(2)))
+        return {"kind": "num", "v": v, "tol": t}
+    m = _TOL_RE.match(s)
+    if m:
+        return {"kind": "tol", "t": abs(float(m.group(1)))}
+    m = _CMP_RE.match(s)
+    if m:
+        op = _OP_MAP.get(m.group(1), m.group(1))
+        return {"kind": "cmp", "op": op, "v": float(m.group(2))}
+    m = _RANGE_RE.match(s)
+    if m:
+        lo, hi = float(m.group(1)), float(m.group(2))
+        if lo > hi:
+            errors.append("%s：区间写反了（%s 大于 %s）" % (where, m.group(1), m.group(2)))
+            return None
+        return {"kind": "range", "lo": lo, "hi": hi}
+    v = _as_num(s)
+    if v is not None:
+        return {"kind": "num", "v": v}
+    errors.append("%s：看不懂「%s」。能写的写法：12 / 12.5 / 12±2 / >=10 / <=10 / 10..20"
+                  "（期望列还能写「未出现」）" % (where, raw))
+    return None
+
+
+def _match(actual, spec):
+    """实际值是否满足一个条件。"""
+    kind = spec["kind"]
+    if kind in ("any", "absent"):
+        return True
+    if kind == "num":
+        tol = spec.get("tol", 0.0)
+        return abs(actual - spec["v"]) <= tol + 1e-9
+    if kind == "range":
+        return spec["lo"] - 1e-9 <= actual <= spec["hi"] + 1e-9
+    if kind == "cmp":
+        op, v = spec["op"], spec["v"]
+        return {">=": actual >= v - 1e-9, "<=": actual <= v + 1e-9,
+                ">": actual > v, "<": actual < v, "==": abs(actual - v) <= 1e-9}[op]
+    return False
+
+
+def parse_expect_file(path):
+    """读期望表 -> (rows, errors)。rows 里每项带 want/tol 的解析结果。"""
+    errors, rows = [], []
+    try:
+        with open(path, "rb") as f:
+            raw = f.read()
+    except OSError as e:
+        return [], ["读不到期望表：%s（%s）" % (path, e)]
+    text = None
+    for enc in ("utf-8-sig", "utf-8", "gb18030"):
+        try:
+            text = raw.decode(enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    if text is None:
+        return [], ["期望表编码认不出来（试过 utf-8 / gb18030）：%s" % path]
+
+    header_seen, colmap = False, None
+    for lineno, line in enumerate(text.split("\n"), 1):
+        line = line.rstrip("\r")
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        cells = [c.strip() for c in line.split("\t")]
+        where = "%s 第 %d 行" % (os.path.basename(path), lineno)
+        if not header_seen:
+            header_seen = True
+            if cells[0] in ("格号", "格", "key", "变量"):
+                colmap = {name: (cells.index(name) if name in cells else None)
+                          for name in EXPECT_COLS}
+                if colmap["期望"] is None:
+                    errors.append("%s：表头里没有「期望」列（表头应是：%s）"
+                                  % (where, " / ".join(EXPECT_COLS)))
+                    return [], errors
+                continue
+            colmap = {"格号": 0, "结构说明": 1, "期望": 2, "容差": 3, "依据": 4, "备注": 5}
+        if len(cells) < 3 or not cells[0]:
+            errors.append("%s：列数不够（至少要 格号/结构说明/期望 三列，实际 %d 列）"
+                          % (where, len(cells)))
+            continue
+
+        def pick(name):
+            idx = colmap.get(name)
+            return cells[idx] if idx is not None and idx < len(cells) else ""
+
+        row = {"line": lineno, "key": pick("格号"), "desc": pick("结构说明"),
+               "want_raw": pick("期望"), "tol_raw": pick("容差"),
+               "basis": pick("依据"), "note": pick("备注")}
+        row["want"] = parse_constraint(row["want_raw"], where + " 期望", errors, allow_absent=True)
+        row["tol"] = parse_constraint(row["tol_raw"], where + " 容差", errors) if row["tol_raw"] else None
+        if row["tol"] and row["tol"]["kind"] == "num":
+            errors.append("%s 容差：单个数字没有意义，写 ±2 / >=10 / 10..20" % where)
+            row["tol"] = None
+        if row["want"] is not None and row["tol"] is not None:
+            if row["want"]["kind"] != "num" and row["tol"]["kind"] == "tol":
+                errors.append("%s：容差写 ±T 时，期望必须是数字（现在是「%s」）"
+                              % (where, row["want_raw"]))
+                row["tol"] = None
+        if row["want"] is None or (row["tol_raw"] and row["tol"] is None):
+            continue
+        if any(r["key"] == row["key"] for r in rows):
+            errors.append("%s：格号「%s」重复了，一格只能有一行" % (where, row["key"]))
+            continue
+        rows.append(row)
+    if not rows and not errors:
+        errors.append("期望表里没有任何数据行：%s" % path)
+    return rows, errors
+
+
+def series(entries, key):
+    """抓某个键的整条读数序列 -> [(秒, 值)]。键按词边界匹配，c1 不会吃掉 c10。"""
+    rx = re.compile(r"(?<![\w\u4e00-\u9fa5])" + re.escape(key) + r"\s*[=:：]\s*(-?\d+(?:\.\d+)?)")
+    out = []
+    for e in entries:
+        for m in rx.finditer(e["body"]):
+            out.append((e["sec"], float(m.group(1))))
+    return out
+
+
+def judge(row, actual, count):
+    """-> (结论, 说明)。四档：通过 / 不符 / 未出现 / 超容差。"""
+    want, tol = row["want"], row["tol"]
+    if want["kind"] == "absent":
+        return ("通过", "按预期没出现") if actual is None else ("不符", "不该出现却出现了")
+    if actual is None:
+        return "未出现", "日志里找不到 %s=" % row["key"]
+    if tol is not None and tol["kind"] == "tol":          # ±T：把期望当中心
+        if want["kind"] != "num":
+            return "不符", "容差 ±%g 没有可用的期望中心" % tol["t"]
+        if abs(actual - want["v"]) <= tol["t"] + 1e-9:
+            return "通过", "在 %g±%g 内" % (want["v"], tol["t"])
+        return "超容差", "离期望 %g 差了 %g（容差 ±%g）" % (want["v"], abs(actual - want["v"]), tol["t"])
+    if not _match(actual, want):
+        return "不符", "期望 %s，实际 %g" % (row["want_raw"] or "*", actual)
+    if tol is not None and not _match(actual, tol):
+        return "超容差", "不满足容差 %s" % row["tol_raw"]
+    return "通过", ""
+
+
+def _dw(s):
+    """按终端显示宽度算长度（中文占 2 格），否则表格会歪。"""
+    import unicodedata
+    return sum(2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1 for ch in s)
+
+
+def _pad(s, width):
+    return s + " " * max(0, width - _dw(s))
+
+
+def _clip(s, width):
+    if _dw(s) <= width:
+        return s
+    out, used = "", 0
+    for ch in s:
+        w = 2 if _dw(ch) == 2 else 1
+        if used + w > width - 1:
+            break
+        out += ch
+        used += w
+    return out + "…"
+
+
+def report_expect_file(entries, rows, path, verbose=False):
+    """打印「预期 | 实际 | 结论」差异表；返回退出码（0 只在全部通过时）。"""
+    results, tally = [], {"通过": 0, "不符": 0, "未出现": 0, "超容差": 0}
+    for row in rows:
+        hits = series(entries, row["key"])
+        actual = hits[-1][1] if hits else None
+        verdict, why = judge(row, actual, len(hits))
+        tally[verdict] += 1
+        results.append((row, actual, len(hits), verdict, why))
+
+    print("\n期望表：%s（%d 格）" % (os.path.basename(path), len(rows)))
+    head = ("格号", "结构说明", "预期", "实际", "结论")
+    widths = [8, 26, 10, 10, 8]
+    print("  " + " ".join(_pad(h, w) for h, w in zip(head, widths)))
+    print("  " + " ".join("-" * w for w in widths))
+    for row, actual, count, verdict, _why in results:
+        shown = "（没出现）" if actual is None else ("%g" % actual)
+        print("  " + " ".join([
+            _pad(_clip(row["key"], widths[0]), widths[0]),
+            _pad(_clip(row["desc"] or "-", widths[1]), widths[1]),
+            _pad(_clip(row["want_raw"] or "*", widths[2]), widths[2]),
+            _pad(_clip(shown, widths[3]), widths[3]),
+            _pad(verdict, widths[4]),
+        ]))
+
+    bad = [r for r in results if verbose or r[3] != "通过"]
+    if bad:
+        print("\n逐格明细%s：" % ("" if verbose else "（只看没通过的）"))
+        for row, actual, count, verdict, why in bad:
+            print("  %s  %s" % (row["key"], why or "（通过）"))
+            print("     期望 %s%s / 实际 %s / 打点 %d 次%s"
+                  % (row["want_raw"] or "*",
+                     ("（容差 %s）" % row["tol_raw"]) if row["tol_raw"] else "",
+                     "（没出现）" if actual is None else ("%g" % actual),
+                     count,
+                     ("（第 %d 行）" % row["line"])))
+            if row["basis"] or row["note"]:
+                print("     依据：%s   备注：%s" % (row["basis"] or "-", row["note"] or "-"))
+
+    over = [r for r in results if r[3] == "超容差"]
+    if over:
+        print("\n超容差 %d 格：%s（值出来了，但不在容差里）"
+              % (len(over), "、".join(r[0]["key"] for r in over)))
+    print("%d 格：通过 %d / 不符 %d / 未出现 %d"
+          % (len(rows), tally["通过"], tally["不符"], tally["未出现"]))
+    return 0 if tally["通过"] == len(rows) else 1
+
+
 def check_expect(entries, spec):
     """spec: 'c1=2,c2=2,c3=1' -> (ok, [(键, 期望, 实际, 秒数)], [缺失键])"""
     want = []
@@ -185,6 +431,18 @@ def run(args):
         print("\n（%d 行，加 --raw 看全部）" % len(entries))
 
     spec = getattr(args, "expect", None)
+    table = getattr(args, "expect_file", None)
+    if spec and table:
+        print("\n[错误] --expect 和 --expect-file 只能给一个。")
+        return 2
+    if table:
+        rows, errors = parse_expect_file(table)
+        if errors:
+            print("\n[错误] 期望表有问题（没有判读）：")
+            for e in errors:
+                print("  - %s" % e)
+            return 2
+        return report_expect_file(entries, rows, table, verbose=getattr(args, "verbose", False))
     if spec:
         ok, rows, missing = check_expect(entries, spec)
         print("\n对期望值：")
@@ -223,4 +481,6 @@ if __name__ == "__main__":           # 单独跑：python tools/logread.py [--ra
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--raw", action="store_true")
     ap.add_argument("--expect")
+    ap.add_argument("--expect-file", dest="expect_file", help="期望表 .tsv（格号/结构说明/期望/容差/依据/备注）")
+    ap.add_argument("-v", "--verbose", action="store_true", help="逐格明细连通过的也列")
     sys.exit(run(ap.parse_args()))

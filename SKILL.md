@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.12.1
+version: 3.13.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -25,7 +25,7 @@ metadata:
 4. **动作目标慎用 `本地玩家`**：`伤害` / `隐藏英雄HUD` / `开始镜头` 写在 `持续 - 全局` 里对 `本地玩家` 无效
    （HUD 文本、玩家过滤、距离计算可以用）。这类「动身体/视角」的动作放 `每名玩家` + `事件玩家`。
 
-每条都有实机读数，依据查得到：`python tools/ws.py rule <关键词>`（断言表 `docs/rules.tsv`，29 条）。
+每条都有实机读数，依据查得到：`python tools/ws.py rule <关键词>`（断言表 `docs/rules.tsv`，34 条：28 L3 / 3 L2 / 2 L1 / 1 L0）。
 **别凭记忆写**——断言表是唯一可查入口，散文里可能有过期说法。
 
 **断言表带证据等级，说话必须对上等级：**
@@ -50,8 +50,9 @@ python tools/ws.py readlog [--raw|--expect "c1=2"]     # 读工坊日志：实�
 python tools/ws.py rule <关键词>                       # 查断言表（带证据等级 L0~L3）
 python tools/ws.py verify [--scaffold 10 --out X.ow]  # 列出/生成还没验的断言验证探针
 python tools/ws.py scaffold --rule 名字 --out X.ow     # 起测试骨架（自带房间设置）
-python tools/ws.py count 模式.ow                       # 元素估算（真实模式偏低 4~19%，靠近上限别赌）
+python tools/ws.py count 模式.ow                       # 元素估算（真实模式偏低 0.6~17.8%，区间 ×1.00~1.23，靠近上限别赌）
 python tools/ws.py doc <动作>                          # 官方说明 + 每个参数的可选值
+python tools/ws.py 知道 <名字> [--brief|--json]        # 六段全答：身份/参数/能出现在哪/取值/已知坑/出处
 python tools/ws.py reveal 文件                         # 交付测试文件（记事本直接打开）
 python tools/ws.py upgrade --check                     # 开工前看版本；升级前先发版本地改动，否则被覆盖
 ```
@@ -66,6 +67,7 @@ python tools/ws.py upgrade --check                     # 开工前看版本；�
 | 「这个导不进去」/ 贴了游戏报错 | `check` | `docs/errors.md`（报错原文 → 真因 → 改法） |
 | 能导入但行为不对 | `readlog` 取读数 → `rule` 查写法 | `docs/pitfalls-runtime.md` |
 | 写动作、字符串、变量、数组 | `doc <动作>` | `docs/pitfalls-syntax.md`、`docs/syntax.md` |
+| 这个元素能出现在哪 / 默认值多少 / 有什么坑 | `知道 <名字>` | —（六段答案都在这条命令里） |
 | 动地图 / 时段 / 模式名 | `map-code` | `docs/pitfalls-map.md` |
 | 设置块怎么写 | `settings --mode X` | `docs/settings-map.md` |
 | 元素快超了 | `count` | `docs/limits.md`、`docs/cost-patterns.md` |

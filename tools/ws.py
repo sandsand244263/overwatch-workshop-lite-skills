@@ -4,6 +4,7 @@
 
   python tools/ws.py check  模式.ow [更多文件...]     校验
   python tools/ws.py count  模式.ow                   元素数估算
+  python tools/ws.py 知道 创建HUD文本                查一个元素的六段事实（身份/参数/能出现在哪/取值/已知坑/出处）
   python tools/ws.py defaults 创建HUD文本              查参数默认值（省略时游戏用什么）
   python tools/ws.py publish 模式.ow --outdir out [--obf numbers,vars]
   python tools/ws.py readlog [--list|--raw|--expect c1=2]  读工坊日志（游戏自己落盘）
@@ -252,14 +253,15 @@ def cmd_count(args):
 
     实测依据（43 个标定探针 + 私有仓 corpus/real-totals.tsv 的 5 个真实模式）：
       · 探针级（<2000 元素）：模型偏差 ≤6 个元素，可以直接用
-      · 真实模式（6千~3.3万）：模型一律**偏低**，真实值 = 估算 ×1.04 ~ ×1.23
-        （−4.1% / −5.5% / −11.2% / −18.8% / −12.0%，与规模无关、与任何单一结构都不相关）
-    所以区间只向上给（×1.03 ~ ×1.25，上界比实测最高增幅再留余量），判上限按上界判。
+      · 真实模式（6千~3.3万）：模型仍**偏低**，实测倍率 1.006 ~ 1.216
+        （−0.6% / −5.3% / −10.8% / −17.8% / −2.8%；S2b 修掉 4 类「整条语句被吞」后
+        合计 −9.2% → −5.3%，3/5 进 ±5%，两个离群文件归因不到具体构造）
+    所以区间只向上给（×1.00 ~ ×1.23，下界＝实测最低倍率、上界＝实测最高 + 1% 余量），判上限按上界判。
     """
     from element_count2 import estimate2
     from element_count import estimate, describe
     CAP, SMALL = 32768, 2000
-    RATIO_LO, RATIO_HI = 1.03, 1.25
+    RATIO_LO, RATIO_HI = 1.00, 1.23
     for path in args.files:
         name = os.path.basename(path)
         if getattr(args, "legacy", False):
@@ -539,6 +541,20 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 判定表读不到，表驱动检查的开关无法核对：%s" % e)
         bad += 1
+    # 「知道」六段回归：每类型 10 个固定名字（写死，不随机），六段全在 + 退出码 0
+    try:
+        import know as _know
+        problems, summary = _know.selftest_check()
+        if problems:
+            print("✗ %s" % summary)
+            for p in problems:
+                print("    %s" % p)
+            bad += 1
+        else:
+            print(summary)
+    except Exception as e:
+        print("✗ 「知道」六段回归跑不起来：%s: %s" % (type(e).__name__, e))
+        bad += 1
     # 版本号三处一致性
     ver_file = ""
     vp = os.path.join(ROOT, "VERSION")
@@ -594,6 +610,12 @@ def cmd_readlog(args):
     """转调 tools/logread.py：读游戏自动落盘的工坊查看器日志。"""
     import logread
     return logread.run(args)
+
+
+def cmd_probe_template(args):
+    """转调 tools/gen_probe.py：生成探针骨架 .ow + 配套 expect.tsv。"""
+    import gen_probe
+    return gen_probe.main_with_args(args)
 
 
 
@@ -841,9 +863,9 @@ def cmd_totals(args):
               % ("合计", tot_r, tot_e, tot_e - tot_r, (tot_e - tot_r) * 100.0 / tot_r,
                  tot_r / float(tot_e) if tot_e else 0))
     if ratios:
-        # 判定用区间（count 的 ×1.03 ~ ×1.25 就来自这里：实测最低/最高增幅各留一点余量）
-        print("实测「真实/估算」倍率 %.3f ~ %.3f → count 按 ×1.03 ~ ×1.25 给区间"
-              % (min(ratios), max(ratios)))
+        # 判定用区间（count 的区间就来自这里：下界＝实测最低倍率，上界＝实测最高 + 1% 余量）
+        print("实测「真实/估算」倍率 %.3f ~ %.3f → count 按 ×%.3f ~ ×%.3f 给区间"
+              % (min(ratios), max(ratios), min(ratios), max(ratios) * 1.01))
     return 0
 
 def cmd_calib(a):
@@ -947,6 +969,17 @@ def main():
     p.add_argument("keyword")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_explain)
+
+    p = sub.add_parser("知道", help="一条命令回答一个元素/设置键的全部已知事实（六段）")
+    p.add_argument("name", nargs="?", default=None,
+                   help="动作/值/事件/设置键/设置块名；可带参数（伤害(玩家, 玩家, 5)）")
+    p.add_argument("--brief", action="store_true", help="只给身份 + 已知坑")
+    p.add_argument("--json", action="store_true", help="机器读（六段结构）")
+    p.add_argument("--audit", action="store_true", help="全量自查：0 崩溃 / 0 缺段 + 未答元素清单")
+    p.add_argument("--as", dest="as_type", default=None,
+                   help="同名时指定类型：动作/值/事件/扩展/设置键/设置块（如 生命值 既是值也是设置键）")
+    p.add_argument("--out", default="", help="--audit 的清单输出路径")
+    p.set_defaults(func=lambda a: __import__("know").run(a))
 
     p = sub.add_parser("doc", help="查官方说明（元素/参数/下拉选项）")
     p.add_argument("name", nargs="?", default=None, help="元素名，如 创建HUD文本")
@@ -1075,7 +1108,19 @@ def main():
     p.add_argument("--list", action="store_true", help="列出最近 10 个日志文件")
     p.add_argument("--raw", action="store_true", help="全部记录原样打印")
     p.add_argument("--expect", help="对期望值，例如 c1=2,c2=2,c3=1")
+    p.add_argument("--expect-file", dest="expect_file",
+                   help="期望表 .tsv（格号/结构说明/期望/容差/依据/备注），出「预期|实际|结论」差异表")
+    p.add_argument("-v", "--verbose", action="store_true", help="差异表逐格明细连通过的也列")
     p.set_defaults(func=cmd_readlog)
+
+    p = sub.add_parser("probe-template", help="生成探针骨架 .ow + 配套 expect.tsv（一格一计数器 + 对照组）")
+    p.add_argument("--cells", type=int, default=8, help="格数（1-20，默认 8）")
+    p.add_argument("--structures", default="", help="显式指定结构，逗号分隔（如 无条件,If真,If假）")
+    p.add_argument("--seconds", type=int, default=12, help="跑多少秒（默认 12）")
+    p.add_argument("--name", default="探针", help="模式名称")
+    p.add_argument("--out", default="probe.ow", help="输出的 .ow")
+    p.add_argument("--expect-out", dest="expect_out", default="", help="输出的 expect.tsv（默认同名）")
+    p.set_defaults(func=cmd_probe_template)
 
     p = sub.add_parser("rule", help="查判定表：实测结论怎么用（docs/rules.tsv）")
     p.add_argument("query", nargs="*", help="关键词，空格分隔多个词")
@@ -1155,7 +1200,45 @@ def _load_settings_values():
                 shown = VALUE_WORD_MAP.get(first, first)
             out[(row.get("schema", ""), row.get("key", ""))] = {
                 "value": shown, "raw": raw, "kind": kind, "default": default}
+    _fill_settings_values_gaps(out)
     return out
+
+
+def _fill_settings_values_gaps(out):
+    """settings.tsv 缺的 13 个键，用 setting-schemas.tsv + enum-values.tsv 补默认值。
+
+    S8 报告 §6.1：`ws.py settings --mode X` 以前会**静默漏掉**这些键
+    （英雄限制 / 急救包刷新 / 游戏模式开始 / 英雄池上限 …），生成出来的设置块不完整。
+    """
+    import csv as _csv
+    schemas = os.path.join(DATA, "setting-schemas.tsv")
+    if not os.path.isfile(schemas):
+        return
+    enums = {}
+    ep = os.path.join(DATA, "enum-values.tsv")
+    if os.path.isfile(ep):
+        for r in _csv.DictReader(open(ep, encoding="utf-8"), delimiter="\t"):
+            raw = (r.get("合法值原文") or "").strip()
+            if raw:
+                enums[r.get("键名", "")] = [x.strip() for x in raw.split("|") if x.strip()]
+    for r in _csv.DictReader(open(schemas, encoding="utf-8"), delimiter="\t"):
+        schema, key = (r.get("schema") or "").strip(), (r.get("key") or "").strip()
+        if not key or (schema, key) in out:
+            continue
+        kind = (r.get("type") or "").strip().upper()
+        default = (r.get("default") or "").strip()
+        if kind.startswith("BOOL"):
+            on = (r.get("on") or "").strip() or "开启"
+            out[(schema, key)] = {"value": on, "raw": on, "kind": "BOOL", "default": on}
+        elif "ENUM" in kind:
+            opts = enums.get(key) or []
+            val = opts[0] if opts else ""
+            if not val:
+                continue
+            out[(schema, key)] = {"value": val, "raw": "|".join(opts), "kind": "ENUM", "default": val}
+        else:
+            v = default or "0"
+            out[(schema, key)] = {"value": v, "raw": v, "kind": kind, "default": default}
 
 
 def _load_pages(name):

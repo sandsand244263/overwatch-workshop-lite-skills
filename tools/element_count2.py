@@ -20,6 +20,11 @@ import re
 SEP = "，,"
 COMMENT = "//"
 
+# 行尾「还没写完」的记号：语句以这些结尾时，换行不能当语句边界
+_CONT = ("=", "+", "-", "*", "/", "%", "&", "|", "<", ">", "!", ",", "，", "?", ":", "(", "[", "、")
+# 下一行以这些开头时，说明是上一行的续行（跨行表达式/三元/参数表）
+_CONT_WITH_SPACE = set("?:),]}=+-*/%&|<>.，、{")
+
 # 语句块关键字（行首去空白后匹配）
 BLOCK_START = re.compile(r"^(If|Else If|Else|While|For 全局变量|For 玩家变量|For 数组元素)\s*\(")
 KEYWORDS = {"设置", "变量", "子程序", "规则", "事件", "条件", "动作"}
@@ -65,6 +70,30 @@ def scan_units(s, i=0):
         if ch == "/" and i + 1 < n and s[i + 1] == "/":
             while i < n and s[i] != "\n":
                 i += 1
+            continue
+        if ch == "/" and i + 1 < n and s[i + 1] == "*":
+            # 块注释 /* ... */（真实语料里出现过 /* @SKIP_OBFUSCATE_STRING */，
+            # 出现在语句中间；不剥掉会把后面的语句头污染成反常量，整条语句只算 1）
+            j = s.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        if ch == "\n" and paren == 0:
+            # 行尾补齐：没有分号的独立语句（真实语料里用裸字符串当分段标签，
+            # 例如 "Tooltip BG" 单独一行）必须在换行处切开，否则会被粘到下一条语句上，
+            # 结果是整条真语句被当成「字符串」丢掉。
+            st = "".join(buf).strip()
+            if st and not st.endswith(_CONT):
+                j = i + 1
+                while j < n and s[j] in " \t\r":
+                    j += 1
+                nxt = s[j] if j < n else ""
+                if nxt and nxt not in _CONT_WITH_SPACE:
+                    units.append(("stmt", st))
+                    buf = []
+                    i += 1
+                    continue
+            buf.append(ch)
+            i += 1
             continue
         if ch == "{":
             header = "".join(buf).strip()
@@ -214,7 +243,7 @@ class P:
         ch = self.s[self.i]
         if ch == "(":
             self.i += 1
-            node = self.expr()
+            node = self.parse()      # 用 parse 而不是 expr：括号里可以有三元 (a ? b : c)
             self.eat(")")
             return ("paren", node)
         if ch == '"':
@@ -239,6 +268,11 @@ class P:
             return ("const", "")
         name = m.group(1)
         self.i += len(name)
+        # 多词函数名：`正在使用技能 1(`、`禁用 等待(` —— 空格后紧跟一个词 + `(`
+        m2 = re.match(r"\s+([^\s(),\[\]=<>!&|+\-*/%;?:，\"“”]+)(\s*)\(", self.s[self.i:])
+        if m2:
+            name = (name + " " + m2.group(1)) if name else m2.group(1)
+            self.i += m2.start(1) + len(m2.group(1))
         # 调用
         if self.peek() == "(":
             self.i += 1

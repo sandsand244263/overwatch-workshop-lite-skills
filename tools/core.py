@@ -197,8 +197,11 @@ def load_signatures(path):
                 continue
             name, rest = line.split("(", 1)
             name = name.strip()
-            if not name or " " in name:
+            if not name:
                 continue
+            # 名字里允许有空格：`Else If`、`For 全局变量`、`设置启用技能 1`、`正在使用技能 1`
+            # 这些是**多词元素名**，不是「名字 + 参数」。以前这里 skip 掉，导致
+            # 7 个元素的参数个数 / 类型检查全部失效（scan_calls 见 _multiword_names）。
             inner = rest[:-1].strip()
             args = split_args(inner) if inner else []
             sigs[name] = len(args)
@@ -289,9 +292,37 @@ FOR_PREFIX = re.compile(r"For\s+$")
 # 可变参数：签名表里只能写出前几个占位，实际能一直往里塞
 VARIADIC = {"数组", "自定义字符串", "字符串"}
 
+# 多词元素名（名字里带空格）——参数个数必须**正好**对上签名。
+# 为什么单列：scan_calls 的取词器按「连续标识符字符」读名字，空格天然是分隔符，
+# 所以 `设置启用技能 1(事件玩家)` 以前根本不会进参数检查（`load_signatures` 里也
+# 直接 skip 了这 7 个名字）。修好取词后，这 7 个元素的参数个数是固定的、没有一个
+# 可选尾参，少写/多写都是引擎不接受，故按「正好」判，而不是只判上限。
+# 实测：9 份真实语料里这 7 个元素共 1738 次调用，参数个数 100% 与签名一致
+# （Else If 1×1208 / For 全局变量 4×159 / For 玩家变量 5×111 /
+#  设置启用技能1 2×4 / 设置启用技能2 2×6 / 正在使用技能1 1×160 / 正在使用技能2 1×90）。
+EXACT_ARITY = {
+    "Else If": 1,
+    "For 全局变量": 4,
+    "For 玩家变量": 5,
+    "设置启用技能 1": 2,
+    "设置启用技能 2": 2,
+    "正在使用技能 1": 1,
+    "正在使用技能 2": 1,
+}
 
-def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None):
+
+def _multiword_names(sigs):
+    """签名表里名字带空格的元素，按长度倒序（长名先匹配）。"""
+    return sorted((k for k in sigs if " " in k), key=len, reverse=True)
+
+
+def _is_word_char(c):
+    return c.isalnum() or c == "_" or "\u4e00" <= c <= "\u9fff"
+
+
+def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None, legal_words=None):
     options = options or {}
+    multiword = _multiword_names(sigs)
     i, n = 0, len(text)
     while i < n:
         ch = text[i]
@@ -306,7 +337,26 @@ def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None):
             while i < n and (text[i].isalnum() or text[i] == "_" or "\u4e00" <= text[i] <= "\u9fff"):
                 i += 1
             name = text[start:i]
-            if i < n and text[i] == "(" and name not in BLOCK_KEYWORDS and name not in CONTROL:
+            # 多词元素名：`For 玩家变量(...)`、`Else If(...)`、`正在使用技能 1(...)`。
+            # 只在「名字 + 空格 + 词」正好接上签名里的全名、且后面紧跟 `(` 时才认，
+            # 不动 `For 全局变量` 以外那些普通写法。
+            if multiword:
+                for cand in multiword:
+                    if not cand.startswith(name) or len(cand) <= len(name):
+                        continue
+                    if not text.startswith(cand, start):
+                        continue
+                    after = start + len(cand)
+                    if after < n and _is_word_char(text[after]):
+                        continue
+                    k = after
+                    while k < n and text[k] in " \t":
+                        k += 1
+                    if k < n and text[k] == "(":
+                        name, i = cand, k
+                        break
+            if i < n and text[i] == "(" and name not in BLOCK_KEYWORDS and \
+                    (name not in CONTROL or name in EXACT_ARITY):
                 depth, j, in_str = 1, i + 1, False
                 while j < n and depth:
                     c = text[j]
@@ -334,6 +384,8 @@ def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None):
                         _dd_slots[_idx] = _opts
                 for _slot, _opts in _dd_slots.items():
                     if len(arg_list) > _slot and arg_list[_slot] == "无" and "全部禁用" in _opts:
+                        if (name, "无") in (legal_words or ()):
+                            continue      # data/limits-mutex.tsv「合法写法」：这个槽写「无」是对的
                         problems.append((line, "error",
                                          "%s 第 %d 个参数要选项，导出把「全部禁用」写成了「无」；"
                                          "改成 全部禁用（ws.py fix 文件 --fix-bools 可自动改）"
@@ -359,6 +411,13 @@ def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None):
                                          % (name, total, got)))
                     elif got == 0 and total > 0:
                         problems.append((line, "error", "%s 至少需要 1 个参数" % name))
+                    elif got < total and name in EXACT_ARITY:
+                        # 多词元素名（`设置启用技能 1`、`For 全局变量`…）没有可选尾参，
+                        # 少写就是缺值，游戏会报「之后应有一个值」。修好取词前这一支不生效。
+                        _need = "、".join(a.replace(":", "：") for a in (labels.get(name) or []))
+                        problems.append((line, "error",
+                                         "%s 参数不够：签名要 %d 个（%s），实际写了 %d 个"
+                                         % (name, total, _need or "见签名", got)))
                     params = labels.get(name) or []
                     if params and params[0].endswith(":玩家") and inner.strip():
                         first = arg_list[0]
@@ -727,6 +786,28 @@ def check_health_percent_param(text, problems):
             problems.append((ln, "warning",
                              "设置最大生命值 的参数是百分比（100 = 原值），%g 表示 %g 倍；"
                              "想给具体血量就换算成百分比（例如 600 血的英雄要 300 点 = 50）" % (val, val / 100)))
+
+
+def check_speed_percent_param(text, problems):
+    """`设置移动速度` 的参数是**百分比**（100 = 原值），不是绝对速度。
+
+    limits-mutex.tsv「百分比 / 设置移动速度的参数」L3（2026-10-23 实测，与
+    设置最大生命值 同一条读数）：想要 1.5 倍就写 150；写 1000 是 10 倍，几乎不可能是本意。
+    阈值放在 250：9 份真实语料里这个参数的字面量最大 200（100×5 / 110×4 / 200×3 / 150 / 140…），
+    250 上命中 0 条，82 个正样本同样 0 条。
+    """
+    for pos, n, args in _iter_calls(text, "设置移动速度"):
+        if n < 2:
+            continue
+        v = args[1].strip()
+        if not re.fullmatch(r"\d+(?:\.\d+)?", v):
+            continue
+        val = float(v)
+        if val >= 250:
+            line = text.count("\n", 0, pos) + 1
+            problems.append((line, "warning",
+                             "设置移动速度 的参数是百分比（100 = 原值），%g 表示 %g 倍；"
+                             "想要 1.5 倍就写 150" % (val, val / 100)))
 
 
 def check_percent_operator(text, problems):
@@ -1763,7 +1844,8 @@ def check_subroutines(text, problems, subroutines):
 
 RULE_BYTE_LIMIT = 100352          # 98KB：游戏诊断面板「每条规则长度不得超过98KB」
 ELEMENT_LIMIT = 32768
-ELEMENT_WARN = 16384
+ELEMENT_WARN = 16384          # 保留：旧档位，不再单独触发提示（见下方 hi 判定）
+ELEMENT_HI_RATIO = 1.23       # 与 ws.py cmd_count 的 RATIO_HI 同步（S2b 实测倍率上界）
 
 
 def check_limits(path, text, problems, sigs=None, labels=None):
@@ -1795,14 +1877,18 @@ def check_limits(path, text, problems, sigs=None, labels=None):
             est = element_count.estimate(path, sigs, labels)[0]
         except Exception:
             return
+    # 判上限按「最坏上界」判，与 count 的 ⚠ 口径一致（下界/上界见 ws.py cmd_count）。
+    # 只按估算值过半就提示，会在 1.6 万元素这种「离上限还远」的文件上误报（S2b 实测：
+    # 猪猪钩钩乐 16811 个元素被判「已接近 32768」，纯噪声）。
+    hi = int(est * ELEMENT_HI_RATIO) + 1
     if est > ELEMENT_LIMIT:
         problems.append((0, "error",
                          "预计元素数约 %d，超过 32768 上限（估算偏保守，按低估的值算也已经超了）；"
                          "以游戏「显示诊断结果 → 总计元素数量」为准" % est))
-    elif est >= ELEMENT_WARN:
+    elif hi > ELEMENT_LIMIT:
         problems.append((0, "warning",
-                         "预计元素数约 %d，已接近 32768 上限（估算不精确，仅提示）；"
-                         "以游戏「显示诊断结果 → 总计元素数量」为准" % est))
+                         "预计元素数约 %d，按最坏上界 %d 可能超过 32768（真实值落在上限两侧，只能进游戏核对）；"
+                         "以游戏「显示诊断结果 → 总计元素数量」为准" % (est, hi)))
 
 
 # ---------------------------------------------------------------- 类型层
@@ -2043,6 +2129,31 @@ def check_bare_var_assign(text, problems):
             problems.append((i, "error",
                              "变量 %s 不能裸写赋值；要写 事件玩家.%s = …（玩家变量）或 全局.%s = …（全局变量）"
                              % (name, name, name)))
+
+
+def check_var_slot_bare(text, problems):
+    """修改/设置变量类动作的变量槽必须写**裸名**（不带 `全局.` / `事件玩家.` 前缀）。
+
+    实测（E-59，2026-10-24 用户实机）：`修改全局变量(全局.A, 添加至数组, 3)` → 导入报错；
+    改成 `修改全局变量(A, 添加至数组, 3)` → 正常。九份真实语料里全部是裸名写法。
+    注意跟赋值相反：`全局.A = 3` 才带前缀。
+    """
+    specs = (("修改全局变量", 0), ("在索引处设置全局变量", 0),
+             ("修改玩家变量", 1), ("在索引处设置玩家变量", 1))
+    for name, idx in specs:
+        for pos, n, args in _iter_calls(text, name):
+            if n <= idx:
+                continue
+            slot = args[idx].strip()
+            m = re.match(r"^(全局|玩家|事件玩家|本地玩家|攻击方|被攻击方|所有玩家)\s*[.。]", slot)
+            if not m:
+                continue
+            bare = re.split(r"[.。]", slot, 1)[1] if re.split(r"[.。]", slot, 1)[1:] else slot
+            ln = text.count("\n", 0, pos) + 1
+            problems.append((ln, "error",
+                             "%s 的变量槽要写裸名 `%s`，不能写 `%s`（游戏会拒绝导入，"
+                             "报「之后应有一个值」一类）；注意跟赋值相反：`全局.%s = …` 才带前缀"
+                             % (name, bare, slot, bare)))
 
 
 def check_bare_strings(text, problems):
@@ -2680,23 +2791,47 @@ def check_victory_in_loop(text, problems):
     """循环里宣告胜利后没有退出（中断/返回），会每秒重复宣告。
 
     实测：抱团得分模式到 30 分后，日志里每秒都记一条「触发胜利」。
+    认可的收尾写法（limits-mutex.tsv「运行时 / 循环里宣告胜负」L3，E-38）：
+      1. 宣告后面紧跟 中断 / 返回；
+      2. 宣告后把守卫变量置「真」，而循环条件里用的就是那个变量（`循环条件带 全局.ended`）；
+      3. 宣告后 等待直到(游戏正在进行中() == 假)（再 中断）。
+    块配对要连 `If` 一起记：只记 While/For 的话，循环体里一个 If 的 `End;` 会把
+    「在循环里」这个标记提前弹掉，后面的宣告就漏了。
     """
-    stack = []
+    stack = []          # [("loop", 循环条件原文) | ("block", None)]
     lines = text.split("\n")
     for i, raw in enumerate(lines):
         s = strip_noise(raw).strip()
         if not s or s.startswith("//"):
             continue
-        if s.startswith("While(") or s.startswith("For "):
-            stack.append("loop")
-        elif s == "End;" or s.startswith("End;"):
+        if s.startswith("While(") or s.startswith("For(") or re.match(r"^For\s", s):
+            stack.append(("loop", s))
+        elif s.startswith("If("):
+            stack.append(("block", None))
+        elif s.startswith("End;"):
             if stack:
                 stack.pop()
-        if not stack:
+            continue
+        if not any(kind == "loop" for kind, _c in stack):
             continue
         if any(a in s for a in VICTORY_ACTIONS):
-            ahead = "\n".join(lines[i + 1:i + 6])
-            if ("中断" not in ahead) and ("返回" not in ahead):
+            ahead_lines = lines[i + 1:i + 7]
+            ahead = "\n".join(ahead_lines)
+            if ("中断" in ahead) or ("返回" in ahead) or ("等待直到" in ahead):
+                continue
+            cond = ""
+            for kind, c in reversed(stack):
+                if kind == "loop":
+                    cond = c or ""
+                    break
+            guarded = False
+            if cond:
+                for ga in ahead_lines[:3]:
+                    m = re.search(r"([\w\u4e00-\u9fff.]+)\s*=\s*真", strip_noise(ga))
+                    if m and m.group(1).split(".")[-1] in cond:
+                        guarded = True
+                        break
+            if not guarded:
                 problems.append((i + 1, "warning",
                                  "循环里宣告胜负后没有 中断 / 返回，会每秒重复宣告一次"))
 
@@ -2873,7 +3008,76 @@ def _iter_calls(text, name):
 
 # 只有「实机验过『签名能省、引擎不收』」的元素才按语料最少参数当约束（E-55）。
 # 其他元素只用语料统计当参考，不报（2026-10-24 实测：全量套用会在真实语料上误报 创建地图文本）。
+# 这张表是兜底：真值来自 data/param-exceptions.tsv（见 _measured_min_args）。
 MEASURED_MIN_ARGS = {"创建效果": 6}
+
+
+def load_param_exceptions(path=None):
+    """data/param-exceptions.tsv → {元素: {"floor": N|None, "optional": [槽位…], "level": "L2"}}。
+
+    只把「引擎实际要求写」里写明 `必须写到 N 个`、且证据等级 L2 的行转成参数个数**下限**（floor）；
+    证据等级 L1 的行（语料里省了尾参）只记成「尾参可省」的豁免记录——语料能省不代表别处能省，
+    更不能反过来拿它当「必须写这么多」的依据去报错（E-55 就是这么误伤过一次）。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "param-exceptions.tsv"))
+    key = ("param-exceptions", path)
+    if key in _CACHE:
+        return _CACHE[key]
+    out = {}
+    if os.path.isfile(path):
+        for r in csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"):
+            el = (r.get("元素") or "").strip()
+            if not el:
+                continue
+            level = (r.get("证据等级") or "").strip()
+            required = (r.get("引擎实际要求写") or "").strip()
+            entry = out.setdefault(el, {"floor": None, "optional": [], "level": level})
+            m = re.search(r"必须写到\s*(\d+)\s*个", required)
+            if m and level == "L2":
+                entry["floor"] = int(m.group(1))
+            elif level == "L1":
+                slot = re.search(r"第\s*(\d+)\s*个参数", (r.get("参数") or ""))
+                if slot:
+                    entry["optional"].append(int(slot.group(1)))
+    _CACHE[key] = out
+    return out
+
+
+def _measured_min_args():
+    """参数个数下限：真值走 data/param-exceptions.tsv 的 L2 行，读不到用内置兜底。"""
+    ex = load_param_exceptions()
+    floors = {el: v["floor"] for el, v in ex.items() if v.get("floor")}
+    return floors or dict(MEASURED_MIN_ARGS)
+
+
+def load_legal_words(path=None):
+    """data/limits-mutex.tsv 里「类别 = 合法写法」的行 → {(元素, 词)}。
+
+    这些词在**对应槽位**是合法取值，别当成导出噪声去报错：
+    `创建效果(…, 无)` 的「无」就是惯用写法（语义是「不覆盖已有效果」），
+    而 `创建地图文本` / `创建HUD文本` 的「重新赋值」写「全部禁用」才对。
+    表里写的是「`创建效果的「重新赋值: 无」`」这种自然语言，这里按它能解析的部分抽。
+    """
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "limits-mutex.tsv"))
+    key = ("legal-words", path)
+    if key in _CACHE:
+        return _CACHE[key]
+    out = set()
+    if os.path.isfile(path):
+        for r in csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"):
+            if (r.get("类别") or "").strip() != "合法写法":
+                continue
+            item = (r.get("限制项") or "").strip()
+            m = re.match(r"^(?P<els>.+?)\s*的「(?P<param>[^:：]+)[:：]\s*(?P<word>[^」]+)」$", item)
+            if not m:
+                continue
+            word = m.group("word").strip()
+            for el in re.split(r"\s*/\s*|\s*、\s*", m.group("els")):
+                el = el.strip()
+                if el:
+                    out.add((el, word))
+    _CACHE[key] = out
+    return out
 
 
 def check_arg_counts(text, problems, counts=None):
@@ -2881,10 +3085,14 @@ def check_arg_counts(text, problems, counts=None):
 
     实测（2026-10-24）：`创建效果(…, 球体, 颜色, 位置, 5)` 只有 5 个参数，
     签名里第 6 个「可以省略」，但游戏报「第113行的"50"之后应有';'」；语料里同一动作全是 6 个。
-    只对 MEASURED_MIN_ARGS 里的元素生效——语料统计只是参考，不当约束用。
+    只对表里给了硬下限的元素生效（当前只有 `创建效果`）——语料统计只是参考，不当约束用。
     """
     counts = counts if counts is not None else load_arg_counts()
-    for el, floor in MEASURED_MIN_ARGS.items():
+    exceptions = load_param_exceptions()
+    optional = {el for el, v in exceptions.items() if v.get("optional")}
+    for el, floor in _measured_min_args().items():
+        if el in optional:
+            continue      # 表里标了「尾参可省」，绝不能因为语料少写就报错（E-55 的反面）
         lo, _hi, common = counts.get(el, (floor, floor, floor))
         lo = max(lo, floor)
         for pos, n, _args in _iter_calls(text, el):
@@ -3285,21 +3493,68 @@ def check_missing_settings_block(text, problems):
 
 
 def check_missing_var_block(text, problems):
-    """用了 全局.X / 玩家.X，但整个文件没有 变量 块。"""
+    """用了 全局.X / 玩家.X，但整个文件没有 变量 块。
+
+    **A~Z 是内置变量（全局 / 玩家各 26 个，索引 0~25），不声明也存在。**
+    2026-10-24 实机：把 `变量 { 全局: 0: V }` 整段删掉，游戏照样导入成功——
+    以前这条对内置字母也报「必改」，把合法文件拦下来了（误报，已修）。
+    只有 A~Z 之外的名字才要求声明。
+    """
     if re.search(r"^\s*变量\s*$", text, re.M):
         return
-    m = re.search(r"(全局|事件玩家|本地玩家|玩家)\.[A-Za-z_]\w*", text)
-    if not m:
-        m = re.search(r"(?:设置|修改)(?:全局|玩家)变量\(\s*(?:[^,，]+[,，]\s*)?([A-Za-z_]\w*)", text)
-        if m:
-            line = text.count("\n", 0, m.start()) + 1
-            problems.append((line, "error",
-                             "文件里没有「变量」块，但用到了变量 %s" % m.group(1)))
-            return
-    if m:
+    for m in re.finditer(r"(全局|事件玩家|本地玩家|玩家)\.([A-Za-z_]\w*)", text):
+        if _is_default_var(m.group(2)):
+            continue          # 内置字母变量，不需要声明
         line = text.count("\n", 0, m.start()) + 1
         problems.append((line, "error",
-                         "文件里没有「变量」块，但用到了 %s.%s" % (m.group(1), m.group(0).split(".")[1])))
+                         "文件里没有「变量」块，但用到了 %s.%s" % (m.group(1), m.group(2))))
+        return
+    for m in re.finditer(r"(?:设置|修改)(?:全局|玩家)变量\(\s*(?:[^,，]+[,，]\s*)?([A-Za-z_]\w*)", text):
+        if _is_default_var(m.group(1)):
+            continue
+        line = text.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "文件里没有「变量」块，但用到了变量 %s" % m.group(1)))
+        return
+
+
+# 内置字母变量：A=0、B=1 … Z=25（全局 / 玩家各一套）
+_BUILTIN_VAR_INDEX = {chr(ord("A") + i): i for i in range(26)}
+
+
+def check_var_letter_index(text, problems):
+    """变量块把内置字母变量绑到别的索引 → 游戏报「变量与另一个变量冲突」。
+
+    2026-10-24 实机：`变量 { 全局: 0: V }` 导入报
+    「错误：全局变量“V”与另一个变量冲突」（CASC 原文：全局变量“%1$s”与另一个变量冲突）；
+    把这一行删掉照样导入成功。A~Z 内置变量钉在 0~25 号位，名字必须和位号对上
+    （A=0、B=1 … V=21），塞到别的位号就撞了。
+
+    索引 ≥26 的字母名不判：真实语料里有 `玩家: 77: S` / `78: E`，那是游戏自己导出来的，
+    能导入（见 2026-10-24 语料读数），按「索引不在一等区」放过。
+    """
+    span = _var_block_span(text)
+    if not span:
+        return
+    body = text[span[0]:span[1]]
+    section = None
+    for m in re.finditer(r"^[ \t]*(?:(全局|玩家)\s*:|(\d+)\s*:\s*(\w+)\s*$)", body, re.M):
+        if m.group(1):
+            section = m.group(1)
+            continue
+        idx_s, name = m.group(2), m.group(3)
+        if section not in ("全局", "玩家") or not _is_default_var(name):
+            continue
+        idx = int(idx_s)
+        want = _BUILTIN_VAR_INDEX[name]
+        if idx >= len(_BUILTIN_VAR_INDEX) or idx == want:
+            continue
+        line = text.count("\n", 0, span[0] + m.start()) + 1
+        problems.append((line, "error",
+                         "%s变量「%s」写在了 %d 号位，但 A~Z 内置变量占 0~25 号位（%s 是 %d）；"
+                         "游戏会报「%s变量“%s”与另一个变量冲突」——改成 %d: %s，"
+                         "或者直接删掉这一行（A~Z 本来就在）"
+                         % (section, name, idx, name, want, section, name, want, name)))
 
 
 def check_var_refs(text, problems):
@@ -3726,7 +3981,8 @@ SUGGESTIONS = [
      "省元素：publish --obf all 压缩，或把重复写法换成数组 + 循环"),
     (r"规则里不能用 事件玩家",
      "这条规则没有事件上下文：想按玩家算就换成「持续 - 每名玩家」；只想引用某个玩家就用 所有玩家(所有队伍) 或 本地玩家"),
-    (r"文件里没有「变量」块", "在文件里加一段：变量 { 全局: 0: 名字 }"),
+    (r"文件里没有「变量」块", "在文件里加一段：变量 { 全局: 0: 名字 }（A~Z 内置变量不用加）"),
+    (r"与另一个变量冲突", "内置 A~Z 占 0~25 号位：把索引改成字母对应的位号，或删掉这行声明"),
     (r"不在当前版本地图表里", "用 python tools/ws.py maps 查现行地图名，或跑 baseline 看数据是否过期"),
     (r"超过单条规则 98KB", "拆成多条规则：每条负责一件事，状态用全局变量传递"),
     (r"找不到对应的子程序声明", "在 子程序 块里定义它：子程序 { 名字 { 动作 { … } } }"),
@@ -3755,6 +4011,9 @@ def full_lint(path, data_dir, strict=False):
     （历史上 publish 只传了 event_params，比 check 弱一大截）。
     """
     sigs, labels, settings = load_signatures(os.path.join(data_dir, "signatures.md"))
+    # 注：settings.tsv 缺 13 个键，值不校验 —— 试过用 setting-schemas/enum-values 回落，
+    # 8 份真实语料新增 3 条误报（例：`首先激活的控制点: 随机` 是合法别名，被当成错），
+    # 超 D-006 门槛，已撤回。要接这条得先补别名表（见 docs/limits.md 的已知缺口）。
     return lint(path, sigs, labels, settings,
                 event_params=load_event_params(os.path.join(data_dir, "event-params.tsv")),
                 bare_ok=load_bare_ok(os.path.join(data_dir, "bare-ok.tsv")),
@@ -3767,6 +4026,7 @@ def full_lint(path, data_dir, strict=False):
                                            os.path.join(data_dir, "extension-values.tsv"))[0],
                 extension_values=load_extensions(os.path.join(data_dir, "extensions.tsv"),
                                                  os.path.join(data_dir, "extension-values.tsv"))[1],
+                legal_words=load_legal_words(os.path.join(data_dir, "limits-mutex.tsv")),
                 strict=strict)
 
 
@@ -3787,8 +4047,10 @@ def read_text(path):
 
 
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False,
-              extensions=None, extension_values=None, base_options=None):
+              extensions=None, extension_values=None, base_options=None, legal_words=None):
     problems = []
+    if legal_words is None:
+        legal_words = load_legal_words()
     settings = settings or {}
     raw, _enc = read_text(path)
     lint.encoding = _enc
@@ -4002,7 +4264,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
 
     all_vars = declared["全局"] | declared["玩家"]
     hero_names = load_hero_names()
-    scan_calls(masked, sigs, labels, problems, options, dropdowns)
+    scan_calls(masked, sigs, labels, problems, options, dropdowns, legal_words)
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
@@ -4010,6 +4272,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lobby_ffa_slots(text, problems)
     check_reassign_create(text, problems)
     check_health_percent_param(text, problems)
+    check_speed_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
     check_hero_enable_layer(text, problems)
@@ -4031,6 +4294,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_team_slots(text, problems)
     check_hero_slots(text, problems)
     check_bare_var_assign(text, problems)
+    check_var_slot_bare(text, problems)
     check_bare_strings(text, problems)
     check_map_codes(text, problems, strict=strict)
     check_map_mode(text, problems, strict=strict)
@@ -4050,6 +4314,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_map_names(text, problems, map_names)
     check_missing_settings_block(text, problems)
     check_missing_var_block(masked, problems)
+    check_var_letter_index(text, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
