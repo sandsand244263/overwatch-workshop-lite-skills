@@ -44,6 +44,10 @@ def main():
     args = ap.parse_args()
 
     modes = [args.mode] if args.mode else all_modes()
+    # 55 个内部模式**全都跑**：斗球/排球那种模式专属键的 bug 只有跑它们才能抓到。
+    # 但「这个模式工坊里选不到」那条 error 要忽略 —— 那是预期行为，不是生成器的问题。
+    usable = core.load_workshop_modes()
+    internal = [m for m in modes if m not in usable]
     outdir = args.keep or tempfile.mkdtemp(prefix="ws-modes-")
     if args.keep:
         os.makedirs(outdir, exist_ok=True)
@@ -59,13 +63,18 @@ def main():
         path = os.path.join(outdir, safe + ".ow")
         with open(path, "w", encoding="utf-8", newline="\n") as f:
             f.write(text)
-        errs = [p for p in core.full_lint(path, DATA) if p[1] == "error"]
+        errs = [p for p in core.full_lint(path, DATA)
+                if p[1] == "error"
+                and "工坊界面的模式列表里没有" not in p[2]
+                and "不在工坊模式清单里" not in p[2]]
         if errs:
             bad.append((mode, "第 %s 行：%s" % (errs[0][0], errs[0][2][:70])))
         elif args.verbose:
             print("✓ %s" % mode)
 
     print("模式 %d 个：干净 %d / 有问题 %d" % (len(modes), len(modes) - len(bad), len(bad)))
+    if internal:
+        print("（其中 %d 个是工坊里选不到的内部模式，模式名那一条已按预期忽略）" % len(internal))
     for mode, msg in bad:
         print("  ✗ %s → %s" % (mode, msg))
     if args.keep:

@@ -1123,6 +1123,141 @@ def check_setting_key_layers(text, problems):
         pending = s
 
 
+def load_workshop_modes(path=None):
+    """工坊「设置 → 模式」里**真能选到**的模式名（`data/mode-list.tsv` 的 ow_name + base）。
+
+    2026-10-24 用户实测反馈：动感斗球 / 温斯顿的沙滩排球这类模式在工坊界面里选不到。
+    它们只存在于内部 schema 表（`mode-pages.tsv` 有 55 个），和「能选的 21 个」不是一回事。
+    写这些名字进 `.ow`，导入时哪一步都过不去。
+    """
+    if getattr(load_workshop_modes, "_cache", None) is not None:
+        return load_workshop_modes._cache
+    path = path or os.path.join(DATA_DIR, "mode-list.tsv")
+    names = set()
+    if os.path.isfile(path):
+        import csv as _csv
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            for col in ("ow_name", "base", "mode"):
+                v = (r.get(col) or "").strip()
+                if v and v != "全部":
+                    names.add(v)
+    load_workshop_modes._cache = names
+    return names
+
+
+# 设置块里除模式名之外，合法出现的子块名
+EXTRA_SETTING_BLOCKS = ("综合", "英雄", "地图工坊")
+
+
+def check_mode_names(text, problems, modes=None):
+    """`设置 > 模式` 下的块名必须是工坊里真能选到的模式。
+
+    两个合法形态：
+      · 块头：`死斗 { … }`（名字也可能带全角冒号，比如 `星际守望：银河救兵`）
+      · 清单行：`禁用 勇夺锦旗`（语料实测写法，模式清单里的开/关项，不是块）
+
+    内部模式（动感斗球 / 怪鼠复仇 / 雪球攻势 / 剧情任务 / 英雄精通 / 镜影守望* / 幻变交锋* …）
+    界面里选不到，写进去导不进来 —— 这类名字在这里拦掉。
+    """
+    modes = modes if modes is not None else load_workshop_modes()
+    if not modes:
+        return
+    lines = text.split("\n")
+    stack, pending = [], None
+    for idx, raw in enumerate(lines):
+        st = strip_noise(raw).strip()
+        if not st:
+            continue
+        if st == "设置":
+            pending = "设置"
+            continue
+        if st.startswith("{"):
+            stack.append(pending if pending else (stack[-1] if stack else None))
+            pending = None
+            continue
+        if st.startswith("}"):
+            if stack:
+                stack.pop()
+            pending = None
+            continue
+        if st.endswith("{"):
+            name = st[:-1].strip()
+            if stack and stack[-1] == "模式":
+                _check_mode_name(name, idx + 1, problems, modes)
+            pending = name
+            continue
+        # 名字和 `{` 分两行的写法：下一行是 `{` 才算块头
+        nxt = ""
+        for j in range(idx + 1, len(lines)):
+            if lines[j].strip():
+                nxt = lines[j].strip()
+                break
+        if stack and stack[-1] == "模式":
+            if nxt.startswith("{"):
+                pending = st
+                _check_mode_name(st, idx + 1, problems, modes)
+                continue
+            if st.startswith(("禁用 ", "启用 ")):
+                target = st[3:].strip()
+                _check_mode_name(target, idx + 1, problems, modes)
+                continue
+        pending = st
+
+
+def _check_mode_name(name, line_no, problems, modes):
+    # 语料实测：`禁用 勇夺锦旗 { … }` 是合法的块头（禁用模式下挂的设置），名字前带开关词
+    for prefix in ("禁用 ", "启用 "):
+        if name.startswith(prefix):
+            name = name[len(prefix):].strip()
+            break
+    if not name or name in EXTRA_SETTING_BLOCKS:
+        return
+    if name in modes:
+        return
+    if name in load_unavailable_modes():
+        problems.append((line_no, "error",
+                         "「%s」工坊界面的模式列表里没有（只存在于游戏内部数据），写了导不进来。"
+                         "能用的模式：%s" % (name, _short_mode_list())))
+        return
+    # 两份数据对不上：内部数据有、工坊清单没收录。可能真选不到，也可能清单漏了，
+    # 一律只提示，让用户按「界面里能不能选到」自己判（宁可少报，D-006）。
+    problems.append((line_no, "warning",
+                     "「%s」不在工坊模式清单里（data/mode-list.tsv）。如果你在工坊里能选到它，"
+                     "这条忽略即可；选不到就说明是内部模式，写了导不进来" % name))
+
+
+def load_unavailable_modes(path=None):
+    """已确认「工坊界面选不到」的模式（`data/mode-unavailable.tsv`，每条带证据）。"""
+    if getattr(load_unavailable_modes, "_cache", None) is not None:
+        return load_unavailable_modes._cache
+    path = path or os.path.join(DATA_DIR, "mode-unavailable.tsv")
+    out = set()
+    if os.path.isfile(path):
+        import csv as _csv
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            v = (r.get("mode") or "").strip()
+            if v:
+                out.add(v)
+    load_unavailable_modes._cache = out
+    return out
+
+
+def _short_mode_list(limit=12):
+    """给报错用的短清单：只要基础模式名，不把 6v6 变体和 ow_name 全铺开。"""
+    path = os.path.join(DATA_DIR, "mode-list.tsv")
+    names = []
+    if os.path.isfile(path):
+        import csv as _csv
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            base = (r.get("base") or "").strip()
+            if base and base != "全部" and base not in names:
+                names.append(base)
+    names.sort()
+    if len(names) > limit:
+        return "、".join(names[:limit]) + " 等 %d 个" % len(names)
+    return "、".join(names)
+
+
 def check_block_layers(text, problems):
     """块套错层：父级从来不在语料里出现过 → 导入基本必失败。
 
@@ -4479,6 +4614,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_hero_enable_layer(text, problems)
     check_maps_not_in_editor(text, problems)
     check_block_layers(text, problems)
+    check_mode_names(text, problems)
     check_setting_key_layers(text, problems)
     check_probe_output(path, text, problems)
     check_probe_invisible(path, text, problems)
