@@ -745,7 +745,8 @@ def cmd_doctor(args):
     line(sys.maxsize > 2**32, "64 位 Python（32 位也能用，但大文件慢）")
 
     need = ["signatures.md", "settings.tsv", "maps.tsv", "heroes.tsv", "setting-keys.tsv",
-            "param-options.tsv", "setting-schemas.tsv", "event-params.tsv"]
+            "param-options.tsv", "setting-schemas.tsv", "event-params.tsv",
+            "setting-values.tsv", "setting-aliases.tsv"]
     missing = [f for f in need if not os.path.isfile(os.path.join(DATA, f))]
     n_data = len([f for f in os.listdir(DATA) if f.endswith((".tsv", ".md", ".json"))]) if os.path.isdir(DATA) else 0
     line(not missing, "数据表 %d 个%s" % (n_data, "" if not missing else "，缺：" + "、".join(missing)))

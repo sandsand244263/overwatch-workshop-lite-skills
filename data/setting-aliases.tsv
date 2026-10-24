@@ -1,0 +1,7 @@
+key	written	canonical	kind	level	evidence
+*	禁用	关闭	export-noise	必改	E-37 + 2026-10-23 实机：队伍界面/阵亡镜头/目标点决胜机制 写「禁用」整块被拒，改「关闭」通过
+*	启用	开启	export-noise	必改	2026-10-23 实机 W3/W4：竞技比赛规则/控制点A 写「启用」被拒，改「开启」通过
+*	是	开启	export-noise	必改	2026-10-23 实机 W5/W6：得分需我方旗帜在基地中/闪电赛旗帜位置 写「是」被拒
+*	否	关闭	export-noise	必改	同上批次外推（「否」未单独实测，标未验证；与「是」同槽位同规则）
+急救包刷新	禁用	禁用	legal-enum	合法	权威 allowed 含「禁用」（Enum 键上的 禁用 是合法选项，不许被 --fix-bools 改写）
+重装职责被动生命值加成	禁用	禁用	legal-enum	合法	权威 allowed 含「禁用」；语料 23 处（搜打撤模式.ow:39 等）实测导入成功

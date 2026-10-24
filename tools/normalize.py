@@ -178,12 +178,17 @@ def fix_none_args(text):
 
 
 def fix_bool_words(text):
-    """布尔项里的 禁用/启用 改成 关闭/开启（数据来自 data/setting-schemas.tsv）。
+    """布尔项里的 禁用/启用/是/否 改成 关闭/开启（词表来自 data/setting-aliases.tsv）。
 
     实测：目标点决胜机制 / 推进背包 / 尖刺墙 写「禁用」导入失败；
-    而 Enum 项（重装职责被动生命值加成）写「禁用」是合法的 —— 所以必须按类型判断。
+    而 Enum 项（重装职责被动生命值加成）写「禁用」是合法的 —— 所以必须按类型判断，
+    并且要尊重别名表里 kind=legal 的例外（那些词在这个键上不许改）。
     """
     types = core.load_setting_types()
+    noise, legal = core.load_setting_aliases(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "setting-aliases.tsv"))
+    if not noise:
+        noise = dict(core.ILLEGAL_BOOL_WORDS)
     changes = 0
     out = []
     for line in text.split(chr(10)):
@@ -192,8 +197,9 @@ def fix_bool_words(text):
         if m and types:
             key, val = m.group(1).strip(), m.group(2).strip()
             info = types.get(key)
-            if info and "Bool" in info["type"] and val in ("禁用", "启用"):
-                newval = "关闭" if val == "禁用" else "开启"
+            if (info and "Bool" in info["type"] and val in noise
+                    and (key, val) not in legal):
+                newval = noise[val]
                 line = line.replace(": " + val, ": " + newval).replace("：" + val, "：" + newval)
                 changes += 1
         out.append(line)

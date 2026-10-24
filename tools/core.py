@@ -528,6 +528,82 @@ def load_setting_ranges(path):
     return out
 
 
+def load_setting_values(path):
+    """{键: {"type","allowed","schemas"}} —— 来自 `data/setting-values.tsv`。
+
+    只收「值是一组词」的键（当前 13 个 Enum 键）。数值范围不在这张表，走
+    `setting-ranges.tsv`；布尔词表是类型级规则，走 `setting-aliases.tsv`。
+    """
+    out = {}
+    if not path or not os.path.isfile(path):
+        return out
+    import csv as _csv
+    for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+        key = (r.get("key") or "").strip()
+        if not key:
+            continue
+        allowed = {v.strip() for v in (r.get("allowed") or "").split("|") if v.strip()}
+        if not allowed:
+            continue
+        out[key] = {"type": (r.get("type") or "").strip(),
+                    "allowed": allowed,
+                    "schemas": (r.get("schemas") or "").strip()}
+    return out
+
+
+ILLEGAL_BOOL_WORDS = {"禁用": "关闭", "启用": "开启", "是": "开启", "否": "关闭"}
+
+
+def load_setting_aliases(path):
+    """(改写表, 例外集) —— 来自 `data/setting-aliases.tsv`。
+
+    改写表 `{写的词: 正确的词}`：导出把布尔项写成界面词，导入器只认 开启/关闭。
+    例外集 `{(键, 写的词)}`：标了 `kind=legal` 的组合不许改写 —— Enum 键上的「禁用」
+    是合法选项（重装职责被动生命值加成），全局替换会把它改坏。
+    """
+    noise, legal = {}, set()
+    if not path or not os.path.isfile(path):
+        return noise, legal
+    import csv as _csv
+    for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+        written = (r.get("written") or "").strip()
+        canonical = (r.get("canonical") or "").strip()
+        kind = (r.get("kind") or "").strip()
+        key = (r.get("key") or "").strip()
+        if not written or not canonical:
+            continue
+        if kind == "export-noise":
+            noise[written] = canonical
+        elif kind == "legal":
+            legal.add((key, written))
+    return noise, legal
+
+
+def check_setting_enum_values(text, values, problems):
+    """词类设置键只能写权威表列出的取值（`游戏模式开始: 即时/手动/比赛人满后`）。
+
+    只对 `data/setting-values.tsv` 里「有明确 allowed」的键生效；表里没有的键一律不管
+    —— 宁可漏报不误报（上一轮硬接没证据的键，8 份语料炸出误报整批撤回）。
+    多 schema 的选项在生成时取并集，所以最多跨模式放行，不会误报。
+    空值（`键:` 后面什么都没有）不在这里管，由 `check_empty_setting_values` 单独处理。
+    """
+    if not values:
+        return
+    for i, raw in enumerate(text.split("\n"), 1):
+        st = strip_noise(raw).strip()
+        m = re.match(r"^([^:：{}\t]{1,40})\s*[:：]\s*(.+?)\s*$", st)
+        if not m:
+            continue
+        key, val = m.group(1).strip(), m.group(2).strip()
+        info = values.get(key)
+        if not info or val in info["allowed"]:
+            continue
+        problems.append((i, "error",
+                         "「%s」只能写 %s（这里写的是「%s」）。取值来自游戏数据：%s"
+                         % (key, " / ".join(sorted(info["allowed"])), val,
+                            info["schemas"] or "权威表")))
+
+
 def check_event_player_scope(text, problems):
     """「持续 - 全局」这类规则里不能用 事件玩家（没有事件上下文）。
 
@@ -567,10 +643,16 @@ def check_setting_range(text, ranges, problems):
     if not ranges:
         return
     for idx, line in enumerate(text.split("\n"), 1):
-        m = re.match(r"^\s*([^:：{}\t][^:：]*?)\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
+        m = re.match(r"^\s*([^:：{}\t][^:：]*?)\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*(%?)\s*$", line)
         if not m:
             continue
         key, val = m.group(1).strip(), float(m.group(2))
+        shown = m.group(2)                      # 报错里回显用户写的原文
+        if m.group(3) == "%":
+            # 编辑器与导出把 FLOAT 写成百分比（150% = 1.5），范围表里存的是倍数。
+            # 不换算的话这类行根本不进检查 —— 9 份语料里有 945 处百分比写法。
+            val = val / 100.0
+            shown = "%s%%（= %g）" % (m.group(2), val)
         if key not in ranges:
             continue
         lo, hi, level = ranges[key]
@@ -579,11 +661,11 @@ def check_setting_range(text, ranges, problems):
         if not ((hi is not None and val > hi) or (lo is not None and val < lo)):
             continue
         if lo is None:
-            msg = "%s 的值 %s 超过上限 %g" % (key, m.group(2), hi)
+            msg = "%s 的值 %s 超过上限 %g" % (key, shown, hi)
         elif hi is None:
-            msg = "%s 的值 %s 低于下限 %g" % (key, m.group(2), lo)
+            msg = "%s 的值 %s 低于下限 %g" % (key, shown, lo)
         else:
-            msg = "%s 的值 %s 超出范围（%g~%g）" % (key, m.group(2), lo, hi)
+            msg = "%s 的值 %s 超出范围（%g~%g）" % (key, shown, lo, hi)
         if key in LOBBY_LIMIT_KEYS:
             msg += LOBBY_ERR
         problems.append((idx, level, msg))
@@ -2661,18 +2743,24 @@ def load_lobby_keys(path=None):
     return out
 
 
-def check_setting_bools(text, problems, types=None, lobby_keys=None):
+def check_setting_bools(text, problems, types=None, lobby_keys=None, aliases=None):
     """布尔项在 .ow 里只能写 开启 / 关闭；「禁用/启用」是界面词，「是/否」也不认。
 
     实测（2026-10-23，一次性探针 W3/W4、W5/W6、W7/W8）：
       · 竞技比赛规则 / 控制点A 写 启用 → 整块被拒；写 开启 → 通过
       · 得分需我方旗帜在基地中 / 闪电赛旗帜位置 写 是 → 被拒；写 开启 → 通过
     大厅键例外：`队列中的玩家可以加入: 是` 是导出原文，大厅块用 是/否。
+
+    该改哪些词由 `data/setting-aliases.tsv` 决定：`kind=export-noise` 是导出显示词（必改），
+    `kind=legal` 是「这个词在这个键上合法」（Enum 键上的 禁用），命中就直接放行。
     """
     types = types or load_setting_types()
     if not types:
         return
     lobby_keys = lobby_keys if lobby_keys is not None else load_lobby_keys()
+    noise, legal = aliases if aliases else load_setting_aliases(None)
+    if not noise:
+        noise = dict(ILLEGAL_BOOL_WORDS)
     for i, raw in enumerate(text.split("\n"), 1):
         st = strip_noise(raw).strip()
         m = re.match(r"^([^:：]{1,40})\s*[:：]\s*([^\s]+)\s*$", st)
@@ -2682,7 +2770,9 @@ def check_setting_bools(text, problems, types=None, lobby_keys=None):
         info = types.get(key)
         if not info or "Bool" not in info["type"]:
             continue
-        if val in ("禁用", "启用"):
+        if (key, val) in legal:
+            continue          # 例外表：这个词在这个键上是合法选项，不许当成导出噪声
+        if val in noise and val not in ("是", "否"):
             # 注意：语料里到处都是 禁用，那是**导出产物**（导出写显示词，导入只认 开启/关闭），
             # 不能拿语料证明「禁用 合法」。详见 docs/settings-map.md 第二节、E-22。
 
@@ -2691,12 +2781,17 @@ def check_setting_bools(text, problems, types=None, lobby_keys=None):
                              "导出文件里到处都是这类显示词，导入前先跑 ws.py fix 文件 --fix-bools"
                              "（实测 2026-10-23：队伍界面/阵亡镜头 写 禁用 整块被拒，改成 关闭 就通过）"
                              % (key, val)))
-        elif val in ("是", "否") and key not in lobby_keys:
+        elif val in noise and key not in lobby_keys:
             problems.append((i, "error",
                              "「%s」是布尔项，这里写的是「%s」——导入只认 开启/关闭。"
                              "（实测 2026-10-23：勇夺锦旗的 得分需我方旗帜在基地中 / 闪电赛旗帜位置 "
                              "写「是」被拒，改成 开启 通过；大厅块是另一套，那里可以用 是/否）"
                              % (key, val)))
+        elif val not in ("开启", "关闭") and key not in lobby_keys:
+            # 既不是合法词也不是已知导出词 —— 布尔项只认两个词，别的写法一定导不进去
+            problems.append((i, "error",
+                             "「%s」是布尔项，只能写 开启 / 关闭，这里写的是「%s」"
+                             "（游戏会报「之后应有一个设置选项」）" % (key, val)))
 
 
 # 已知「导出会把值吞掉」的键（behavior-notes.tsv 有记录）
@@ -4119,6 +4214,8 @@ def full_lint(path, data_dir, strict=False):
                 kinds=load_element_kinds(os.path.join(data_dir, "element-kinds.tsv")),
                 event_param_words=load_event_param_words(os.path.join(data_dir, "event-param-words.tsv")),
                 setting_ranges=load_setting_ranges(os.path.join(data_dir, "setting-ranges.tsv")),
+                setting_values=load_setting_values(os.path.join(data_dir, "setting-values.tsv")),
+                setting_aliases=load_setting_aliases(os.path.join(data_dir, "setting-aliases.tsv")),
                 map_names=load_map_names(os.path.join(data_dir, "maps.tsv")),
                 dropdowns=load_dropdowns(os.path.join(data_dir, "param-options.tsv")),
                 extensions=load_extensions(os.path.join(data_dir, "extensions.tsv"),
@@ -4146,10 +4243,15 @@ def read_text(path):
 
 
 def lint(path, sigs, labels, settings=None, options=None, required=None, event_params=None, bare_ok=None, kinds=None, event_param_words=None, setting_ranges=None, map_names=None, dropdowns=None, strict=False,
-              extensions=None, extension_values=None, base_options=None, legal_words=None):
+              extensions=None, extension_values=None, base_options=None, legal_words=None,
+              setting_values=None, setting_aliases=None):
     problems = []
     if legal_words is None:
         legal_words = load_legal_words()
+    if setting_values is None:
+        setting_values = load_setting_values(os.path.join(DATA_DIR, "setting-values.tsv"))
+    if setting_aliases is None:
+        setting_aliases = load_setting_aliases(os.path.join(DATA_DIR, "setting-aliases.tsv"))
     settings = settings or {}
     raw, _enc = read_text(path)
     lint.encoding = _enc
@@ -4373,6 +4475,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_event_params(masked, event_params or {}, problems, event_param_words)
     check_bare_functions(masked, sigs, problems, bare_ok)
     check_setting_range(text, setting_ranges or {}, problems)
+    check_setting_enum_values(text, setting_values or {}, problems)
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
     check_reassign_create(text, problems)
@@ -4405,7 +4508,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_map_mode(text, problems, strict=strict)
     check_setting_belongs(text, problems)
     check_importer_verified(text, problems)
-    check_setting_bools(text, problems)
+    check_setting_bools(text, problems, aliases=setting_aliases)
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)

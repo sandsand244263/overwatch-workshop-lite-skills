@@ -1,0 +1,14 @@
+key	type	allowed	schemas	source
+可用武器	Enum	仅限天使之杖|仅限天使冲击枪|仅限愈疗灵花|仅限棘刺箭雨|仅限铆钉枪|仅限锻造锤|全部	武器	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+急救包刷新	Enum	依据比赛模式而定|开启|禁用	综合	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+旗手技能	Enum	全部禁用|受限制|无限制	勇夺锦旗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+有效控制点选择	Enum	全部|第一|第三|第二|第五|第四	占领要点、突击模式	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+游戏模式开始	Enum	即时|手动|比赛人满后	综合	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+职责限制	Enum	1重装，2输出，2支援|1重装，最多2突击，最多3支援|关闭|每队同一职责最多2名	决斗先锋、英雄、融冰决斗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+英雄池上限	Enum	队伍人数|队伍人数+1|队伍人数+2|队伍人数+3	决斗先锋、融冰决斗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+英雄选择	Enum	任意|受限|限定|随机英雄|随机英雄（相同）|随机顺序	决斗先锋、融冰决斗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+英雄限制	Enum	关闭|每场同一英雄最多1名|每场同一英雄最多2名|每场最多1名|每场最多2名|每队同一英雄最多1名|每队同一英雄最多2名|每队最多1名|每队最多2名	决斗先锋、英雄、融冰决斗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+重装职责被动生命值加成	Enum	1重装，2输出，2支援|始终启用|禁用	英雄	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+锁定使用过的英雄	Enum	关闭|回合结束后|回合胜利后	决斗先锋、融冰决斗	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+难度	Enum	专家|传奇|困难|普通	怪鼠复仇	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）
+首先激活的控制点	Enum	A|B|C|D|E|随机|随机顺序	猛兽之战、闪点作战	data/enum-values.tsv（CASC 0x0C6 RulesetSchemaValueEnum.Choices 并集）

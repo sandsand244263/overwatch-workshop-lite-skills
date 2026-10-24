@@ -33,6 +33,28 @@ python tools/ws.py fix 文件.ow --fix-bools
 
 校验器认得出这种文件：同一份里这类问题 ≥8 条时会合成一条提示，直接指向上面的命令（E-24）。
 
+## 三之二、值校验靠哪几张表（2026-10-24 接线后）
+
+| 表 | 管什么 | 谁生成 | 生效范围 |
+|---|---|---|---|
+| `data/setting-schemas.tsv` | 键的类型 / 归属 schema / 每个 schema 的 Min~Max / 编辑器显示词 | `tools/gen_setting_schemas.py`（源：CASC `ruleset_schemas.json`） | 类型判定、层级判定、`settings` 生成回填 |
+| `data/setting-ranges.tsv` | 数值键的上下界（454 键，含英雄技能层） | 手工维护（游戏数据 + 实机滑杆） | `check_setting_range`，error 级 |
+| `data/setting-ranges-lobby.tsv` | 大厅滑杆边界（界面里才看得到） | 手工维护（实机） | 同上，warning 级 |
+| `data/setting-values.tsv` | **词类键的合法取值**（13 个 ENUM 键，多 schema 取并集） | `tools/gen_setting_values.py`（源：`setting-schemas.tsv` + `enum-values.tsv`，`--check` 防漂移） | `check_setting_enum_values`，error 级 |
+| `data/setting-aliases.tsv` | 导出显示词 → 导入词的改写表（`禁用→关闭`…），以及「这个词在这个键上合法」的例外（`重装职责被动生命值加成: 禁用`） | 手工维护（每条带实测证据） | `check_setting_bools` / `ws.py fix --fix-bools` 的词表来源 |
+
+三条口径，写代码时别再踩：
+
+1. **数值走范围、词类走词表**。`setting-ranges.tsv` 只放数字，别往里塞词；`setting-values.tsv` 只放词，别往里塞范围。
+2. **多 schema 一律取并集**。同一键在不同模式页的选项集常常不同（`可用武器` 7 项来自 3 个 schema；`获胜得分` 6 段范围来自 18 个 schema）。
+   并集只会少报（跨模式放行），不会误报；按单个 schema 收紧需要块上下文，而 lint 是按行扫的。
+3. **百分比要换算**。编辑器与导出把 FLOAT 写成 `150%`，范围表存的是倍数（1.5）。
+   `check_setting_range` 会先除 100 再比 —— 不换算的话这类行**根本不进检查**（9 份语料 945 处，全都没被查过）。
+
+改这三张表之后必须跑：`python tools/ws.py check-all`（正 82 / 反 55）、
+`WS_CORPUS=<私有仓>/corpus/real python tools/ws.py corpus`（9 份真实语料无新增 error）、
+`python tools/gen_setting_values.py --check`（无漂移）。
+
 ## 三、为什么 `重装职责被动生命值加成: 禁用` 又能过
 
 因为它**不是布尔项，是枚举**，`禁用` 是它的三个合法选项之一（`始终启用` / `1重装，2输出，2支援` / `禁用`）。
