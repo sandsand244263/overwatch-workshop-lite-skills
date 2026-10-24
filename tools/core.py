@@ -2832,6 +2832,122 @@ def enabled_rule_checks(path=None):
     return on
 
 
+_ARG_COUNTS = {"map": None}
+
+
+def load_arg_counts(path=None):
+    """语料里每个元素实际写几个参数 -> {元素: (min, max, common)}（E-55）"""
+    if _ARG_COUNTS["map"] is not None:
+        return _ARG_COUNTS["map"]
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "arg-counts-from-corpus.tsv"))
+    out = {}
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                el = (row.get("element") or "").strip()
+                if not el:
+                    continue
+                try:
+                    out[el] = (int(row["min_args"]), int(row["max_args"]), int(row["most_common_args"]))
+                except (KeyError, ValueError):
+                    continue
+    _ARG_COUNTS["map"] = out
+    return out
+
+
+def _iter_calls(text, name):
+    """遍历 name( … ) 调用，产出 (起始位置, 参数个数, 参数列表)。"""
+    for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(name) + r"\(", text):
+        depth, j = 0, m.end() - 1
+        while j < len(text):
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        args = _top_level_args(text[m.end():j])
+        yield m.start(), len(args), args
+
+
+# 只有「实机验过『签名能省、引擎不收』」的元素才按语料最少参数当约束（E-55）。
+# 其他元素只用语料统计当参考，不报（2026-10-24 实测：全量套用会在真实语料上误报 创建地图文本）。
+MEASURED_MIN_ARGS = {"创建效果": 6}
+
+
+def check_arg_counts(text, problems, counts=None):
+    """参数个数比实测下限还少的调用 → 提示。
+
+    实测（2026-10-24）：`创建效果(…, 球体, 颜色, 位置, 5)` 只有 5 个参数，
+    签名里第 6 个「可以省略」，但游戏报「第113行的"50"之后应有';'」；语料里同一动作全是 6 个。
+    只对 MEASURED_MIN_ARGS 里的元素生效——语料统计只是参考，不当约束用。
+    """
+    counts = counts if counts is not None else load_arg_counts()
+    for el, floor in MEASURED_MIN_ARGS.items():
+        lo, _hi, common = counts.get(el, (floor, floor, floor))
+        lo = max(lo, floor)
+        for pos, n, _args in _iter_calls(text, el):
+            if n < lo:
+                line = text.count("\n", 0, pos) + 1
+                problems.append((line, "warning",
+                                 "%s 这里写了 %d 个参数，语料里最少写 %d 个（最常见 %d 个）："
+                                 "签名允许多省，引擎不一定接受（E-55）" % (el, n, lo, common)))
+
+
+_ZERO_ARG = {"set": None}
+
+
+def load_zero_arg_funcs(path=None):
+    """无参值函数名单（`上一个文本ID`、`最后创建的实体()` 这类），来自 data/signatures.md。"""
+    if _ZERO_ARG["set"] is not None:
+        return _ZERO_ARG["set"]
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "signatures.md"))
+    out = set()
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8-sig") as f:
+            for line in f:
+                m = re.match(r"^([\w\u4e00-\u9fa5“”\"：:]+)\(\)\s*$", line.strip())
+                if m:
+                    out.add(m.group(1))
+    _ZERO_ARG["set"] = out
+    return out
+
+
+BARE_VALUE_HINT = re.compile(r"(?<![\w\u4e00-\u9fa5“”\"])(上一个|最后|当前|首个|随机)[\w\u4e00-\u9fa5]*")
+
+
+def check_bare_value_names(text, problems, zero=None):
+    """裸写的值函数名必须在数据表里存在，且不能带调用括号。
+
+    实测（2026-10-24）：`全局.g4 = 上一个效果ID;` —— 这个函数根本不存在（只有 上一个文本ID /
+    上一个伤害调整ID / 最后创建的实体() 等），游戏报「第114行的"上"之后应有';'」，而 check 放过。
+    边界处理：前面不能紧贴中文/字母（`玩家造成最后一击` 不算），后面接 `:` 的是设置键（`随机英雄复生:`）。
+    """
+    zero = zero if zero is not None else load_zero_arg_funcs()
+    if not zero:
+        return
+    for i, raw in enumerate(text.split("\n"), 1):
+        s = strip_noise(raw)
+        if not s.strip() or s.strip().startswith("//"):
+            continue
+        if re.match(r"^\s*[\w\u4e00-\u9fa5“”\"]+\s*:", s):   # 设置块的行：键: 值
+            continue
+        for m in BARE_VALUE_HINT.finditer(s):
+            name = m.group(0)
+            if name in zero:
+                continue
+            after = s[m.end():m.end() + 1]
+            if after in ("(", ".", "_", ":", "："):          # 调用 / 成员 / 设置键
+                continue
+            before = s[:m.start()].rstrip()
+            if before and before[-1] not in "=,([空 ":
+                continue
+            problems.append((i, "error",
+                             "值函数「%s」不存在（数据表里没有这个名字）；相近的有：%s"
+                             % (name, "、".join(sorted(n for n in zero if n.startswith(name[:2]))[:5]) or "（同前缀的也没有）")))
+
+
 def check_game_end_actions(text, problems):
     """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
 
@@ -3925,6 +4041,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
     check_rule_hints(text, problems)
+    check_arg_counts(text, problems)
+    check_bare_value_names(text, problems)
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
