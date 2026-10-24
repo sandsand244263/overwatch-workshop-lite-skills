@@ -4004,6 +4004,105 @@ def suggest(msg):
     return None
 
 
+def _scan_line_quotes(line):
+    """数一行里的双引号个数（跳过 // 注释、处理 \\" 转义）。返回 (个数, 是否仍未闭合)。"""
+    n, in_str, escaped, i = 0, False, False, 0
+    while i < len(line):
+        ch = line[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+                n += 1
+        else:
+            if ch == '"':
+                in_str = True
+                n += 1
+            elif ch == "/" and i + 1 < len(line) and line[i + 1] == "/":
+                break
+        i += 1
+    return n, in_str
+
+
+def check_odd_quotes_raw(raw, problems):
+    """逐行双引号奇偶（按物理行，跳过注释）。
+
+    依据：`52840`「文本字符串中出现了换行」——字符串不能跨行，所以单行引号为奇数就是没闭合。
+    S7 在 138 个语料样本、19,263 行上实测 **0 行命中**（D-006 门槛内）。
+    """
+    for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
+        n, open_str = _scan_line_quotes(line)
+        if n % 2:
+            problems.append((i, "error",
+                             "这一行双引号是奇数（%d 个），字符串没闭合 —— 游戏会报「文本字符串中出现了换行」；"
+                             "字符串必须写在一行内" % n))
+
+
+def check_rule_missing_event_raw(raw, problems):
+    """每条规则必须有 事件 块（`51160`「之后的规则没有以事件结尾」）。
+
+    S7 实测：219 个规则块，0 个缺（含 9 份真实语料里能导入的 3 份）。
+    """
+    name, start, has_event, in_event = None, 0, False, False
+    depth = 0
+    msg = ("规则「%s」没有 事件 块 —— 游戏会报「…之后的规则没有以事件结尾」；"
+           "每条规则都要 事件 { 事件名; 选择器; }")
+    for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
+        s = strip_noise(line).strip()
+        if re.match(r'^\s*(?:禁用\s*)?规则\("', line):
+            if name is not None and not has_event:
+                problems.append((start, "error", msg % name))
+            m = re.match(r'^\s*(?:禁用\s*)?规则\("([^"]*)"?', line)
+            name, start, has_event, in_event, depth = (m.group(1) if m else "?"), i, False, False, 0
+            continue
+        if name is None:
+            continue
+        if s == "子程序" or re.match(r'^\s*子程序\("', line):
+            continue
+        if not in_event and s == "事件":
+            in_event, has_event = True, True
+            continue
+        if in_event:
+            if s.startswith("{"):
+                depth += 1
+                continue
+            if s.startswith("}"):
+                depth -= 1
+                if depth <= 0:
+                    in_event = False
+            continue
+    if name is not None and not has_event:
+        problems.append((start, "error",
+                         "规则「%s」没有 事件 块 —— 游戏会报「…之后的规则没有以事件结尾」；"
+                         "每条规则都要 事件 { 事件名; 选择器; }" % name))
+
+
+def check_name_too_long_raw(raw, problems, limit=32):
+    """变量名 / 子程序名超过 32 个字符给提示。
+
+    `60206` / `60282` 那族只说明「有过长的名称」，**上限值没测出来**，所以只能是 warning。
+    只查变量名与子程序名（语料实测最长 17 / 10）；
+    **规则名不查** —— 真实语料里规则名常带「## 」「———」这类排版前缀、动辄 40 字符，
+    9 份语料上一查就 20+ 条误报（D-006 门槛 3 条），整条规则名判定撤回。
+    """
+    text = raw.replace("\r\n", "\n")
+    for i, line in enumerate(text.split("\n"), 1):
+        m = re.match(r'^\s*子程序\("([^"]*)"', line)
+        if m and len(m.group(1)) > limit:
+            problems.append((i, "warning",
+                             "子程序名「%s」有 %d 个字符，超过 %d —— 引擎有名字长度上限（具体值未验证，"
+                             "语料最长 10），建议缩到 20 内" % (m.group(1), len(m.group(1)), limit)))
+            continue
+        m = re.match(r'^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$', line)
+        if m and len(m.group(1)) > limit:
+            problems.append((i, "warning",
+                             "变量名「%s」有 %d 个字符，超过 %d —— 见 60206/60282，上限值未验证"
+                             % (m.group(1), len(m.group(1)), limit)))
+
+
 def full_lint(path, data_dir, strict=False):
     """统一的完整校验入口：加载全部数据表后跑 lint。
 
@@ -4055,6 +4154,12 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     raw, _enc = read_text(path)
     lint.encoding = _enc
     text = raw.replace("\r\n", "\n")
+    # 按物理行做的三条（引号奇偶 / 规则缺事件块 / 名字超长）必须看**原始行**，
+    # 因为后面会把跨行字符串和跨行语句合并，行号会移位；它们的行号不参与 orig_line 换算。
+    raw_probs = []
+    check_odd_quotes_raw(text, raw_probs)
+    check_rule_missing_event_raw(text, raw_probs)
+    check_name_too_long_raw(text, raw_probs)
     # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
     text, s_str = join_multiline_strings_mapped(text)
     text, s_merge = merge_continuations_mapped(text)
@@ -4355,6 +4460,13 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         col = item[3] if len(item) > 3 else None
         if line_no:
             line_no = orig_line(line_no, col)      # 换算回原文行号
+        key = (line_no, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((line_no, level, msg))
+    # 物理行的三条：行号已经是原文行号，不再换算
+    for line_no, level, msg in raw_probs:
         key = (line_no, msg)
         if key in seen:
             continue

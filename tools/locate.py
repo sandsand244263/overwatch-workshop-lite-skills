@@ -193,7 +193,7 @@ def _next_meaningful(lines, start, stop=8):
     return None
 
 
-def locate(error_text, data_dir, file_path=None, radius=2, as_json=False):
+def locate(error_text, data_dir, file_path=None, radius=2, as_json=False, to_case=None):
     rows = load_templates(data_dir)
     hits = match_error(error_text, rows)
     out = {"input": error_text, "matched": bool(hits), "template": None, "file": None}
@@ -218,6 +218,20 @@ def locate(error_text, data_dir, file_path=None, radius=2, as_json=False):
         out["file"] = loc
         if not as_json:
             _print_file(loc, radius)
+        # PLAN v5 A3：失败即回填 —— 把这一处抽成能单独导入的最小用例
+        if to_case and hits and loc.get("line"):
+            row, slots = hits[0][1], hits[0][2]
+            try:
+                case_path, todo, note = export_case(row, slots, file_path, loc["line"], to_case)
+                out["case"] = {"file": case_path, "todo": todo, "note": note}
+                if not as_json:
+                    print("")
+                    print("用例骨架已写：%s（%s）" % (case_path, note))
+                    print("  TODO 记到：%s —— 等本地接上这条检查后，把它挪进 expect.tsv" % todo)
+            except OSError as e:
+                out["case"] = {"error": str(e)}
+                if not as_json:
+                    print("  ⚠ 用例骨架写不出来：%s" % e)
 
     if as_json:
         import json
@@ -319,6 +333,84 @@ def _locate_in_file(path, data_dir, error_text, hits, radius):
     res["local"] = [{"line": p[0], "level": p[1], "message": p[2]} for p in near]
     res["local_total"] = len(probs)
     return res
+
+
+def _enclosing_rule(lines, line_no):
+    """从某一行往上找包住它的 规则(...) / 子程序(...) 块，返回 (起始行, 结束行) 或 None。
+
+    用例骨架要能单独导入，所以必须带完整的规则外壳（事件块 + 动作块）。
+    """
+    start = None
+    for i in range(line_no, 0, -1):
+        s = lines[i - 1].strip()
+        if s.startswith('规则(') or s.startswith('禁用 规则(') or s.startswith('子程序('):
+            start = i
+            break
+    if start is None:
+        return None
+    depth = 0
+    started = False
+    for i in range(start, len(lines) + 1):
+        s = lines[i - 1].strip()
+        depth += s.count("{") - s.count("}")
+        if "{" in s:
+            started = True
+        if started and depth <= 0:
+            return start, i
+    return None
+
+
+def _top_block(lines, head):
+    """抓顶层 `变量` 这类块（从 head 那行开始的花括号配对），返回行列表或 None。"""
+    for i, ln in enumerate(lines, 1):
+        if ln.strip() == head:
+            depth, started = 0, False
+            for j in range(i, len(lines) + 1):
+                s = lines[j - 1].strip()
+                depth += s.count("{") - s.count("}")
+                if "{" in s:
+                    started = True
+                if started and depth <= 0:
+                    return lines[i - 1:j]
+    return None
+
+
+def export_case(row, slots, file_path, line_no, outdir):
+    """把报错那一处抽成能单独导入的最小用例（PLAN v5 A3：失败即回填）。
+
+    产出：`<outdir>/case-<模板编号>-L<行>.ow` + 一行 TODO 记录（游戏报错 → 模板 → 真因），
+    本地还没接这条检查时，这行就是「待接」清单的原料。
+    抽的是**整条规则**（含事件块），并带上原文件的 `变量` 块——否则玩家/全局变量全是未声明，
+    抽出来的用例会被无关错误淹掉。
+    """
+    with open(file_path, encoding="utf-8-sig") as f:
+        lines = f.read().split("\n")
+    block = _enclosing_rule(lines, line_no)
+    if block:
+        snippet = lines[block[0] - 1:block[1]]
+        note = "整条规则（第 %d–%d 行）" % block
+    else:
+        snippet = ['规则("报错回填")', "{", "\t事件", "\t{", "\t\t持续 - 全局;", "\t}", "",
+                   "\t动作", "\t{", "\t\t" + lines[line_no - 1].strip(), "\t}", "}"]
+        note = "只有出错那一行（原文没包在规则里，套了最小外壳）"
+    var_block = _top_block(lines, "变量")
+    if var_block:
+        snippet = var_block + [""] + snippet
+        note += " + 变量块"
+    os.makedirs(outdir, exist_ok=True)
+    name = "case-%s-L%d.ow" % (row.get("编号") or "x", line_no)
+    out_path = os.path.join(outdir, name)
+    with open(out_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(snippet) + "\n")
+    todo = os.path.join(outdir, "TODO-expect.tsv")
+    new_file = not os.path.isfile(todo)
+    with open(todo, "a", encoding="utf-8", newline="\n") as f:
+        if new_file:
+            f.write("file\texpect\tnote\n")
+        f.write("%s\t%s\t%s | %s | 真因：%s\n" % (
+            name, (row.get("报错原文") or "").strip(), row.get("编号"),
+            (row.get("归属") or ""), (row.get("真因") or "").strip()))
+    return out_path, todo, note
 
 
 def _print_file(loc, radius):

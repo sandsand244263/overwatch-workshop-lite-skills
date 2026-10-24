@@ -1,0 +1,18 @@
+变量
+{
+	全局:
+		0: thisVariableNameIsWayTooLongForWorkshop
+}
+
+规则("长变量名")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		等待(0.016, 忽略条件);
+	}
+}

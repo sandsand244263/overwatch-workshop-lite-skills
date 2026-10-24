@@ -988,6 +988,8 @@ def main():
     p.add_argument("error", help="游戏给的报错原文，整条粘进来")
     p.add_argument("--file", default=None, help="当时导入的 .ow 文件（给了才能指行）")
     p.add_argument("--context", type=int, default=2, help="报错行上下各显示几行")
+    p.add_argument("--to-case", default=None, metavar="DIR",
+                   help="把报错那一处抽成可单独导入的最小用例，写到 DIR（失败即回填）")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_locate)
 
@@ -1653,7 +1655,8 @@ def cmd_locate(args):
     """
     import locate
     return locate.locate(args.error, DATA, file_path=args.file,
-                         radius=args.context, as_json=args.json)
+                         radius=args.context, as_json=args.json,
+                         to_case=getattr(args, "to_case", None))
 
 
 def _load_tsv(name):

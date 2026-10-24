@@ -28,6 +28,12 @@ def selftest_check():
         n_lines = len(f.read().split("\n"))
 
     problems = []
+    # 阳性对照：用例骨架抽取必须能找到包住第 31 行（动作里那行）的规则块
+    with open(sample, encoding="utf-8-sig") as f:
+        sample_lines = f.read().split("\n")
+    block = locate._enclosing_rule(sample_lines, 31)
+    if block != (22, 33):
+        problems.append("用例骨架抽取：期望包住第 31 行的规则块是 22–33 行，实际 %s" % (block,))
     for c in cases:
         name = (c.get("名称") or "").strip()
         text = (c.get("报错原文") or "").strip()
