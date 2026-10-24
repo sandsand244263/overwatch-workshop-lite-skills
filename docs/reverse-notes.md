@@ -75,9 +75,20 @@
 （`NeacInterface.dll` / `NeacLoader.exe`），不用 REA 的 runtime / process-capture 功能。
 CASC 探针必须 `Online=false`。
 
-## 7. 现在还没解决的
+## 7. 反编译到底能不能用（2026-10-24 实测）
 
-- 反编译：Ghidra 能起，但 80MB 的首次导入未跑完；`REA_MCP_MAX_RESPONSE_BYTES` 能否救回来未验证
+**能，但导入很慢。** Ghidra headless 建工程：`analyzeHeadless <proj> owproj -import Overwatch.exe -max-cpu 2 -analysisTimeoutPerFile 2100`，
+`GHIDRA_HEADLESS_MAXMEM=4G` → **37 分 33 秒**建完（`Import succeeded`），峰值内存 1.97 GiB（4G 上限没顶满）。
+
+- `Analysis timed out` **不等于失败**：PE 头、段表、符号、反汇编、函数识别都已完成并落盘，超时卡在收尾步骤
+  `ClearFlowAndRepairCmd`（函数体修复）。工程可用，函数能反编译。
+- 实测反编译出的引用点与字节扫描（`pe_strings.py` 算的 disp32）**互相印证**，不是幻觉。
+- 批量反编译要在**一个脚本里循环**（`DECOMP_LIMIT=N`），别 N 次启进程——每次启动约 2 分钟，其中大半是开工程。
+- 别并发两个 Ghidra；REA 的 `inspect` 单次就要 0.9~1.4 GB。
+
+## 8. 现在还没解决的
+
+- `binary_overview` 的 10MiB 响应预算：抬到 64MiB 需要 REA 重启 + 客户端收包够大 + 结果本身够小，三条缺一不可，未实跑验证
 - enUS 报错表（本机只装了 zhCN 文本包）
 - `0x063` 表 54 条与 A 层 108 条的差集没对完
 - `0x143622150` 那族英文解析器报错是否属于 `.ow` 解析器，未定
