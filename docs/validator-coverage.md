@@ -142,7 +142,7 @@
 
 ## 反向用例（防退化）
 
-`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**48 个**）。
+`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**58 个**，以文件行数为准，`check-all` 会逐条跑）。
 `python tools/ws.py check-all` 会同时跑正样本（必须全过）和反向用例（必须报出预期错误）。
 
 **只测正样本是不够的**——校验器最容易的退化方式，是"什么都放行"。
