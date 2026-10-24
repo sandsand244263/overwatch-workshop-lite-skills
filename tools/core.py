@@ -634,6 +634,60 @@ def check_event_player_scope(text, problems):
                                      "改用 玩家变量(玩家, …) / 本地玩家 / 所有玩家(所有队伍)" % event_line))
 
 
+GLOBAL_LOCAL_ACTIONS = ("伤害", "隐藏英雄HUD", "开始镜头")
+
+
+def check_local_player_in_global(text, problems):
+    """`持续 - 全局` 里把「动身体/视角」的动作指向 `本地玩家` → 无效（提示级）。
+
+    2026-10-24 实机（E-50 五）：`伤害` / `隐藏英雄HUD` / `开始镜头` 写在全局规则里、
+    目标写 `本地玩家` 时不起作用。注意**不是**「本地玩家不能用」——同批语料里
+    197 处 `创建HUD文本(本地玩家, …)` 正常工作，所以只判这三个动作。
+    写死检查前在 9 份真实语料 + 170 个回归样本上量过：0 命中。
+    """
+    for name, body in _iter_rule_blocks(text):
+        ev = _rule_event_lines(body)
+        if not ev or ev[0].rstrip(";").strip() != "持续 - 全局":
+            continue
+        hit = []
+        for ln, raw in body:
+            for act in GLOBAL_LOCAL_ACTIONS:
+                if re.search(re.escape(act) + r"\s*\(\s*本地玩家\s*[,)]", raw):
+                    hit.append((ln, act))
+        if not hit:
+            continue
+        acts = "、".join(sorted({a for _l, a in hit}))
+        problems.append((hit[0][0], "warning",
+                         "「%s」是「持续 - 全局」规则，里面 %d 处把 %s 的目标写成「本地玩家」；"
+                         "这类动作对 本地玩家 无效（不动身体、不改视角）。"
+                         "改用「持续 - 每名玩家」+ 事件玩家，或显式写 所有玩家(所有队伍)"
+                         % (name, len(hit), acts)))
+
+
+_LOOP_OPEN = re.compile(r"(?m)^[ \t]*(While|For|For 全局变量|For 玩家变量)\s*\(")
+_END_STMT = re.compile(r"(?m)^[ \t]*End\s*;")
+
+
+def check_loop_missing_end(text, problems):
+    """循环少了 `End;` → 导入不报错，但那条循环只执行一次（提示级）。
+
+    2026-10-24 实机（E-61）：`While(真); …` 省掉 End; 照常导入，行为变成「做一次」。
+    只判「循环个数 > End 个数」这个必要条件，不逐层配对：真实语料里
+    `If … Else` 省 End; 的有 22 处（作者就是这么写的，语义确实是「条件成立时做一下」），
+    按 If 一起计数就会误报。宁可漏报不误报。
+    """
+    for name, body in _iter_rule_blocks(text):
+        joined = "\n".join(ln for _l, ln in body)
+        opens = len(_LOOP_OPEN.findall(joined))
+        ends = len(_END_STMT.findall(joined))
+        if opens <= ends:
+            continue
+        line = next((l for l, ln in body if _LOOP_OPEN.match(ln)), 0)
+        problems.append((line, "warning",
+                         "「%s」里 While/For 共 %d 个，End; 只有 %d 个：至少一处循环少了 End;；"
+                         "省掉不报错，但那条循环只会执行一次" % (name, opens, ends)))
+
+
 def check_setting_range(text, ranges, problems):
     """设置块的数值不能超出已知边界（如 获胜得分 是 1-9）。
 
@@ -4695,6 +4749,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_probe_output(path, text, problems)
     check_probe_invisible(path, text, problems)
     check_event_player_scope(text, problems)
+    check_local_player_in_global(text, problems)
     check_element_kind(masked, kinds or {}, problems)
     check_action_as_value(masked, kinds or {}, problems)
     check_string_interp(text, problems)
@@ -4717,6 +4772,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
+    check_loop_missing_end(text, problems)
     check_rule_hints(text, problems)
     check_arg_counts(text, problems)
     check_bare_value_names(text, problems)

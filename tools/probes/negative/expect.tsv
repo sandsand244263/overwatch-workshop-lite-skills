@@ -57,3 +57,5 @@ percent-out-of-range.ow	超出范围（0~5）	百分比写法以前根本不进�
 wait-bad-behaviour.ow	等待 的第二参数只能写	写了条件表达式；游戏会报 51155「之后应有一个选项」（E-68，exe 槽位校验 0x140C41860）
 team-word-bad.ow	队伍只有 队伍1 / 队伍2	队伍3 这种词不存在；游戏会报「之后应有一个队伍」（E-70，exe 队伍槽位 0x140C3C830）
 bool-ascii-true.ow	真假只写 真 / 假	工坊没有 True/False；合法词表来自 exe 0x140C3A760（E-71，data/word-lists.tsv「真假字面量」）
+localplayer-global.ow	这类动作对 本地玩家 无效
+loop-no-end.ow	少了 End;
