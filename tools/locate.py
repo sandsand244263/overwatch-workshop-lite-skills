@@ -193,6 +193,15 @@ def _next_meaningful(lines, start, stop=8):
     return None
 
 
+def catch_note(rows):
+    """「本地拦不住」的口径（按 data/errors-full.tsv 现算，别写死百分比）。"""
+    a = [r for r in rows if (r.get("层") or "").strip() == "A"]
+    if not a:
+        return "这类报错本地拦不住"
+    miss = [r for r in a if (r.get("能提前报") or "").strip() in ("不能", "部分")]
+    return "A 层 %d 条里 %d 条只能部分拦住或拦不住" % (len(a), len(miss))
+
+
 def locate(error_text, data_dir, file_path=None, radius=2, as_json=False, to_case=None):
     rows = load_templates(data_dir)
     hits = match_error(error_text, rows)
@@ -215,6 +224,7 @@ def locate(error_text, data_dir, file_path=None, radius=2, as_json=False, to_cas
 
     if file_path:
         loc = _locate_in_file(file_path, data_dir, error_text, hits, radius)
+        loc["catch_note"] = catch_note(rows)
         out["file"] = loc
         if not as_json:
             _print_file(loc, radius)
@@ -440,4 +450,5 @@ def _print_file(loc, radius):
         for p in loc["local"]:
             print("      第 %s 行 [%s] %s" % (p["line"], p["level"], p["message"]))
     else:
-        print("  本地校验器这一处没报（这类报错本地拦不住，占 73%）——按上面的真因人工核对该行及下一行")
+        print("  本地校验器这一处没报（%s）——按上面的真因人工核对该行及下一行"
+              % (loc.get("catch_note") or "这类报错本地拦不住"))
