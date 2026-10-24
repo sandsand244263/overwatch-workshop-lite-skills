@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.16.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.17.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -201,12 +201,15 @@ workshop-lite/
 ## 命令
 
 ```bash
+python tools/ws.py intake "这个模式导不进去"          # 用户原话 → 该跑什么/该读什么/该查什么/别做什么
 python tools/ws.py doctor                         # 环境自检（Python/数据/编码）
 python tools/ws.py check 模式.ow                  # 校验：先列「必改」，再列「提示」
 python tools/ws.py check 模式.ow --json           # 结构化输出，给编辑器/CI
+python tools/ws.py deliver 模式.ow                # 交付：固定三行（文件/怎么跑/看哪里），有必改不打印
+python tools/ws.py devcheck                       # 一条命令跑完全部回归（发版前必跑）
 python tools/ws.py fix 导出的.txt                  # 修成可导入版本，并复校
 python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现
-python tools/ws.py check-all                      # 回归全部样本（65 正 + 20 反例）
+python tools/ws.py check-all                      # 回归全部样本（82 正 + 58 反例）
 python tools/ws.py count 模式.ow                  # 元素数估算
 python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）
 python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架

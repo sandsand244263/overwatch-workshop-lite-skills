@@ -23,11 +23,12 @@
 | [extensions.md](./extensions.md) | 11 个扩展与副作用 | 要开扩展 |
 | [hero-stats.md](./hero-stats.md) | 54 英雄面板数值 | 调英雄数值 |
 | [hero-quickref.md](./hero-quickref.md) | 英雄速查 | 只想看一两个英雄 |
-| [element-reverse.md](./element-reverse.md) | 元素计数的实测推导记录（历史） | 想改估算模型 |
+| [element-count.md](./element-count.md) | 元素计数的实测推导记录（复刻诊断面板「总计元素数量」的过程与已知偏差） | 想改估算模型 / 怀疑元素数不准 |
 | [reverse-notes.md](./reverse-notes.md) | **二进制/CASC 逆向**：报错文案在哪、什么工具在 80MB 上不可信、可用锚点、脚本位置 | 要做逆向 / 想拿报错全集 |
 | [acceptance-flow.md](./acceptance-flow.md) | 验收规范流程：三层仓分工、探针纪律、发版自检、回传后必做四件事 | 要加探针 / 要发版 / 不确定某文件该放哪个仓 |
 | [validator-coverage.md](./validator-coverage.md) | 校验器覆盖范围与漏报率测试 | 想改校验器 / 判断可信度 |
 | [diagnostics.md](./diagnostics.md) | 实机诊断方法（查看器日志等） | 要定位运行时问题 |
+| [probe-spec.md](./probe-spec.md) | 探针模板与判读规范（一条命令出差异表） | 要写探针 / 判读数 |
 | [samples.md](./samples.md) | 可运行样例清单 | 想找现成例子 |
 | [ui-notes.md](./ui-notes.md) | 编辑器 UI 观察 | 对照界面 |
 | [ecosystem.md](./ecosystem.md) | 社区工具与资源 | 找外部资料 |

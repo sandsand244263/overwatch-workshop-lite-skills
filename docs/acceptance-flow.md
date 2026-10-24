@@ -103,20 +103,19 @@
 ```bash
 cd <安装目录> && python tools/bump.py X.Y.Z
 cp -a data/. docs/. tools/ SKILL.md VERSION → 公开仓
-cd 公开仓 && python tools/ws.py selftest && check-all && calib
+cd 公开仓 && python tools/ws.py devcheck          # 一条命令跑完全部回归，输出 ≤5 行
 git commit && git tag vX.Y.Z && git push origin HEAD --tags
 gh release create vX.Y.Z --title "vX.Y.Z" --notes "- 一句一条"
 三仓各 commit；私有仓写 STATUS/DECISIONS/EVIDENCE
 ```
 
-发版前自检（缺一不发）：
+发版前自检（缺一不发）：`ws.py devcheck` 一条命令覆盖前五项，全绿才往下走。
 
-- [ ] `selftest` 通过
-- [ ] `check-all` 全过（反向用例数要跟着涨）——**看「正样本 N 个：N 通过 / 0 失败」那一行**，只看最后的反向用例统计会漏掉正样本失败
-- [ ] `calib` 偏差 0
-- [ ] 有语料时 `corpus` 无新增 error
+- [ ] `devcheck` 全绿（生成器三条 `--check` / selftest / check-all / calib / selfcheck_modes / 语料）
+- [ ] `check-all` 的「正样本 N 个：N 通过 / 0 失败」那一行是 0 失败（只看最后的反向用例统计会漏掉正样本失败）
+- [ ] 有语料时 `corpus` 无新增 error（`devcheck --corpus` 或设 `WS_CORPUS`）
 - [ ] **`selfcheck_modes` 55/55 干净**（生成器与校验器不许自相矛盾；2026-10-24 第一次跑抓到 16 个）
-- [ ] SKILL.md / VERSION / CHANGELOG / marketplace.json 版本号一致
+- [ ] SKILL.md / VERSION / CHANGELOG / marketplace.json 版本号一致（`bump.py --check`）
 - [ ] 新增文档已进 `docs/INDEX.md`
 - [ ] 公开仓里没有一次性探针、语料、内部记录
 
