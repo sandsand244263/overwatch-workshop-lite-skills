@@ -240,7 +240,7 @@ python python tools/ws.py check 你的文件.ow
 | 大厅组（地图轮换/返回大厅/观战者人数上限/玩家上限 队伍1…） | 同上 |
 | 百分比（`复生时间: 1%`） | 同上 |
 | `全局.x = 0;` 与 `全局.x += 1;` | `verified/syntax-probe.ow` |
-| `While(...) / If(...) / Else If(...) / Else; / End;` | 同上 |
+| `While(...) / If(...) / Else If(...) / Else; / End;` | 同上（**注意**：动作块末尾的 `End;` 合法可省，但省掉后 `While` 只执行一次，见 [pitfalls-runtime](./pitfalls-runtime.md)） |
 | `修改全局变量(arr, 添加至数组, …)` + `全局.arr[1]` | 同上 |
 | `字符串("{0} {1} {2}", a, b, c)` 带参预设 | 同上 |
 | 三元 `条件 ? A : B` | 同上 |

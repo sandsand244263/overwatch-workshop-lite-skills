@@ -2840,46 +2840,28 @@ def check_empty_setting_values(text, problems):
 
 
 def check_balance(text, problems, strict=False, raw_masked=None):
-    """全局括号配对 + 每条规则里 While/If/For 与 End; 的配对。
+    """全局括号配对（只查括号；`If/While/For` 与 `End;` 的配对检查已撤回）。
 
-    实测：删掉一个右括号或一个 End;，绝大多数校验器抓不到，但游戏直接报错。
+    实测：删掉一个右括号，绝大多数校验器抓不到，但游戏直接报错。
 
     括号数必须在**合并折行之前**的原文上统计：语料里有 `…)),//【点位1】` 这种
     行内注释，合并之后 `//` 会把同行后面的代码一起吃掉，导致少一个括号（假警报）。
+
+    **为什么不再查 End; 配对**（2026-10-24 撤回，E-61）：
+      1. 动作块**末尾**的 `End;` 可以合法省略，用结尾的 `}` 代替 —— 9 份真实语料里
+         5 份这么写（《暴打大锤3》《猪猪钩钩乐·原版》等，都是能正常玩的模式）。
+      2. 旧实现按「行内出现 `While(` / `If(` 的次数」跟 `End;` 数量对账，
+         两个方向都会数错（既有「开头 1 个、End 0 个」，也有「开头 2 个、End 3 个」），
+         在真实语料上 5/9 误报，超 D-006 门槛。
+      3. 真正该记的是行为不是语法：末尾省 `End;` 后，`While` 实测**只执行一次**
+         （探针 `probes/lab/endcheck/`，读数 `[e1] A=1` 仅一行）。
+         这条写进 `docs/pitfalls-runtime.md`，不再由校验器判。
     """
-    strict_balance = [strict]
     masked = raw_masked if raw_masked is not None else mask_text(text)
     opens, closes = masked.count("("), masked.count(")")
     if opens != closes:
         problems.append((0, "error",
                          "括号不配对：左括号 %d 个、右括号 %d 个（删掉一个就会这样）" % (opens, closes)))
-
-    # 逐块检查 End; 数量（深度从规则自己的 { 开始算，否则会误以为动作块结束就是规则结束）
-    lines = text.split("\n")
-    masked_lines = mask_text(text).split("\n")
-    inside = seen = False
-    depth = start_ln = openers = ends = 0
-    for i, raw in enumerate(lines, 1):
-        st = masked_lines[i - 1].strip()      # 用屏蔽了字符串的行，避免 "{0}" 干扰括号计数
-        if not inside:
-            if re.match(r"^(规则\(|子程序)", st):
-                inside, seen, depth, start_ln, openers, ends = True, False, 0, i, 0, 0
-            continue
-        d = st.count("{") - st.count("}")
-        if d:
-            seen = True
-        depth += d
-        openers += st.count("While(")
-        openers += len(re.findall(r"(?<!Else )If\(", st))   # Else If 不需要自己的 End
-        openers += st.count("For 全局变量(") + st.count("For 玩家变量(")
-        if "End;" in st:
-            ends += st.count("End;")
-        if seen and depth <= 0:
-            inside = False
-            if openers != ends and strict_balance[0]:
-                problems.append((start_ln, "warning",
-                                 "（strict）这条规则里 If/While/For 开头 %d 个，End; 只有 %d 个"
-                                 % (openers, ends)))
 
 
 def check_victory_in_loop(text, problems):
