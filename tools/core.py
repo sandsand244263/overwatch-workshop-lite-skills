@@ -892,6 +892,49 @@ def check_speed_percent_param(text, problems):
                              "想要 1.5 倍就写 150" % (val, val / 100)))
 
 
+WAIT_BEHAVIOUR_WORDS = ("无视条件", "当为“假”时中止", "当为“真”时重新开始")
+
+
+def check_wait_behaviour(masked, problems):
+    """`等待(时长, X)` 的 X 只能是三个词，写别的会被游戏拒。
+
+    依据（E-68）：exe 里这个槽位的校验函数 `0x140C41860` 就是把这三条文案的句柄
+    （`0x787C/0x787D/0x787E`）拿去比较，三条都不中 → 报 51155「…之后应有一个选项」。
+    9 份真实语料 1948 处第二参数全部落在这三个词里（0 例外）；
+    2026-10-24 实机三种各写一次导入成功、等待都正常返回（A=2/B=2/C=2）。
+
+    为什么要这条检查：第三个词「当为“真”时重新开始」长期不在我们文档里，
+    以前写它没人管（要到导入才被游戏拒），写条件表达式也一样。现在离线就报。
+    """
+    for pos, n, args in _iter_calls(masked, "等待"):
+        if n < 2:
+            continue
+        v = args[1].strip()
+        if not v or v in WAIT_BEHAVIOUR_WORDS:
+            continue
+        line = masked.count("\n", 0, pos) + 1
+        problems.append((line, "error",
+                         "等待 的第二参数只能写 无视条件 / 当为“假”时中止 / 当为“真”时重新开始，"
+                         "写的是「%s」；游戏会报「之后应有一个选项」" % v))
+
+
+def check_team_word(masked, problems):
+    """`队伍N` 里的 N 只能是 1 或 2：合法写法是 双方 / 队伍1 / 队伍2 / 全部。
+
+    依据（E-70）：exe 里队伍槽位的比较函数 `0x140C3C830` 只比这四条文案的句柄
+    （30724 双方 / 46194 队伍1 / 46193 队伍2 / 30718 全部），不中 → 报 51148「之后应有一个队伍」。
+    语料侧：9 份真实文件里 `队伍N` 共 2273 处，N 只出现 1（1293）和 2（980），**0 例外**。
+    """
+    for m in re.finditer(r"队伍(\d+)", masked):
+        n = int(m.group(1))
+        if n in (1, 2):
+            continue
+        line = masked.count("\n", 0, m.start()) + 1
+        problems.append((line, "error",
+                         "队伍只有 队伍1 / 队伍2（另有 双方 / 全部），写的是「队伍%d」；"
+                         "游戏会报「之后应有一个队伍」" % n))
+
+
 def check_percent_operator(text, problems):
     """规则里的 `%` 是**取余运算符**，不是百分号。
 
@@ -4304,6 +4347,58 @@ def check_name_too_long_raw(raw, problems, limit=32):
                              % (m.group(1), len(m.group(1)), limit)))
 
 
+_BOOL_WORDS_CACHE = {}
+
+
+def load_word_list(checkpoint, data_dir=None):
+    """读 data/word-lists.tsv 里某个校验点的合法词（E-71：这些词是从 exe 里读出来的）。
+
+    读不到就返回空列表 —— 检查要**优雅退化**，不能因为缺表把整个 check 崩掉。
+    """
+    if checkpoint in _BOOL_WORDS_CACHE:
+        return _BOOL_WORDS_CACHE[checkpoint]
+    words = []
+    paths = []
+    if data_dir:
+        paths.append(os.path.join(data_dir, "word-lists.tsv"))
+    paths.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "word-lists.tsv"))
+    for p in paths:
+        try:
+            with open(p, encoding="utf-8") as fh:
+                hdr = fh.readline().rstrip("\n").split("\t")
+                for line in fh:
+                    row = dict(zip(hdr, line.rstrip("\n").split("\t")))
+                    if row.get("checkpoint") == checkpoint and row.get("words"):
+                        words = [w for w in row["words"].split("|") if w]
+                        break
+        except OSError:
+            continue
+        if words:
+            break
+    _BOOL_WORDS_CACHE[checkpoint] = words
+    return words
+
+
+def check_bool_literal_raw(raw, problems, data_dir=None):
+    """真假字面量只能写 `真` / `假`。
+
+    依据：exe `0x140C3A760` 只比两条句柄（44089 真 / 44090 假，E-70/E-71），
+    合法词表在 `data/word-lists.tsv` 的「真假字面量」行。
+    只抓**裸**的 ASCII 真假词（`True` / `False` / `true` / `false`），
+    字符串与 `//` 注释已被 `strip_noise` 遮掉，所以不会误报文案里的英文。
+    9 份真实语料实测 **0 条**命中。
+    """
+    legal = load_word_list("真假字面量", data_dir) or ["真", "假"]
+    text = raw.replace("\r\n", "\n")
+    pat = re.compile(r"(?<![A-Za-z0-9_])(True|False|TRUE|FALSE|true|false)(?![A-Za-z0-9_])")
+    for ln, line in enumerate(text.split("\n"), 1):
+        code = strip_noise(line)
+        for m in pat.finditer(code):
+            problems.append((ln, "error",
+                             "真假只写 %s，这里写的是「%s」（工坊没有 True/False）"
+                             % (" / ".join(legal), m.group(1))))
+
+
 def full_lint(path, data_dir, strict=False):
     """统一的完整校验入口：加载全部数据表后跑 lint。
 
@@ -4368,6 +4463,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_odd_quotes_raw(text, raw_probs)
     check_rule_missing_event_raw(text, raw_probs)
     check_name_too_long_raw(text, raw_probs)
+    check_bool_literal_raw(text, raw_probs, DATA_DIR)
     # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
     text, s_str = join_multiline_strings_mapped(text)
     text, s_merge = merge_continuations_mapped(text)
@@ -4589,6 +4685,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_speed_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
+    check_wait_behaviour(masked, problems)
+    check_team_word(masked, problems)
     check_hero_enable_layer(text, problems)
     check_maps_not_in_editor(text, problems)
     check_block_layers(text, problems)

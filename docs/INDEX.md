@@ -62,6 +62,7 @@
 | [`dropdown-aliases.tsv`](../data/dropdown-aliases.tsv) | 406 行：下拉槽 / 布尔项 / 队伍 / 英雄 / 扩展独占取值 —— 规范词 × 别名 × 别名是否被接受 × 是否导出显示词 | 同上 |
 | [`param-exceptions.tsv`](../data/param-exceptions.tsv) | 6 行：签名说可省但引擎要求写（1 正向）+ 签名列了参数而语料一致少写（5 反向） | 同上 |
 | [`limits-mutex.tsv`](../data/limits-mutex.tsv) | 23 行：上限 10 / 互斥 7 / 百分比 3 / 合法写法 2 / 运行时 1 | 同上 |
+| [`word-lists.tsv`](../data/word-lists.tsv) | **23 行 / 36 条去重词**：从 exe 里读出来的「合法词校验点」——16 组多词表 + 6 个单关键词校验 + 比较运算符表；列：校验点 / exe 函数 VA / 槽位 / 词 / CASC key_index / 比较器 / 证据等级 / 出处 | `python tools/gen_word_lists.py`；`--check` 只比对（漂移退出 1），`--stats` 出统计；源表 `tools/word-lists-src.tsv`（**改源表再重生成，别手改 data/**）。依据 E-71 |
 
 ### 阶段 2 新增（报错文案全集）
 

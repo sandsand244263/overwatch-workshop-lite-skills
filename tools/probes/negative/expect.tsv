@@ -54,3 +54,6 @@ long-var-name.ow	超过 32	60206/60282 名字过长：上限值未验证，只�
 enum-bad-value.ow	只能写 即时	词类设置键写了表外的值：游戏模式开始 只认 即时/手动/比赛人满后（data/setting-values.tsv）
 bool-bad-word.ow	布尔项，只能写 开启 / 关闭	布尔项写了既不是合法词也不是导出显示词的垃圾值，以前静默通过
 percent-out-of-range.ow	超出范围（0~5）	百分比写法以前根本不进范围检查：复生时间 900% = 9 > 5
+wait-bad-behaviour.ow	等待 的第二参数只能写	写了条件表达式；游戏会报 51155「之后应有一个选项」（E-68，exe 槽位校验 0x140C41860）
+team-word-bad.ow	队伍只有 队伍1 / 队伍2	队伍3 这种词不存在；游戏会报「之后应有一个队伍」（E-70，exe 队伍槽位 0x140C3C830）
+bool-ascii-true.ow	真假只写 真 / 假	工坊没有 True/False；合法词表来自 exe 0x140C3A760（E-71，data/word-lists.tsv「真假字面量」）
