@@ -827,6 +827,14 @@ def build(strings_path: Path, errors_path: Path) -> tuple[list[list[str]], dict]
     if a_done != a_total:
         raise SystemExit(f"A 层归档不全：{a_done}/{a_total}")
 
+    # 断言：非 A 档不许当判据 —— 「断言引用」非「无」的行，层必须是 A
+    # 依据：B 档在 exe 里没有引用点、C 档只是导入界面文案，拿它们当检查依据就是误报源（E-77 / E-78）
+    bad_tier = [row for row in out if row[11].strip() not in ("无", "") and row[1] != "A"]
+    if bad_tier:
+        raise SystemExit(
+            "档位断言失败：以下条目的「断言引用」不是「无」，但层不是 A（B/C 档只做报错翻译，不做判据）：\n  "
+            + "\n  ".join(f"{r[0]}（{r[1]} 档，引用 {r[11]}）：{r[3][:40]}" for r in bad_tier))
+
     stats = summarize(out, a_total, len(errors))
     return out, stats
 

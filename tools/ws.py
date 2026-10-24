@@ -956,6 +956,161 @@ def cmd_calib(a):
     return 0 if bad == 0 else 1
 
 
+def _devcheck_run(cmd, timeout):
+    """跑一个子步骤，返回 (退出码, 合并输出, 秒数)。超时算失败（124）。"""
+    import subprocess as sp
+    import time
+    t0 = time.time()
+    try:
+        p = sp.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                   encoding="utf-8", errors="replace", timeout=timeout)
+        return p.returncode, (p.stdout or "") + (p.stderr or ""), time.time() - t0
+    except sp.TimeoutExpired:
+        return 124, "超时（%d 秒）" % timeout, time.time() - t0
+    except Exception as e:                                   # 起不来也要占一行，不许静默
+        return 125, "起不来：%s" % e, time.time() - t0
+
+
+def cmd_devcheck(a):
+    """一条命令跑完全部回归：生成器 → selftest → check-all → calib/模式 → 语料。
+
+    输出最多 5 行（每块一行 + 结论一行），全绿 exit 0，任一失败 exit 1 并指出下一步跑什么。
+    为什么要有它：这些回归过去散在 6~8 条命令里，全链路靠记性，漏跑一次就是发版事故。
+    """
+    import time
+    py = sys.executable
+    tools = os.path.join(ROOT, "tools")
+    verbose = getattr(a, "verbose", False)
+    fails = []
+    t0 = time.time()
+
+    # 1) 生成器：表与种子不一致会静默用旧数据，必须先绿
+    bad_gen, gen_info = [], []
+    for name, script in (("setting-values", "gen_setting_values.py"),
+                         ("errors", "gen_errors.py"),
+                         ("word-lists", "gen_word_lists.py")):
+        rc, out, _ = _devcheck_run([py, os.path.join(tools, script), "--check"], 300)
+        if verbose:
+            print("── %s --check ──\n%s" % (script, out))
+        m = re.search(r"无漂移（(\d+) 行", out)
+        if m:
+            gen_info.append(m.group(1))
+        if rc != 0:
+            bad_gen.append("%s → python tools/%s" % (name, script))
+    if bad_gen:
+        fails.append("生成器")
+        print("[1/5] 生成器 --check     ✗ 有漂移：%s" % "；".join(bad_gen))
+    else:
+        print("[1/5] 生成器 --check     通过（%s 行，无漂移）" % " / ".join(gen_info or ["?"]))
+
+    # 2) 工具自身（重复定义、三处版本号一致）
+    rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "selftest"], 300)
+    if verbose:
+        print("── selftest ──\n%s" % out)
+    m = re.search(r"版本号一致：v(\S+)", out)
+    ver = "v" + m.group(1) if m else "版本号未读到"
+    if rc != 0:
+        fails.append("selftest")
+        print("[2/5] selftest            ✗ 失败（%s）→ python tools/ws.py selftest" % ver)
+    else:
+        print("[2/5] selftest            通过（%s）" % ver)
+
+    # 3) 正/反样本回归：只看汇总行，明细失败会出现在 --verbose
+    rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "check-all"], 900)
+    if verbose:
+        print("── check-all ──\n%s" % out)
+    pos = re.search(r"正样本 (\d+) 个：(\d+) 通过 / (\d+) 失败", out)
+    neg = re.search(r"反向用例通过 (\d+) 个，失败 (\d+) 个", out)
+    pos_txt = "正 %s/%s" % (pos.group(2), pos.group(1)) if pos else "正样本汇总未读到"
+    neg_txt = "反 %s/%s" % (neg.group(1), str(int(neg.group(1)) + int(neg.group(2)))) if neg else "反向用例未读到"
+    if rc != 0 or not pos or not neg:
+        fails.append("check-all")
+        print("[3/5] check-all           ✗ 失败（%s、%s）→ python tools/ws.py check-all" % (pos_txt, neg_txt))
+    else:
+        print("[3/5] check-all           %s、%s" % (pos_txt, neg_txt))
+
+    # 4) 标定 / 模式 / 语料
+    seg, bad4 = [], []
+    rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "calib"], 600)
+    if verbose:
+        print("── calib ──\n%s" % out)
+    m = re.search(r"标定样本 (\d+) 个，偏差 (\d+) 个", out)
+    if rc == 0 and m:
+        seg.append("标定 %s 偏差 %s" % (m.group(1), m.group(2)))
+    else:
+        bad4.append("calib")
+        seg.append("标定 ✗")
+    rc, out, _ = _devcheck_run([py, os.path.join(tools, "selfcheck_modes.py")], 600)
+    if verbose:
+        print("── selfcheck_modes ──\n%s" % out)
+    m = re.search(r"模式 (\d+) 个：干净 (\d+) / 有问题 (\d+)", out)
+    if rc == 0 and m:
+        seg.append("模式 %s 干净" % m.group(2))
+    else:
+        bad4.append("selfcheck_modes")
+        seg.append("模式 ✗")
+
+    want_corpus = getattr(a, "corpus", False) or bool(os.environ.get("WS_CORPUS"))
+    if want_corpus:
+        rc, out, _ = _devcheck_run([py, os.path.join(tools, "corpus_check.py")], 1800)
+        if verbose:
+            print("── corpus ──\n%s" % out)
+        m = re.search(r"结论：(通过|失败)", out)
+        if rc == 0 and m and m.group(1) == "通过":
+            seg.append("语料 通过")
+        else:
+            bad4.append("corpus")
+            seg.append("语料 ✗")
+    else:
+        seg.append("语料 跳过（没设 WS_CORPUS）")
+    if bad4:
+        fails.append("标定/模式/语料")
+        print("[4/5] calib/模式/语料      ✗ %s（%s）" % ("、".join(seg), "、".join(bad4)))
+    else:
+        print("[4/5] calib/模式/语料     %s" % "、".join(seg))
+
+    # 5) 结论
+    if fails:
+        print("[5/5] 结论                ✗ 失败：%s —— 先修再往下走（%.0f 秒）"
+              % ("、".join(fails), time.time() - t0))
+        return 1
+    print("[5/5] 结论                全绿，可以交付（%.0f 秒）" % (time.time() - t0))
+    return 0
+
+
+def cmd_deliver(a):
+    """交付：固定三行（文件 / 怎么跑 / 看哪里）。有必改就不打印交付。
+
+    为什么要有它：交付说法每次都不一样（文件路径给相对、跑法漏了选模式、看哪里漏了日志），
+    用户只做导入/试玩/提需求三件事，这三行必须每次一模一样。
+    """
+    path = a.file
+    if not os.path.isfile(path):
+        print("[错误] 找不到 %s" % path)
+        return 1
+    problems = core.full_lint(path, DATA)
+    errors = [p for p in problems if p[1] == "error"]
+    if errors:
+        print("✗ %s：%d 处必改，先修再交付（python tools/ws.py check \"%s\"）"
+              % (os.path.basename(path), len(errors), path))
+        for ln, level, msg in errors[:3]:
+            print("  第 %s 行：%s" % (ln if ln else "?", msg))
+        if len(errors) > 3:
+            print("  …还有 %d 处，用 check 看全部" % (len(errors) - 3))
+        return 1
+    text = open(path, encoding="utf-8", errors="replace").read()
+    m = re.search(r"模式名称\s*[:：]\s*\"([^\"]*)\"", text)
+    mode = m.group(1).strip() if m else os.path.splitext(os.path.basename(path))[0]
+    if "记入查看器" in text:
+        where = "工坊 → 查看器（跑完退回大厅再退游戏才落盘；python tools/ws.py readlog 自己读）"
+    else:
+        where = "游戏里直接看效果（这份文件没写查看器记录）"
+    print("文件：%s" % os.path.abspath(path))
+    print("怎么跑：导入 → 选「%s」 → 开始" % mode)
+    print("看哪里：%s" % where)
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(prog="ws", description="WorkshopLite 工具入口")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -1099,6 +1254,22 @@ def main():
 
     p = sub.add_parser("calib", help="元素估算标定回归（全部实测样本）")
     p.set_defaults(func=cmd_calib)
+
+    p = sub.add_parser("devcheck", help="一条命令跑完全部回归（生成器/selftest/check-all/标定/模式/语料）")
+    p.add_argument("--corpus", action="store_true",
+                   help="连真实语料一起跑（需 WS_CORPUS 指向 corpus/real；设了环境变量就自动跑）")
+    p.add_argument("--verbose", action="store_true", help="打印每一步的原始输出（排查失败原因用）")
+    p.set_defaults(func=cmd_devcheck)
+
+    p = sub.add_parser("deliver", help="交付：固定三行（文件 / 怎么跑 / 看哪里），有必改就不打印")
+    p.add_argument("file")
+    p.set_defaults(func=cmd_deliver)
+
+    p = sub.add_parser("intake", help="用户原话 → 该跑什么 / 该读什么 / 该查什么 / 别做什么")
+    p.add_argument("phrases", nargs="*", help="用户原话，整句粘进来")
+    p.add_argument("--json", action="store_true", help="机器读")
+    p.add_argument("--list", action="store_true", help="列出全部任务类型与关键词")
+    p.set_defaults(func=lambda a: __import__("intake").run(a))
 
     p = sub.add_parser("map-code", help="查地图的工坊编号（写进 .ow 用）")
     p.add_argument("name", nargs="?", default=None, help="地图名，支持部分匹配；不给则列全部")
