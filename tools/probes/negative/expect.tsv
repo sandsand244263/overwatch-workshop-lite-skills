@@ -77,3 +77,6 @@ prestart-counter.ow	一进游戏就每秒给	check_prestart_counter：持续-全
 hud-id-not-saved.ow	删除参数拿不到真实 ID	check_hud_id_not_saved：循环里先删后建但没存 上一个文本ID
 var-slot-prefix-set.ow	变量槽要写裸名	check_var_slot_bare：设置全局变量(全局.tick, 真) 实机报「之后应有一个变量」
 var-slot-prefix-index.ow	变量槽要写裸名	check_var_slot_bare：在索引处修改全局/玩家变量的槽写成带前缀
+empty-event-block.ow	事件 块是空的
+duplicate-rule-name.ow	规则名「重复的名字」重复
+undeclared-global-var.ow	没有在变量块「全局:」段声明

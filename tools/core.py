@@ -1566,8 +1566,14 @@ def check_string_interp(text, problems):
 
 
 def check_duplicate_rule_names(text, problems):
-    """同名规则会互相覆盖/难以排查。"""
+    """同名规则会互相覆盖/难以排查。
+
+    v16：这条以前定义了但没接进 lint()（77 条里只有 75 条真在跑），
+    复制整条规则 25/25 零输出。接上后按提示级报（同名不挡导入，但排查时找不到是谁）。
+    """
     seen = {}
+    # 注释行里的 规则("x") 不算：把注释行换成空行，行号不变
+    text = "\n".join("" if ln.strip().startswith("//") else ln for ln in text.split("\n"))
     for m in re.finditer(r'规则\(\s*"([^"]+)"\s*\)', text):
         name = m.group(1)
         line = text.count("\n", 0, m.start()) + 1
@@ -1701,6 +1707,15 @@ def check_duplicate_blocks(text, problems):
 # 名字表全部来自 data/ 下的导出表（tools/gen_name_tables.py 可重新生成）。
 # 表里没有 = 游戏当前版本没有这个名字；这里是唯一允许把「名字」判成 error 的地方。
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+
+# 停用（定义了但故意不接进 lint）的检查：键=函数名，值=停用理由。
+# 以前有两条检查写了却从没被 lint() 调用（check_duplicate_rule_names / check_mode_general），
+# 「77 条检查」这个说法里混着没在跑的，用户看不出来。现在由 selftest 盯住：
+# 定义 − 调用 − 本表 = 空，否则报错。
+DISABLED_CHECKS = {
+    "check_mode_general": "综合块键白名单已过期：5/9 真实语料 16 条误报（启用威能/急救包刷新时间/主动复生 都是合法键），"
+                          "要接上必须先重抓综合块键表（见 v16-re/notes）",
+}
 _CACHE = {}
 
 
@@ -2209,7 +2224,10 @@ def check_limits(path, text, problems, sigs=None, labels=None):
 
 
 # ---------------------------------------------------------------- 类型层
-MIN_ARGS = {"修改全局变量": 3, "修改玩家变量": 4, "设置全局变量": 2, "设置玩家变量": 3}
+MIN_ARGS = {"修改全局变量": 3, "修改玩家变量": 4, "设置全局变量": 2, "设置玩家变量": 3,
+            # v16 补：同族的「在索引处*」以前不在表里，少写参数不报。个数取自 data/signatures.md:78-81
+            "在索引处修改全局变量": 4, "在索引处修改玩家变量": 5,
+            "在索引处设置全局变量": 3, "在索引处设置玩家变量": 4}
 
 
 def _param_type(label):
@@ -2560,7 +2578,7 @@ def _array_vars(text):
 
 
 def check_array_append_hint(text, problems):
-    """`修改X变量(arr, 加, 值)` 里的 `加` 是对数组**求和**，不是追加（E-11，提示级）。
+    """`修改X变量(arr, 加, 值)` 里的 `加` 是对数组**求和**，不是追加（E-59，提示级）。
 
     这么写不报错，只在运行结果里算错：数组被求和成一个数，后面全歪。追加要写 `添加至数组`。
     判据卡死两头：
@@ -2584,7 +2602,7 @@ def check_array_append_hint(text, problems):
                 continue
             problems.append((text.count("\n", 0, pos) + 1, "warning",
                              "「%s」对数组 %s 用了「%s」：%s 是把数组元素求和，不是把值追加进去，"
-                             "运行结果会静默算错（E-11）；追加要写 添加至数组"
+                             "运行结果会静默算错（E-59）；追加要写 添加至数组"
                              % (el, name, op, op)))
 
 
@@ -2624,7 +2642,9 @@ def check_bare_strings(text, problems):
                 break
 
 
-VICTORY_ACTIONS = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
+# 同族的 5 个动作（data/element-kinds.tsv：宣告玩家胜利/宣告队伍胜利/宣布比赛为平局/宣告回合胜利/宣布回合为平局）。
+# v16 补后两个：写在循环里的「宣告回合胜利」和写「宣告队伍胜利」是同一类错误（每帧宣告）。
+VICTORY_ACTIONS = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局", "宣告回合胜利", "宣布回合为平局")
 
 
 _SETTING_TYPES = {"map": None}
@@ -3411,7 +3431,7 @@ def _hud_text_blank(arg):
 
 
 def check_hud_no_text_slots(text, problems):
-    """`创建HUD文本` 三个颜色参数都写 `空` → 建出来屏幕上什么都没有（E-34，提示级）。
+    """`创建HUD文本` 三个颜色参数都写 `空` → 建出来屏幕上什么都没有（E-33，提示级）。
 
     为什么要先判「文本是不是空的」：语料里三槽全空的 7 处，标题/副标题/正文都是空、空格或
     一串 \\n 占位（先建成一行、回头再填），报它就是噪声。加上这条后 9 份语料 0 命中
@@ -3440,12 +3460,12 @@ def check_hud_no_text_slots(text, problems):
             continue                      # 占位建行：正文没写东西，颜色无所谓
         ln = text.count("\n", 0, m.start()) + 1
         problems.append((ln, "warning",
-                         "创建HUD文本 的三个颜色参数都写 空：HUD 建出来屏幕上什么都没有（E-34）；"
+                         "创建HUD文本 的三个颜色参数都写 空：HUD 建出来屏幕上什么都没有（E-33）；"
                          "颜色显式写 颜色(白色) 之类"))
 
 
 def check_prestart_damage(text, problems):
-    """`持续 - 全局` 规则第一条动作就是 `伤害(...)` → 开赛前打的伤害是 0（E-16，提示级）。
+    """`持续 - 全局` 规则第一条动作就是 `伤害(...)` → 开赛前打的伤害是 0（E-27，提示级）。
 
     判定钉死「持续 - 全局」：`持续 - 每名玩家` 在角色出生时重跑，开赛前打 0 血是常见写法
     （语料 5 处），放宽就会误报；再放宽到「持续规则里有伤害且没有门」是 112 处纯噪声（S1 实测）。
@@ -3466,7 +3486,7 @@ def check_prestart_damage(text, problems):
         if re.match(r"^伤害\(", stmt):
             problems.append((ln_no, "warning",
                              "规则「%s」是 持续 - 全局，第一条动作就 伤害(...)：比赛开始前伤害无效"
-                             "（掉血 0，日志却照打，E-16）；开头加 等待直到(游戏正在进行中(), 999)" % rname))
+                             "（掉血 0，日志却照打，E-27）；开头加 等待直到(游戏正在进行中(), 999)" % rname))
 
 
 _TEAM_READ_PAT = re.compile(r"(所有玩家|栏位数量|玩家数量)\s*\(\s*(队伍[12])\s*\)")
@@ -4077,11 +4097,9 @@ def load_map_names(path):
     return names
 
 
-HUD_ACTIONS = {
-    "创建HUD文本", "创建HUD图标", "创建HUD进度条", "大字体信息", "小字体信息",
-    "创建地图文本", "创建地图图标", "创建地图进度条", "设置HUD文本", "设置HUD图标",
-    "创建效果", "播放效果", "创建光束效果", "创建图标效果", "创建进度条HUD文本",
-}
+# （v16 删掉死常量 HUD_ACTIONS：全仓 0 引用，且 7 个名字不在 element-kinds.tsv 里，
+#   留着只会误导下一个人去改它。HUD 动作的判断走 check_hud_no_text_slots 等真实检查。）
+
 
 
 def check_local_values(text, problems):
@@ -4231,7 +4249,8 @@ def check_var_refs(text, problems):
     if pi >= 0:
         seg = body[pi + 3:]
         pl = set(re.findall(r"\d+\s*:\s*(\w+)", seg))
-    if not gl and not pl:
+    if gi < 0 and pi < 0:
+        # 两段标签都没有 = 变量块本身有问题，交给 check_var_letter_index / check_misc
         return
     # 未声明变量由调用方统一报 warning（这里不再重复报 error）
     for m in re.finditer(r"(?:事件玩家|本地玩家)\.(\w+)", text):
@@ -4241,6 +4260,24 @@ def check_var_refs(text, problems):
             _add(problems, text, m.start(), "error",
                  "%s.%s 没有在变量块「玩家:」段声明（A~Z 之外的变量必须先声明）"
                  % (m.group(0).split(".")[0], m.group(1)))
+    # 全局段（v16）：以前只校验了「玩家:」段，删掉自定义全局变量的声明时零输出。
+    # 两处都要查：点号引用 全局.x，和 设置/修改全局变量(x, …) 里的裸名参数（E-59 要求裸名）。
+    seen_ref = set()
+    for m in re.finditer(r"全局\.(\w+)", text):
+        name = m.group(1)
+        if _is_default_var(name) or name in gl or name in seen_ref:
+            continue
+        seen_ref.add(name)
+        _add(problems, text, m.start(), "error",
+             "全局.%s 没有在变量块「全局:」段声明（A~Z 之外的变量必须先声明）"
+             "；也可以先给个初值再当默认变量用" % name)
+    for m in re.finditer(r"(?:设置|修改|在索引处修改)全局变量\(\s*([A-Za-z_]\w*)", text):
+        name = m.group(1)
+        if _is_default_var(name) or name in gl or name in seen_ref:
+            continue
+        seen_ref.add(name)
+        _add(problems, text, m.start(), "error",
+             "变量 %s 没有在变量块「全局:」段声明（A~Z 之外的变量必须先声明）" % name)
 
 
 def check_unassigned(text, problems):
@@ -4727,8 +4764,11 @@ def check_rule_missing_event_raw(raw, problems):
     """
     name, start, has_event, in_event = None, 0, False, False
     depth = 0
+    ev_line, ev_has_name = 0, False
     msg = ("规则「%s」没有 事件 块 —— 游戏会报「…之后的规则没有以事件结尾」；"
            "每条规则都要 事件 { 事件名; 选择器; }")
+    empty_msg = ("规则「%s」的 事件 块是空的 —— 里面至少要有一行「事件名;」"
+                 "（AI 半成品/删块最容易留下这种空事件块，游戏导入会拒）")
     for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
         s = strip_noise(line).strip()
         if re.match(r'^\s*(?:禁用\s*)?规则\("', line):
@@ -4736,6 +4776,7 @@ def check_rule_missing_event_raw(raw, problems):
                 problems.append((start, "error", msg % name))
             m = re.match(r'^\s*(?:禁用\s*)?规则\("([^"]*)"?', line)
             name, start, has_event, in_event, depth = (m.group(1) if m else "?"), i, False, False, 0
+            ev_line, ev_has_name = 0, False
             continue
         if name is None:
             continue
@@ -4743,6 +4784,7 @@ def check_rule_missing_event_raw(raw, problems):
             continue
         if not in_event and s == "事件":
             in_event, has_event = True, True
+            ev_line, ev_has_name = i, False
             continue
         if in_event:
             if s.startswith("{"):
@@ -4752,6 +4794,11 @@ def check_rule_missing_event_raw(raw, problems):
                 depth -= 1
                 if depth <= 0:
                     in_event = False
+                    if not ev_has_name:
+                        problems.append((ev_line, "error", empty_msg % name))
+                continue
+            if s:
+                ev_has_name = True
             continue
     if name is not None and not has_event:
         problems.append((start, "error",
@@ -5174,6 +5221,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
+    check_duplicate_rule_names(text, problems)
     # 数据 ID 层：名字必须还在当前版本表里
     check_hero_names(masked, problems, hero_names, all_vars)
     check_button_names(masked, problems, load_button_names())

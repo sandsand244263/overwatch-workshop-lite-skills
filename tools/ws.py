@@ -519,7 +519,49 @@ def cmd_selftest(args):
         if dup:
             print("✗ %s 重复定义（后定义的会静默生效）：%s" % (os.path.basename(f), dup))
             bad += 1
-    # 判定表 ⇄ 表驱动检查 的漂移：表说接了但没实现，或实现了但表里没写（等于静默关闭）
+    # 名单 ⇄ 元素表 的差集（v16 战役 B）：硬编码的动作/事件/模式名单要和 data/ 的表对得上，
+    # 「故意不收」的写进 tools/name-list-whitelist.tsv（带理由与依据），否则这条断言会红。
+    try:
+        sys.path.insert(0, here)
+        import name_lists as _nl
+        fails, summary = _nl.check()
+        if fails:
+            for f in fails[:6]:
+                print("✗ " + f)
+            if len(fails) > 6:
+                print("✗ …还有 %d 条（跑 python tools/name_lists.py 看全部）" % (len(fails) - 6))
+            bad += 1
+        else:
+            print("· " + summary + "，通过")
+    except Exception as e:
+        print("✗ 名单差集断言自身出错：%s" % e)
+        bad += 1
+    # 检查名单 ⇄ lint() 的漂移：定义了却没接进 lint，等于「77 条检查」里混着死代码。
+    # v16 实测：check_duplicate_rule_names / check_mode_general 两条从来没跑过。
+    try:
+        import re as _re
+        src = open(os.path.join(here, "core.py"), encoding="utf-8").read()
+        defs = set(_re.findall(r"^def (check_\w+)\(", src, _re.M))
+        i = src.index("\ndef lint(")
+        j = src.index("\ndef ", i + 10)
+        calls = set(_re.findall(r"\b(check_\w+)\(", src[i:j]))
+        disabled = dict(getattr(core, "DISABLED_CHECKS", {}))
+        ghost_disabled = set(disabled) - defs
+        forgotten = defs - calls - set(disabled)
+        if ghost_disabled:
+            print("✗ 停用表里写了不存在的检查：%s" % ", ".join(sorted(ghost_disabled)))
+            bad += 1
+        if forgotten:
+            print("✗ 定义了但没接进 lint()、也没登记停用（等于从没跑过）：%s"
+                  % ", ".join(sorted(forgotten)))
+            bad += 1
+        if not forgotten and not ghost_disabled:
+            print("· 检查名单：定义 %d 条 = 接入 %d + 停用 %d，无遗漏"
+                  % (len(defs), len(calls), len(disabled)))
+    except Exception as e:
+        print("✗ 检查名单断言自身出错：%s" % e)
+        bad += 1
+    # 判定表 ⇄ 表驱动检查 的漂移：表说了接了但没实现，或实现了但表里没写（等于静默关闭）
     # 「检查」列的开关写法是 `反例:<检查名>.ow`（文件名＝开关，见 core.enabled_rule_checks）
     try:
         import rules as _rules

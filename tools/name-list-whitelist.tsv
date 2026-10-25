@@ -1,0 +1,13 @@
+check	name	reason	evidence
+check_game_end_actions	宣告回合胜利	回合级动作的模式适用范围未验证，先不收（宁漏不误）	待实机：死斗里写「宣告回合胜利」看是否结算
+check_game_end_actions	宣布回合为平局	同上：回合级动作，与「宣布比赛为平局」适用范围可能不同	待实机：死斗里写「宣布回合为平局」
+check_lobby_ffa_slots	突击模式	自由混战栏位规则未验证；该检查按「认不出就不判」设计	待实机：突击模式 + 自由混战人数上限 1
+check_lobby_ffa_slots	训练靶场	同上：练习场是否适用「团队模式必须 0」未知	待实机
+check_lobby_ffa_slots	角斗领域 训练靶场	同上（.ow 里写作 角斗领域（训练靶场））	待实机
+*	CONTROL	控制关键字（While/If/For/End…），不是动作名；表里同名 4 条是动作，语义不同	core.py CONTROL 常量
+*	VERIFIED_NO_SLOTS	实测验证过「只能写 全部禁用」的位置，故意只收验过的	插件修复清单 + 用户实测
+*	VARIADIC	类型名子集（字符串/数组/自定义字符串），用于类型判断不是完整族	data/element-kinds.tsv kind=值
+*	GLOBAL_LOCAL_ACTIONS	只收实机验过会失效的 3 个动身体动作，其余未验证	E-50 五
+*	PLAYER_WORDS	玩家/字面量词（主机玩家/事件玩家/假…），不是元素名	随语料增补的词表
+*	check_game_end_actions.bad	自由混战下无效的子集（3 个），比宣告族窄是有意的	check_game_end_actions docstring
+*	check_dropdown_values#10	下拉取值 真/假/空，是值不是元素名	data/param-options.tsv
