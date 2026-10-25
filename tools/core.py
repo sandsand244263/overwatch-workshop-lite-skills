@@ -2459,6 +2459,94 @@ def check_var_slot_bare(text, problems):
                              % (name, bare, slot, bare)))
 
 
+# 变量修改类动作的「操作」槽位置：`修改全局变量` 的操作是第 2 个参数，其余往后退。
+# 2026-10-25 按 data/signatures.md 实测：`在索引处设置全局变量(_:变量, 索引, _)` **没有操作槽**，
+# 带操作槽的是 `在索引处修改` 那一族（语料 43 处全在 修改 上，设置 0 处）——照「设置」写会假 0 命中。
+VAR_MODIFY_OPS = (
+    ("修改全局变量", 0, 1, "global"),
+    ("修改玩家变量", 1, 2, "player"),
+    ("在索引处修改全局变量", 0, 2, "global"),
+    ("在索引处修改玩家变量", 1, 3, "player"),
+)
+
+ARRAY_APPEND_OPS = ("加", "减去")
+
+# 玩家作用域的引用写法：事件块里的选择器（攻击方/被攻击方是事件玩家的别名）也算。
+# 真实语料里就有 `攻击方.PlayerKillCount[0]` 这种下标证据（猪猪钩钩乐·原版）。
+_PLAYER_REF = r"(?:事件玩家|本地玩家|攻击方|被攻击方|所有玩家\([^)]*\))"
+
+
+def _var_slot_name(slot):
+    """变量槽 → 裸名；带 `全局.` / `事件玩家.` 前缀的也认（前缀本身由 check_var_slot_bare 报）。"""
+    s = (slot or "").strip()
+    s = re.sub(r"^(?:全局|事件玩家|本地玩家)\s*[.。]\s*", "", s)
+    return s if re.match(r"^[A-Za-z_]\w*$", s) else ""
+
+
+def _array_vars(text):
+    """文件里出现过「数组写法」的变量 → {(作用域, 变量名)}。
+
+    作用域必须带：九个真实模式里全局段和玩家段存在同名声明的（找蛋躲猫猫 96 个），
+    只按名字建集合会把全局的同名变量当成玩家那个。
+    证据（任一出现即判数组）：
+    - 构造：`设置X变量(v, 数组(...))` / 直接赋值 `X.v = 数组(...)` / `X.v = 空数组`
+      （九个真实语料里 `设置全局变量` 0 处，实际构造全走直接赋值——只认设置会漏 34 个确定数组变量）
+    - 下标：`全局.v[` / `事件玩家.v[`
+    - 追加：`修改X变量(v, 添加至数组, …)`、`在索引处修改X变量(v, i, 添加至数组, …)`
+    - 索引写：`在索引处设置X变量(v, …)`
+    `数量(v)` / `数组中的值(v, …)` 只说明 v 是个集合，不算证据（2026-10-25 S1 结论）。
+    """
+    out = set()
+    g = r"\s*\(\s*"
+    sep = r"\s*,\s*"
+    # 构造：动作写法 + 直接赋值写法
+    out |= {("global", n) for n in re.findall(r"设置全局变量" + g + r"(\w+)" + sep + r"数组\s*\(", text)}
+    out |= {("player", n) for n in re.findall(r"设置玩家变量" + g + r"[^,]+" + sep + r"(\w+)" + sep + r"数组\s*\(", text)}
+    out |= {("global", n) for n in re.findall(r"全局\s*[.。]\s*(\w+)\s*=\s*(?:空数组|数组\s*\()", text)}
+    out |= {("player", n) for n in re.findall(_PLAYER_REF + r"\s*[.。]\s*(\w+)\s*=\s*(?:空数组|数组\s*\()", text)}
+    # 追加
+    out |= {("global", n) for n in re.findall(r"修改全局变量" + g + r"(\w+)" + sep + r"添加至数组", text)}
+    out |= {("player", n) for n in re.findall(r"修改玩家变量" + g + r"[^,]+" + sep + r"(\w+)" + sep + r"添加至数组", text)}
+    out |= {("global", n) for n in re.findall(r"在索引处修改全局变量" + g + r"(\w+)" + sep + r"[^,]+" + sep + r"添加至数组", text)}
+    out |= {("player", n) for n in re.findall(r"在索引处修改玩家变量" + g + r"[^,]+" + sep + r"(\w+)" + sep + r"[^,]+" + sep + r"添加至数组", text)}
+    # 索引写
+    out |= {("global", n) for n in re.findall(r"在索引处设置全局变量" + g + r"(\w+)" + sep, text)}
+    out |= {("player", n) for n in re.findall(r"在索引处设置玩家变量" + g + r"[^,]+" + sep + r"(\w+)" + sep, text)}
+    # 下标（只认紧跟在变量名后的 `[`，结构字段链 全局.gA1.pSetCount[…] 不算）
+    out |= {("global", n) for n in re.findall(r"全局\s*[.。]\s*(\w+)\s*\[", text)}
+    out |= {("player", n) for n in re.findall(_PLAYER_REF + r"\s*[.。]\s*(\w+)\s*\[", text)}
+    return out
+
+
+def check_array_append_hint(text, problems):
+    """`修改X变量(arr, 加, 值)` 里的 `加` 是对数组**求和**，不是追加（E-11，提示级）。
+
+    这么写不报错，只在运行结果里算错：数组被求和成一个数，后面全歪。追加要写 `添加至数组`。
+    判据卡死两头：
+    - 该响：变量在文件里出现过数组写法，又写 `加` / `减去` → 一条提示。
+    - **绝不响**：数值变量写 `修改全局变量(score, 加, 1)` 是正常累加（真实语料里算术全走 `+=`）。
+      反例②判据：把数值变量的 `加` 也报出来 → 立刻修。拿不准就不报（宁可漏，不可吵）。
+    2026-10-25 在 9 份真实语料上量过：解析到 396 处变量修改调用，操作槽里 `加`/`减去` 0 处 → 0 命中。
+    """
+    arrays = _array_vars(text)
+    if not arrays:
+        return
+    for el, vi, oi, scope in VAR_MODIFY_OPS:
+        for pos, n, args in _iter_calls(text, el):
+            if n <= max(vi, oi):
+                continue
+            op = args[oi].strip()
+            if op not in ARRAY_APPEND_OPS:
+                continue
+            name = _var_slot_name(args[vi])
+            if not name or (scope, name) not in arrays:
+                continue
+            problems.append((text.count("\n", 0, pos) + 1, "warning",
+                             "「%s」对数组 %s 用了「%s」：%s 是把数组元素求和，不是把值追加进去，"
+                             "运行结果会静默算错（E-11）；追加要写 添加至数组"
+                             % (el, name, op, op)))
+
+
 def check_bare_strings(text, problems):
     """字符串作参数时必须包在 自定义字符串(...) 里；裸写 "文本" 游戏不认。
 
@@ -4855,6 +4943,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_hero_slots(text, problems)
     check_bare_var_assign(text, problems)
     check_var_slot_bare(text, problems)
+    check_array_append_hint(masked, problems)
     check_bare_strings(text, problems)
     check_map_codes(text, problems, strict=strict)
     check_map_mode(text, problems, strict=strict)
