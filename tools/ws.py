@@ -519,24 +519,28 @@ def cmd_selftest(args):
         if dup:
             print("✗ %s 重复定义（后定义的会静默生效）：%s" % (os.path.basename(f), dup))
             bad += 1
-    # 判定表 ⇄ 表驱动检查 的漂移：表说已接但没实现，或实现了但表里没写（等于静默关闭）
+    # 判定表 ⇄ 表驱动检查 的漂移：表说接了但没实现，或实现了但表里没写（等于静默关闭）
+    # 「检查」列的开关写法是 `反例:<检查名>.ow`（文件名＝开关，见 core.enabled_rule_checks）
     try:
         import rules as _rules
         names = set()
         for r in _rules.load():
-            for tok in (r.get("检查", "") or "").split(","):
+            for tok in (r.get("检查", "") or "").replace("，", ",").split(","):
                 tok = tok.strip()
-                if tok in ("", "不接", "已接(内建)"):
+                if tok.startswith("停用:") or not tok.startswith("反例:"):
                     continue
-                names.add(tok[3:] if tok.startswith("停用:") else tok)
+                name = tok[3:].strip()
+                if name.endswith(".ow"):
+                    name = name[:-3]
+                names.add(name)
         reg = set(core.RULE_CHECKS)
         ghost = names - reg
         silent = reg - names
         if ghost:
-            print("✗ 判定表写了检查名但代码里没有：%s" % ", ".join(sorted(ghost)))
+            print("✗ 判定表写了 反例:<名> 但代码里没有这条表驱动提示：%s" % ", ".join(sorted(ghost)))
             bad += 1
         if silent:
-            print("✗ 代码里有检查但判定表没写（等于静默关闭）：%s" % ", ".join(sorted(silent)))
+            print("✗ 表驱动提示在判定表里没有 反例: 行（等于静默关闭）：%s" % ", ".join(sorted(silent)))
             bad += 1
     except Exception as e:
         print("✗ 判定表读不到，表驱动检查的开关无法核对：%s" % e)
@@ -984,7 +988,7 @@ def cmd_devcheck(a):
     fails = []
     t0 = time.time()
 
-    # 1) 生成器：表与种子不一致会静默用旧数据，必须先绿
+    # 1) 生成器 + 事实表对账：生成器漂移会静默用旧数据，表与代码漂移会静默失守
     bad_gen, gen_info = [], []
     for name, script in (("setting-values", "gen_setting_values.py"),
                          ("errors", "gen_errors.py"),
@@ -997,11 +1001,24 @@ def cmd_devcheck(a):
             gen_info.append(m.group(1))
         if rc != 0:
             bad_gen.append("%s → python tools/%s" % (name, script))
+    # 事实表 ⇄ 校验器：写法、悬空函数名、反例文件、"表说不接但代码在管"（PLAN v11 战役 A）
+    rc_a, out_a, _ = _devcheck_run([py, os.path.join(tools, "audit_rules.py")], 300)
+    if verbose:
+        print("── audit_rules ──\n%s" % out_a)
+    m_a = re.search(r"对账 (\d+) 行.*?错误 (\d+)、疑似 (\d+)、未定 (\d+)、已复核 (\d+)、未点名函数 (\d+)", out_a)
+    seg1 = []
+    if gen_info:
+        seg1.append("生成器 %s 行无漂移" % "/".join(gen_info))
+    if m_a:
+        seg1.append("事实表 %s 行 错 %s / 疑似 %s / 未定 %s / 已复核 %s（未点名函数 %s）"
+                    % (m_a.group(1), m_a.group(2), m_a.group(3), m_a.group(4), m_a.group(5), m_a.group(6)))
     if bad_gen:
         fails.append("生成器")
-        print("[1/5] 生成器 --check     ✗ 有漂移：%s" % "；".join(bad_gen))
-    else:
-        print("[1/5] 生成器 --check     通过（%s 行，无漂移）" % " / ".join(gen_info or ["?"]))
+        seg1.insert(0, "生成器 ✗ 有漂移：%s" % "；".join(bad_gen))
+    if rc_a != 0 or not m_a:
+        fails.append("事实表")
+        seg1.append("事实表对账 ✗ → python tools/audit_rules.py -v")
+    print("[1/5] 数据与事实         %s" % "｜".join(seg1))
 
     # 2) 工具自身（重复定义、三处版本号一致）
     rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "selftest"], 300)

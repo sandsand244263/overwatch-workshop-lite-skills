@@ -3197,7 +3197,7 @@ def check_rule_hints(text, problems):
     """判定表里能给静态提示的三条（E-50 / E-32 / E-49）。
 
     只报 warning（提示级），不判错。
-    **开关在 docs/rules.tsv 的「检查」列**：写检查名就启用，写「不接」就不跑。
+    **开关在 docs/rules.tsv 的「检查」列**：写 `反例:<检查名>.ow` 就启用，写「不接」就不跑。
     表是开关、这里只有内容——所以改表不用改代码，反过来 selftest 会查漂移。
     误报门槛 D-006：8 份真实语料合计 ≤3 条。
     """
@@ -3238,15 +3238,101 @@ def check_rule_hints(text, problems):
                 fr[1].append(s)
 
 
+def _first_action_stmt(body):
+    """规则块里「动作」块的第一条语句 -> (行号, 文本)；没有就 None。"""
+    inside = False
+    for ln_no, ln in body:
+        s = ln.strip()
+        if not inside:
+            if s == "动作":
+                inside = True
+            continue
+        if not s or s.startswith("{") or s.startswith("//"):
+            continue
+        if s.startswith("}"):
+            return None
+        return (ln_no, s)
+    return None
+
+
+def _hud_text_blank(arg):
+    """HUD 文本参数是不是「没写东西」：空 / 空 字面量 / 纯空白字符串（含 \\n 占位）。"""
+    s = arg.strip()
+    if s in ("", "空"):
+        return True
+    if s.startswith("自定义字符串(") and s.endswith(")"):
+        inner = s[len("自定义字符串("):-1]
+        for esc in ("\\n", "\\t", "\\r"):
+            inner = inner.replace(esc, "")
+        return inner.replace('"', "").strip() == ""
+    return False
+
+
+def check_hud_no_text_slots(text, problems):
+    """`创建HUD文本` 三个颜色参数都写 `空` → 建出来屏幕上什么都没有（E-34，提示级）。
+
+    为什么要先判「文本是不是空的」：语料里三槽全空的 7 处，标题/副标题/正文都是空、空格或
+    一串 \\n 占位（先建成一行、回头再填），报它就是噪声。加上这条后 9 份语料 0 命中
+    （S1 打分 + 2026-10-25 本机 corpus 实跑：修前 3 处误报，修后 0）。
+    判据只碰结构，不猜类型：第 7/8/9 个参数（标题色/副标题色/文本色）是否都是 `空`。
+    """
+    for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])创建HUD文本\(", text):
+        depth, j = 0, m.end() - 1
+        while j < len(text):
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        args = _top_level_args(text[m.end():j])
+        if len(args) < 9:
+            continue
+        if [a.strip() for a in args[6:9]] != ["空", "空", "空"]:
+            continue
+        if _hud_text_blank(args[3]):
+            continue                      # 占位建行：正文没写东西，颜色无所谓
+        ln = text.count("\n", 0, m.start()) + 1
+        problems.append((ln, "warning",
+                         "创建HUD文本 的三个颜色参数都写 空：HUD 建出来屏幕上什么都没有（E-34）；"
+                         "颜色显式写 颜色(白色) 之类"))
+
+
+def check_prestart_damage(text, problems):
+    """`持续 - 全局` 规则第一条动作就是 `伤害(...)` → 开赛前打的伤害是 0（E-16，提示级）。
+
+    判定钉死「持续 - 全局」：`持续 - 每名玩家` 在角色出生时重跑，开赛前打 0 血是常见写法
+    （语料 5 处），放宽就会误报；再放宽到「持续规则里有伤害且没有门」是 112 处纯噪声（S1 实测）。
+    规则里已有 `等待直到(游戏正在进行中` 就算加了门，不报。
+    """
+    for rname, body in _iter_rule_blocks(text):
+        ev = _rule_event_lines(body)
+        if not any(e.startswith("持续") and "全局" in e for e in ev):
+            continue
+        if "等待直到(游戏正在进行中" in "\n".join(ln for _n, ln in body):
+            continue
+        first = _first_action_stmt(body)
+        if first is None:
+            continue
+        ln_no, stmt = first
+        if re.match(r"^伤害\(", stmt):
+            problems.append((ln_no, "warning",
+                             "规则「%s」是 持续 - 全局，第一条动作就 伤害(...)：比赛开始前伤害无效"
+                             "（掉血 0，日志却照打，E-16）；开头加 等待直到(游戏正在进行中(), 999)" % rname))
+
+
 RULE_CHECKS = {"event-long-loop", "hud-rebuild", "ffa-bot-team"}
 
 
 def enabled_rule_checks(path=None):
     """从 docs/rules.tsv 的「检查」列读出要跑哪几条表驱动提示。
 
-    - 写检查名（`hud-rebuild`）→ 启用
-    - 写 `停用:hud-rebuild` → 已声明但故意关掉（selftest 不会当成漂移）
-    - 写 `不接` / `已接(内建)` → 跟这几条无关
+    - 写 `反例:<检查名>.ow` → 启用那条提示（**文件名就是开关**，反例文件也叫这个名字，
+      这样「表说接了」和「反例真的在跑」是同一件事）
+    - 写 `停用:反例:<…>` → 已声明但故意关掉（selftest 不会当成漂移）
+    - 写 `不接` / `已接:check_xxx` → 跟表驱动提示无关
+    `已接(内建)` / 裸检查名是旧写法，`audit_rules.py` 会报错，这里认不出就是关着。
     读不到表时按全开处理（宁可多提示，也不静默失守）。
     """
     try:
@@ -3258,10 +3344,15 @@ def enabled_rule_checks(path=None):
         return set(RULE_CHECKS)
     on = set()
     for r in rows:
-        for tok in (r.get("检查", "") or "").split(","):
+        for tok in (r.get("检查", "") or "").replace("，", ",").split(","):
             tok = tok.strip()
-            if tok and not tok.startswith("停用:") and tok in RULE_CHECKS:
-                on.add(tok)
+            if not tok.startswith("反例:"):
+                continue
+            name = tok[3:].strip()
+            if name.endswith(".ow"):
+                name = name[:-3]
+            if name in RULE_CHECKS:
+                on.add(name)
     return on
 
 
@@ -4735,6 +4826,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_lobby_team_sum(text, problems)
     check_lobby_ffa_slots(text, problems)
     check_reassign_create(text, problems)
+    check_hud_no_text_slots(text, problems)
     check_health_percent_param(text, problems)
     check_speed_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
@@ -4772,6 +4864,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_empty_setting_values(text, problems)
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
+    check_prestart_damage(text, problems)
     check_loop_missing_end(text, problems)
     check_rule_hints(text, problems)
     check_arg_counts(text, problems)
