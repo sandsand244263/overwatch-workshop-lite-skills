@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.22.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.23.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -190,7 +190,7 @@ workshop-lite/
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   ├── selfcheck_modes.py         55 个模式全生成一遍自查（生成器与校验器不许打架）
-│   └── probes/                    84 正样本 + 73 反向用例（含 4 个可运行样例）
+│   └── probes/                    84 正样本 + 78 反向用例（含 4 个可运行样例）
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -209,7 +209,7 @@ python tools/ws.py deliver 模式.ow                # 交付：固定三行（�
 python tools/ws.py devcheck                       # 一条命令跑完全部回归（发版前必跑）
 python tools/ws.py fix 导出的.txt                  # 修成可导入版本，并复校
 python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现
-python tools/ws.py check-all                      # 回归全部样本（84 正 + 73 反例）
+python tools/ws.py check-all                      # 回归全部样本（84 正 + 78 反例）
 python tools/ws.py count 模式.ow                  # 元素数估算
 python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）
 python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架
@@ -265,7 +265,7 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-84 正样本 + 73 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
+84 正样本 + 78 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
 
 ```bash
 python tools/ws.py calib            # 43 个元素标定样本，偏差必须为 0

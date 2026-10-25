@@ -72,3 +72,8 @@ duplicate-block.ow	块出现了 2 次	check_duplicate_blocks：两个顶层变�
 undeclared-for-var.ow	没有在变量块里声明	check_types：For 的控制变量没声明
 undeclared-player-var.ow	没有在变量块「玩家:」段声明	check_var_refs：事件玩家.hp 未声明
 var-case-collision.ow	变量名只差大小写	check_misc 子规则：hp / HP
+ffa-team-filter.ow	取到的是空数组	check_ffa_team_filter：死斗里 所有玩家(队伍1)
+prestart-counter.ow	一进游戏就每秒给	check_prestart_counter：持续-全局 自增无开赛守卫
+hud-id-not-saved.ow	删除参数拿不到真实 ID	check_hud_id_not_saved：循环里先删后建但没存 上一个文本ID
+var-slot-prefix-set.ow	变量槽要写裸名	check_var_slot_bare：设置全局变量(全局.tick, 真) 实机报「之后应有一个变量」
+var-slot-prefix-index.ow	变量槽要写裸名	check_var_slot_bare：在索引处修改全局/玩家变量的槽写成带前缀

@@ -2471,9 +2471,16 @@ def check_var_slot_bare(text, problems):
     实测（E-59，2026-10-24 用户实机）：`修改全局变量(全局.A, 添加至数组, 3)` → 导入报错；
     改成 `修改全局变量(A, 添加至数组, 3)` → 正常。九份真实语料里全部是裸名写法。
     注意跟赋值相反：`全局.A = 3` 才带前缀。
+
+    v15 补（2026-10-25 实机）：`设置全局变量(全局.flagA, 真)` 同样被拒，报
+    「第75行的"设置全局变量("之后应有一个变量」——原来 specs 漏了 `设置` 这一族，等于这份会被游戏拒的文件校验器放过了。
+    现在这一族 8 个动作名全进 specs；其中 `在索引处修改全局变量` / `在索引处修改玩家变量`
+    是按**同槽类型**推断的（语料 0 处带前缀写法），**未单独实机验**。
     """
-    specs = (("修改全局变量", 0), ("在索引处设置全局变量", 0),
-             ("修改玩家变量", 1), ("在索引处设置玩家变量", 1))
+    specs = (("修改全局变量", 0), ("设置全局变量", 0), ("在索引处设置全局变量", 0),
+             ("在索引处修改全局变量", 0),
+             ("修改玩家变量", 1), ("设置玩家变量", 1), ("在索引处设置玩家变量", 1),
+             ("在索引处修改玩家变量", 1))
     masked = _mask(text)
     for name, idx in specs:
         for pos, n, args in _iter_calls(text, name):
@@ -3291,14 +3298,19 @@ def _rule_event_lines(body):
     return ev
 
 
-def _is_ffa_mode(text):
-    """模式块里是否是自由混战（死斗）；团队死斗不算。"""
-    lines = [(i, ln) for i, ln in enumerate(text.split("\n"))
+def _ffa_enabled_modes(text):
+    """「模式」块里**启用**的模式名列表。
+
+    `禁用 死斗 { … }` 这种被禁用的块不算启用——v15 S2 实测：`符文乱斗.ow` 启用了 6 个模式、
+    同时又留着一个 `禁用 死斗` 块，旧写法只看「块名里有死斗」，把它当成了死斗模式。
+    匹配跑在 `mask_text` 上：块注释里写一句 `死斗` 不会改变判定。
+    """
+    lines = [(i, ln) for i, ln in enumerate(mask_text(text).split("\n"))
              if not ln.strip().startswith("//")]
     try:
         k = next(i for i, ln in lines if ln.strip() == "模式")
     except StopIteration:
-        return False
+        return []
     depth, modes = 0, []
     for i, ln in lines:
         if i <= k:
@@ -3314,7 +3326,13 @@ def _is_ffa_mode(text):
             continue
         if depth == 1 and t and ":" not in t and "：" not in t:
             modes.append(t)
-    return any(("死斗" in m) and ("团队" not in m) for m in modes)
+    return modes
+
+
+def _is_ffa_mode(text):
+    """模式块里是否是自由混战（死斗）；团队死斗不算，`禁用 死斗` 也不算。"""
+    return any(("死斗" in m) and ("团队" not in m) and (not m.startswith("禁用"))
+               for m in _ffa_enabled_modes(text))
 
 
 def check_rule_hints(text, problems):
@@ -3449,6 +3467,124 @@ def check_prestart_damage(text, problems):
             problems.append((ln_no, "warning",
                              "规则「%s」是 持续 - 全局，第一条动作就 伤害(...)：比赛开始前伤害无效"
                              "（掉血 0，日志却照打，E-16）；开头加 等待直到(游戏正在进行中(), 999)" % rname))
+
+
+_TEAM_READ_PAT = re.compile(r"(所有玩家|栏位数量|玩家数量)\s*\(\s*(队伍[12])\s*\)")
+
+
+def check_ffa_team_filter(text, problems):
+    """死斗里按 `队伍1` / `队伍2` 取人 → 取到空数组（提示级，E-49）。
+
+    三条同时成立才报：
+      1) **启用**模式里有「死斗」（`禁用 死斗` 块不算，见 `_ffa_enabled_modes`）；
+      2) 调用是**取人**函数：`所有玩家(队伍1)` / `栏位数量(队伍2)` / `玩家数量(队伍1)`；
+      3) 匹配跑在 `_mask` 上 —— `描述:` 文案、注释、字符串里写一句 `所有玩家(队伍1)` 不算。
+    `生成机器人(…, 队伍1, …)` 不在这里报（那条是 `ffa-bot-team`，别重复提示）。
+    死斗里队伍栏位是 0，取到的是空数组：生成敌人、按队伍计分都会静默拿到空集合。
+    9 份真实语料 0 条命中。
+    """
+    if not _is_ffa_mode(text):
+        return
+    seen = set()
+    for ln_no, ln in enumerate(_mask(text).split("\n"), 1):
+        for m in _TEAM_READ_PAT.finditer(ln):
+            key = (ln_no, m.group(1))
+            if key in seen:
+                continue
+            seen.add(key)
+            problems.append((ln_no, "warning",
+                             "死斗里 `%s(%s)` 取到的是空数组（自由混战没有队伍栏位，E-49）；"
+                             "取人写 `所有玩家(所有队伍)`，数栏位写 `栏位数量(所有队伍)`"
+                             % (m.group(1), m.group(2))))
+
+
+def check_prestart_counter(text, problems):
+    """`持续 - 全局` 里每秒自增计时，却没等开赛 → 加载 + 倒计时白跑十几秒（提示级）。
+
+    实测：一个「每秒 +1 分、30 分获胜」的模式，开局刚打就赢了，因为开赛前已经攒了约 19 分
+    （`docs/pitfalls-runtime.md` §开局倒计时）。
+
+    四条同时成立才报：
+      1) 事件块是 `持续 - 全局`（`持续 - 每名玩家` 不管：它在角色出生时才开始，不是加载期）；
+      2) 动作里有 `等待(x, …)` 且 x ≥ 1（真计时；每帧空转不算计时）；
+      3) 有自增形状 `全局.X = 全局.X + 1;` 或 `修改全局变量(X, 加, 1)`；
+      4) 整条规则里既没有 `游戏正在进行中` 也没有 `正在设置`（有一句就算加过门）。
+    只放宽到「持续规则里有自增」会是纯噪声（`check_prestart_damage` 记过同类放宽 112 处）。
+    9 份真实语料 0 条命中。
+    """
+    for rname, body in _iter_rule_blocks(text):
+        ev = _rule_event_lines(body)
+        if not any(e.startswith("持续") and "全局" in e for e in ev):
+            continue
+        code = [(n, strip_noise(ln).strip()) for n, ln in body]
+        joined = "\n".join(s for _n, s in code)
+        if "游戏正在进行中" in joined or "正在设置" in joined:
+            continue
+        has_timed_wait = False
+        for _n, s in code:
+            m = re.search(r"等待\s*\(\s*(\d+(?:\.\d+)?)\s*,", s)
+            if m and float(m.group(1)) >= 1:
+                has_timed_wait = True
+                break
+        if not has_timed_wait:
+            continue
+        inc = None
+        for n, s in code:
+            m = re.match(r"^全局\.(\w+)\s*=\s*全局\.\1\s*\+\s*1\s*;", s) \
+                or re.match(r"^修改全局变量\(\s*(\w+)\s*,\s*加\s*,\s*1\s*\)", s)
+            if m:
+                inc = (n, m.group(1))
+                break
+        if inc is None:
+            continue
+        problems.append((inc[0], "warning",
+                         "规则「%s」是 持续 - 全局，一进游戏就每秒给 `%s` 累加：加载和开场倒计时"
+                         "期间规则已经在跑（实测能白跑 10 秒以上，30 分模式开局就攒了 19 分）；"
+                         "开头加 等待直到(正在设置 == 假, 60) 再 等待(6, 无视条件)" % (rname, inc[1])))
+
+
+def check_hud_id_not_saved(text, problems):
+    """循环里先删后建 HUD，却没把 `上一个文本ID` 存下来 → 删的是空 ID，文本越积越多（提示级）。
+
+    `创建HUD文本` 同时存在的上限是 128 条（`docs/pitfalls-runtime.md` §创建HUD文本，E-32）：
+    只建不删会涨到 128 后停更，所以正规写法是「先 消除HUD文本 再建，并把 上一个文本ID 存进变量」。
+    只照抄了「先删后建」、漏掉存 ID 那一句时，删除参数永远是 0，等于没删——不报错、HUD 悄悄停更。
+
+    两条同时成立才报：
+      1) 全文件没有 `= 上一个文本ID`（有就不报）；
+      2) 某个 `While` / `For` 循环体内同时出现 `创建HUD文本` 与 `消除HUD文本`。
+    循环体没写 `End;` 的（合法写法，见 §动作块末尾）宁可漏报。
+    9 份真实语料 0 条命中。
+    """
+    masked = _mask(text)
+    if re.search(r"=\s*上一个文本ID", masked):
+        return
+    stack = []      # [[kind, 起始行, 有创建, 有删除]]
+    for i, raw in enumerate(masked.split("\n"), 1):
+        s = raw.strip()
+        if not s or s.startswith("//"):
+            continue
+        if s.startswith("While(") or s.startswith("For("):
+            stack.append(["loop", i, False, False])
+            continue
+        if s.startswith("If("):
+            stack.append(["block", i, False, False])
+            continue
+        if s.startswith("End;"):
+            if stack:
+                kind, start, has_create, has_delete = stack.pop()
+                if kind == "loop" and has_create and has_delete:
+                    problems.append((start, "warning",
+                                     "这个循环里先 消除HUD文本 再 创建HUD文本，但整个文件没有把"
+                                     " `上一个文本ID` 存进变量：删除参数拿不到真实 ID，等于没删，"
+                                     "同时存活的 HUD 文本会一路涨到 128 条上限后停更（E-32）；"
+                                     "建完立刻写 `事件玩家.hudId = 上一个文本ID;`"))
+            continue
+        for item in stack:
+            if "创建HUD文本(" in s:
+                item[2] = True
+            if "消除HUD文本(" in s:
+                item[3] = True
 
 
 RULE_CHECKS = {"event-long-loop", "hud-rebuild", "ffa-bot-team"}
@@ -3698,27 +3834,10 @@ def check_game_end_actions(text, problems):
     names = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
     if not any(n in ln for _i, ln in code_lines for n in names):
         return
-    modes = []
-    try:
-        k = next(i for i, ln in code_lines if ln.strip() == "模式")
-    except StopIteration:
+    modes = _ffa_enabled_modes(text)
+    if not modes:
         return
-    depth = 0
-    for i, ln in code_lines:
-        if i <= k:
-            continue
-        t = ln.strip()
-        if t == "{":
-            depth += 1
-            continue
-        if t == "}":
-            depth -= 1
-            if depth <= 0:
-                break
-            continue
-        if depth == 1 and t and ":" not in t and "：" not in t:
-            modes.append(t)
-    ffa = any(("死斗" in m) and ("团队" not in m) for m in modes)
+    ffa = any(("死斗" in m) and ("团队" not in m) and (not m.startswith("禁用")) for m in modes)
     mode_txt = "、".join(modes) or "该模式"
     bad = ("宣布比赛为平局", "宣告队伍胜利") if ffa else ("宣告玩家胜利",)
     for i, ln in code_lines:
@@ -5037,6 +5156,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_balance(text, problems, strict=strict, raw_masked=mask_text(raw.replace("\\r\\n", "\\n")))
     check_victory_in_loop(text, problems)
     check_prestart_damage(text, problems)
+    check_prestart_counter(text, problems)
+    check_ffa_team_filter(text, problems)
+    check_hud_id_not_saved(text, problems)
     check_loop_missing_end(text, problems)
     check_rule_hints(text, problems)
     check_arg_counts(text, problems)
