@@ -3185,9 +3185,10 @@ def check_victory_in_loop(text, problems):
     「在循环里」这个标记提前弹掉，后面的宣告就漏了。
     """
     stack = []          # [("loop", 循环条件原文) | ("block", None)]
-    lines = text.split("\n")
+    # 遮掉字符串与注释再判：窗口里若有一句文案写着「中断」/「等待直到」，原来会把真问题压掉（漏报）。
+    lines = mask_text(text).split("\n")
     for i, raw in enumerate(lines):
-        s = strip_noise(raw).strip()
+        s = raw.strip()                       # mask_text 已遮过字符串/注释，长度不变、行号不变
         if not s or s.startswith("//"):
             continue
         if s.startswith("While(") or s.startswith("For(") or re.match(r"^For\s", s):
@@ -3296,7 +3297,7 @@ def check_rule_hints(text, problems):
         is_event_rule = bool(ev) and not any(e.startswith("持续") for e in ev) \
             and not any(e.startswith("子程序") for e in ev)
         for ln_no, ln in body:
-            s = ln.strip()
+            s = strip_noise(ln).strip()      # 文案/注释里提一句动作名不算调用，反过来也别让它压掉
             if "event-long-loop" in on and is_event_rule and s.startswith("While(真)"):
                 problems.append((ln_no, "warning",
                                  "事件规则「%s」里写了 While(真)：事件规则同一时刻只有一份执行，"
@@ -3309,7 +3310,7 @@ def check_rule_hints(text, problems):
         # 循环里只建 HUD 不删：会撞 128 条并存上限
         stack = []
         for ln_no, ln in body:
-            s = ln.strip()
+            s = strip_noise(ln).strip()
             if s.startswith("While(") or s.startswith("For "):
                 stack.append([ln_no, []])
                 continue
@@ -3330,7 +3331,7 @@ def _first_action_stmt(body):
     """规则块里「动作」块的第一条语句 -> (行号, 文本)；没有就 None。"""
     inside = False
     for ln_no, ln in body:
-        s = ln.strip()
+        s = strip_noise(ln).strip()           # /* */ 块注释整行遮成空，不再被当成第一条动作
         if not inside:
             if s == "动作":
                 inside = True
@@ -3398,7 +3399,9 @@ def check_prestart_damage(text, problems):
         ev = _rule_event_lines(body)
         if not any(e.startswith("持续") and "全局" in e for e in ev):
             continue
-        if "等待直到(游戏正在进行中" in "\n".join(ln for _n, ln in body):
+        # 门词按「遮过字符串/注释」的行判：文案或注释里写一遍 等待直到(游戏正在进行中 不算加门
+        # （原来拼原始文本，规则块内一句描述就能把真问题压掉——v13 S2 实测漏报）。
+        if any("等待直到(游戏正在进行中" in strip_noise(ln) for _n, ln in body):
             continue
         first = _first_action_stmt(body)
         if first is None:
@@ -3641,8 +3644,12 @@ def check_game_end_actions(text, problems):
 
     模式名必须取「模式」块里的第一个子块，不能取文件开头任意一行——
     真实文件的 `设置` 里第一个块是「主程序」，曾经因此把模式误判成「主程序」。
+
+    只认**动作行**里的调用：匹配跑在 `mask_text` 遮过字符串/注释的文本上，
+    所以写在 `描述:` 字符串、`记入查看器("…")` 文案、`规则("…")` 名字里的动作名不算命中
+    （v13 探针 c3：一份文件原来报 4 处，实际只有动作行那一处是真的）。
     """
-    lines = text.split("\n")
+    lines = mask_text(text).split("\n")
     code_lines = [(i, ln) for i, ln in enumerate(lines) if not ln.strip().startswith("//")]
     names = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
     if not any(n in ln for _i, ln in code_lines for n in names):
@@ -3673,11 +3680,12 @@ def check_game_end_actions(text, problems):
     for i, ln in code_lines:
         for name in bad:
             if name in ln:
-                problems.append((i + 1, "error",
+                problems.append((i + 1, "warning",
                                  "「%s」在%s里无效（官方：%s）；%s" % (
                                      name, mode_txt,
                                      "此动作在自由混战模式中无效" if ffa else "此动作只在自由混战模式中生效",
-                                     "死斗只能「宣告玩家胜利(某玩家)」" if ffa else "请改用「宣告队伍胜利(队伍)」或「宣布比赛为平局()」")))
+                                     "游戏不会拦导入，但这个动作不起作用（v13 读数 E-84）：死斗改成「宣告玩家胜利(某玩家)」，"
+                                     "团队模式改成「宣告队伍胜利(队伍)」或「宣布比赛为平局()」")))
 
 
 

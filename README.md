@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.20.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.21.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -59,7 +59,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 ```
 ✓ 找蛋躲猫猫.ow：可以导入（8 条提示，不影响导入）
-  第 ? 行：预计元素数约 27912，已接近 32768 上限（估算不精确，仅提示）
+  第 ? 行：预计元素数约 28325，按最坏上界 34840 可能超过 32768（真实值落在上限两侧，只能进游戏核对）
   第 142 行：3 处设置项没有值（第 142, 146, 423 行），都是导出吞值的已知缺陷：补上真实数值即可
   第 683 行：已用扩展点数 3（可用点数取决于大厅设置）…
   …还有 5 条提示
@@ -190,7 +190,7 @@ workshop-lite/
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   ├── selfcheck_modes.py         55 个模式全生成一遍自查（生成器与校验器不许打架）
-│   └── probes/                    82 正样本 + 55 反向用例（含 3 个可运行样例）
+│   └── probes/                    84 正样本 + 66 反向用例（含 4 个可运行样例）
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -209,7 +209,7 @@ python tools/ws.py deliver 模式.ow                # 交付：固定三行（�
 python tools/ws.py devcheck                       # 一条命令跑完全部回归（发版前必跑）
 python tools/ws.py fix 导出的.txt                  # 修成可导入版本，并复校
 python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现
-python tools/ws.py check-all                      # 回归全部样本（82 正 + 58 反例）
+python tools/ws.py check-all                      # 回归全部样本（84 正 + 66 反例）
 python tools/ws.py count 模式.ow                  # 元素数估算
 python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）
 python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架
@@ -265,7 +265,7 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-82 正样本 + 55 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
+84 正样本 + 66 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑。
 
 ```bash
 python tools/ws.py calib            # 43 个元素标定样本，偏差必须为 0
