@@ -5252,6 +5252,10 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
            "只想留一个就把另一边改回 100%%")
     _group("swallow", lambda m: "导出已知会把它吞掉" in m,
            "%d 处设置项没有值（第 %s 行），都是导出吞值的已知缺陷：补上真实数值即可")
+    # 重名规则：真实语料里一份就有 27 条重名（塔萨达练枪房），逐条报会把别的提示全淹掉。
+    # 3 条以上并成一行（同名不影响导入，只是排查时找不到是谁）。
+    _group("duprule", lambda m: m.startswith("规则名「"),
+           "%d 条规则重名（第 %s 行）：重名不影响导入，但排查时找不到是哪一条；建议改成不同的名字")
 
     seen, unique = set(), []
     for item in problems:
