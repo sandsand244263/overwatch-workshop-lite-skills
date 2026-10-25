@@ -587,6 +587,7 @@ def check_setting_enum_values(text, values, problems):
     多 schema 的选项在生成时取并集，所以最多跨模式放行，不会误报。
     空值（`键:` 后面什么都没有）不在这里管，由 `check_empty_setting_values` 单独处理。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     if not values:
         return
     for i, raw in enumerate(text.split("\n"), 1):
@@ -609,6 +610,7 @@ def check_event_player_scope(text, problems):
 
     游戏报：「"事件玩家"值在"持续-全局"的规则中不被允许」。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     lines = text.split("\n")
     starts = [i for i, l in enumerate(lines) if l.strip().startswith("规则(")]
     for n, start in enumerate(starts):
@@ -645,6 +647,7 @@ def check_local_player_in_global(text, problems):
     197 处 `创建HUD文本(本地玩家, …)` 正常工作，所以只判这三个动作。
     写死检查前在 9 份真实语料 + 170 个回归样本上量过：0 命中。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for name, body in _iter_rule_blocks(text):
         ev = _rule_event_lines(body)
         if not ev or ev[0].rstrip(";").strip() != "持续 - 全局":
@@ -676,6 +679,7 @@ def check_loop_missing_end(text, problems):
     `If … Else` 省 End; 的有 22 处（作者就是这么写的，语义确实是「条件成立时做一下」），
     按 If 一起计数就会误报。宁可漏报不误报。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for name, body in _iter_rule_blocks(text):
         joined = "\n".join(ln for _l, ln in body)
         opens = len(_LOOP_OPEN.findall(joined))
@@ -694,10 +698,11 @@ def check_setting_range(text, ranges, problems):
     边界可能只有一侧（大厅页只能看到滑杆最大值）；只有一侧有证据时就只查那一侧。
     level 跟着数据来源走：游戏数据里的 min/max 是 error，实机看到的滑杆边界是 warning。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     if not ranges:
         return
     for idx, line in enumerate(text.split("\n"), 1):
-        m = re.match(r"^\s*([^:：{}\t][^:：]*?)\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*(%?)\s*$", line)
+        m = re.match(r"^\s*([^:：{}\t][^:：\t]{0,39}?)\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*(%?)\s*$", line)
         if not m:
             continue
         key, val = m.group(1).strip(), float(m.group(2))
@@ -747,6 +752,7 @@ def check_lobby_team_sum(text, problems):
     栏位还跟扩展点数挂钩（可用点数 = 4 × 空栏位数，见 docs/extensions.md 第七节），
     但因为大厅键在真实文件里常被整段省略，这里不按栏位去推算扩展点数。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     vals = {}
     for idx, line in enumerate(text.split("\n"), 1):
         m = re.match(r"^\s*玩家上限\s*队伍([12])\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*$", line)
@@ -864,6 +870,7 @@ def check_hero_rule_multiplier(text, problems):
       英雄 200% + 规则 50%  → 打 100 掉 100（100 × 0.5 × 2.0）
     所以两边都写时实际倍率是两个数相乘，作者常以为是后者覆盖前者，只报提示不报错。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     hero = None
     for m in re.finditer(r"(?m)^[ \t]*受到伤害量\s*[:：]\s*(-?\d+(?:\.\d+)?)\s*%", text):
         hero = float(m.group(1))
@@ -892,6 +899,7 @@ def check_reassign_create(text, problems):
     2026-10-23 实机：HUD 规则里用 `创建HUD文本(…, 字符串, 默认可见度)` 每 0.5 秒调一次，
     游戏里完全看不到 HUD。要出现，首次必须带可见性：`可见` 或 `可见和字符串`。
     """
+    text = _mask(text)   # 整段先遮：注释/文案里的「, 可见,」不能当作「已经创建过」
     # 文件里只要有一处用「可见 / 可见和字符串」创建过，就说明文本会出现，
     # 后续用「字符串」原地更新是正确套路，不该报。
     creates = any("创建HUD文本(" in strip_noise(l) and
@@ -915,6 +923,7 @@ def check_health_percent_param(text, problems):
     2026-10-23 实机踩过：写 `设置最大生命值(事件玩家, 300)` 以为给 300 血，
     实际是 300%（3 倍）。想给 600 血的路霸一半血，要写 50。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for m in re.finditer(r"设置最大生命值\(([^,，]*)[,，]\s*(\d+(?:\.\d+)?)\s*\)", text):
         val = float(m.group(2))
         if val >= 250:
@@ -932,6 +941,7 @@ def check_speed_percent_param(text, problems):
     阈值放在 250：9 份真实语料里这个参数的字面量最大 200（100×5 / 110×4 / 200×3 / 150 / 140…），
     250 上命中 0 条，82 个正样本同样 0 条。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for pos, n, args in _iter_calls(text, "设置移动速度"):
         if n < 2:
             continue
@@ -997,6 +1007,7 @@ def check_percent_operator(text, problems):
     语料实证：`总计消耗时间 * 60 % 360`（9 处）说明 `%` 确实存在且是取余。
     百分比在工坊里就是普通数字：要 50% 就写 `50`。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     stack, pending = [], None
     for ln, line in enumerate(text.split("\n"), 1):
         s = strip_noise(line).strip()
@@ -1030,6 +1041,7 @@ def check_hero_enable_layer(text, problems):
     合法父级：`综合`（猪猪钩钩乐·原版）或 `队伍1` / `队伍2`（找蛋躲猫猫，两个都是能玩的真实模式）。
     只有直接挂在 `英雄` 下才是错的——游戏那句报错「之后应有一个队伍设置」就是这么来的。
     """
+    text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     stack, pending = [], None
     for ln, line in enumerate(text.split("\n"), 1):
         s = strip_noise(line).strip()
@@ -1392,6 +1404,7 @@ def check_probe_invisible(path, text, problems):
     p = (path or "").replace("\\", "/")
     if "probes/lab/" not in p:
         return
+    text = _mask(text)          # 注释/文案里写一句「开始镜头」不算做了隐蔽
     if "开始镜头" not in text:
         problems.append((0, "warning",
                          "验收探针没做工位隐蔽：加 隐藏英雄HUD / 隐藏游戏模式HUD / "
@@ -1420,6 +1433,7 @@ def check_probe_output(path, text, problems):
     p = (path or "").replace("\\", "/")
     if "/probes/lab/" not in p:
         return
+    text = _mask(text)          # 注释/文案里提到 记入查看器 不算「读数走了查看器」
     if "记入查看器" not in text:
         problems.append((0, "warning",
                          "实验探针里没有任何 记入查看器：用户拿不到结果，别用屏幕文字"))
@@ -2327,6 +2341,17 @@ def load_param_types(path=None):
     return out
 
 
+def _is_code(masked, text, pos, n=1):
+    """pos 处 n 个字符是不是**真代码**：遮过（字符串/注释变空格）之后还一样，就是代码。
+
+    为什么要有它：很多检查要「按调用解析参数」，参数本身可能是字符串
+    （`创建HUD文本(…, 自定义字符串("字"), …)`），所以不能整段换成遮过的文本；
+    但**这个调用名出现在字符串/注释里**时必须跳过，否则文案一写就被当成真调用（误报）。
+    做法：在原文上找匹配，再用遮过的等长文本核对「匹配起点那几个字没被遮掉」。
+    """
+    return masked[pos:pos + n] == text[pos:pos + n]
+
+
 def check_team_slots(text, problems, types=None):
     """类型是 Team 的参数只能填队伍值：所有队伍 / 队伍1 / 队伍2。
 
@@ -2339,11 +2364,14 @@ def check_team_slots(text, problems, types=None):
     types = types or load_param_types()
     if not types:
         return
+    masked = _mask(text)
     for fn, imap in types.items():
         slots = [i for i, t in imap.items() if t == "Team"]
         if not slots:
             continue
         for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(fn) + r"\(", text):
+            if not _is_code(masked, text, m.start(), len(fn)):
+                continue
             depth, j = 0, m.end() - 1
             while j < len(text):
                 if text[j] == "(":
@@ -2383,11 +2411,14 @@ def check_hero_slots(text, problems, types=None, heroes=None):
     heroes = heroes if heroes is not None else load_hero_names()
     if not types or not heroes:
         return
+    masked = _mask(text)
     for fn, imap in types.items():
         slots = [i for i, t in imap.items() if t == "Hero"]
         if not slots:
             continue
         for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(fn) + r"\(", text):
+            if not _is_code(masked, text, m.start(), len(fn)):
+                continue
             depth, j = 0, m.end() - 1
             while j < len(text):
                 if text[j] == "(":
@@ -2443,8 +2474,11 @@ def check_var_slot_bare(text, problems):
     """
     specs = (("修改全局变量", 0), ("在索引处设置全局变量", 0),
              ("修改玩家变量", 1), ("在索引处设置玩家变量", 1))
+    masked = _mask(text)
     for name, idx in specs:
         for pos, n, args in _iter_calls(text, name):
+            if not _is_code(masked, text, pos, len(name)):
+                continue
             if n <= idx:
                 continue
             slot = args[idx].strip()
@@ -2773,7 +2807,8 @@ def check_map_codes(text, problems, strict=False):
     """
     known = load_known_map_codes()
     for i, raw in enumerate(text.split("\n"), 1):
-        m = re.match(r"^\s*(\S+)((?:\s+\d{10,})+)\s*$", raw)
+        code = strip_noise(raw)          # 注释里写一串编号不算「启用地图」行
+        m = re.match(r"^\s*(\S+)((?:\s+\d{10,})+)\s*$", code)
         if not m:
             continue
         codes = re.findall(r"\d{10,}", m.group(2))
@@ -3166,7 +3201,7 @@ def check_balance(text, problems, strict=False, raw_masked=None):
          （探针 `probes/lab/endcheck/`，读数 `[e1] A=1` 仅一行）。
          这条写进 `docs/pitfalls-runtime.md`，不再由校验器判。
     """
-    masked = raw_masked if raw_masked is not None else mask_text(text)
+    masked = raw_masked if raw_masked is not None else _mask(text)
     opens, closes = masked.count("("), masked.count(")")
     if opens != closes:
         problems.append((0, "error",
@@ -3365,7 +3400,10 @@ def check_hud_no_text_slots(text, problems):
     （S1 打分 + 2026-10-25 本机 corpus 实跑：修前 3 处误报，修后 0）。
     判据只碰结构，不猜类型：第 7/8/9 个参数（标题色/副标题色/文本色）是否都是 `空`。
     """
+    masked = _mask(text)
     for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])创建HUD文本\(", text):
+        if not _is_code(masked, text, m.start(), len("创建HUD文本")):
+            continue
         depth, j = 0, m.end() - 1
         while j < len(text):
             if text[j] == "(":
@@ -3470,9 +3508,14 @@ def load_arg_counts(path=None):
     return out
 
 
-def _iter_calls(text, name):
-    """遍历 name( … ) 调用，产出 (起始位置, 参数个数, 参数列表)。"""
+def _iter_calls(text, name, masked=None):
+    """遍历 name( … ) 调用，产出 (起始位置, 参数个数, 参数列表)。
+
+    masked 给了就跳过「名字出现在字符串 / 注释里」的假调用个例（参数里的字符串照旧能解析）。
+    """
     for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(name) + r"\(", text):
+        if masked is not None and not _is_code(masked, text, m.start(), len(name)):
+            continue
         depth, j = 0, m.end() - 1
         while j < len(text):
             if text[j] == "(":
@@ -3570,12 +3613,13 @@ def check_arg_counts(text, problems, counts=None):
     counts = counts if counts is not None else load_arg_counts()
     exceptions = load_param_exceptions()
     optional = {el for el, v in exceptions.items() if v.get("optional")}
+    masked = _mask(text)
     for el, floor in _measured_min_args().items():
         if el in optional:
             continue      # 表里标了「尾参可省」，绝不能因为语料少写就报错（E-55 的反面）
         lo, _hi, common = counts.get(el, (floor, floor, floor))
         lo = max(lo, floor)
-        for pos, n, _args in _iter_calls(text, el):
+        for pos, n, _args in _iter_calls(text, el, masked):
             if n < lo:
                 line = text.count("\n", 0, pos) + 1
                 problems.append((line, "warning",
@@ -3692,6 +3736,7 @@ def check_game_end_actions(text, problems):
 
 def check_rule_semantics(text, problems):
     """两条实测行为：`持续` 规则只跑一次（要循环必须 While + 等待）；While(真) 必须有退出手段。"""
+    text = _mask(text)   # 注释/文案里写一句 While(真) 不该被当成循环
     for m in re.finditer(r"^\s*规则\(\s*\"([^\"]*)\"\)", text, re.M):
         name = m.group(1)
         ob = text.find("{", m.end())
@@ -3784,7 +3829,7 @@ def check_extensions(text, problems, costs, unlocked=None, base_options=None):
         ob = text.find("{", m.start())
         cb = text.find("}", ob)
         for raw in text[ob + 1:cb].split("\n"):
-            nm = raw.strip()
+            nm = strip_noise(raw).strip()      # 块注释/裸字符串行不算扩展名
             if not nm or nm.startswith("//"):
                 continue
             if nm not in costs:
@@ -3819,11 +3864,14 @@ def check_dropdown_values(text, problems, dropdowns):
     if not dropdowns:
         return
     text = strip_comments(text)
+    masked = _mask(text)
     by_elem = {}
     for (elem, idx), opts in dropdowns.items():
         by_elem.setdefault(elem, {})[idx] = opts
     for elem, idx_map in by_elem.items():
         for m in re.finditer(r"(?<![\w\u4e00-\u9fa5])" + re.escape(elem) + r"\(", text):
+            if not _is_code(masked, text, m.start(), len(elem)):
+                continue
             depth, j = 0, m.end() - 1
             while j < len(text):
                 if text[j] == "(":
@@ -3925,7 +3973,10 @@ def check_local_values(text, problems):
     当时只查了函数式，这行没被拦住，游戏直接报错）。
     """
     seen = set()
+    masked = _mask(text)
     for m in re.finditer(r"(?:设置|修改)全局变量\(([^;\n]*)\)", text):
+        if not _is_code(masked, text, m.start(), 2):
+            continue
         body = m.group(1)
         if "本地玩家" not in body:
             continue
@@ -3952,7 +4003,10 @@ def check_map_names(text, problems, map_names):
     """
     if not map_names:
         return
+    masked = _mask(text)
     for m in re.finditer(r"地图\(\s*([^()\s,;]+)\s*\)", text):
+        if not _is_code(masked, text, m.start(), 2):
+            continue
         name = m.group(1)
         if name in map_names or re.fullmatch(r"[\d.]+", name):
             continue
@@ -3970,7 +4024,8 @@ def check_missing_settings_block(text, problems):
     """
     if not re.search(r"^\s*规则\s*\(", text, re.M):
         return
-    if re.search(r"^\s*设置\s*$", text, re.M) or re.search(r"^\s*设置\s*\{", text, re.M):
+    code = _mask(text)          # 注释里单独一行「设置」不算有设置块
+    if re.search(r"^\s*设置\s*$", code, re.M) or re.search(r"^\s*设置\s*\{", code, re.M):
         return
     problems.append((1, "warning",
                      "这份文件只有工坊内容、没有「设置」块——大概是从编辑器「全选复制」拿的；"
@@ -3985,7 +4040,7 @@ def check_missing_var_block(text, problems):
     以前这条对内置字母也报「必改」，把合法文件拦下来了（误报，已修）。
     只有 A~Z 之外的名字才要求声明。
     """
-    if re.search(r"^\s*变量\s*$", text, re.M):
+    if re.search(r"^\s*变量\s*$", _mask(text), re.M):
         return
     for m in re.finditer(r"(全局|事件玩家|本地玩家|玩家)\.([A-Za-z_]\w*)", text):
         if _is_default_var(m.group(2)):
@@ -4326,6 +4381,26 @@ def merge_continuations(text, max_lines=60):
     宁可让这一处退回逐行检查，也不能把后面整个文件吞进一条语句。
     """
     return merge_continuations_mapped(text, max_lines)[0]
+
+
+_MASK_CACHE = {}
+
+
+def _mask(text):
+    """mask_text 的带缓存版：lint() 把同一份文本喂给几十条检查，只遮一遍就够。
+
+    缓存按对象身份留 8 份（同一份文件里不同函数可能拿着「拼接后 / 去注释后」等
+    好几个不同对象来回用，留一份会互相挤掉）。不攒长生命周期：一个文件处理完就被顶掉。
+    """
+    key = id(text)
+    hit = _MASK_CACHE.get(key)
+    if hit is not None and hit[0] is text:
+        return hit[1]
+    m = mask_text(text)
+    if len(_MASK_CACHE) >= 8:
+        _MASK_CACHE.pop(next(iter(_MASK_CACHE)))
+    _MASK_CACHE[key] = (text, m)
+    return m
 
 
 def mask_text(text):
@@ -4894,7 +4969,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
             problems.append((0, "error",
                              "事件块只能是 1 行（全局事件）或 3 行（事件; 队伍; 英雄;），这里是 %d 行" % count))
 
-    masked = mask_text(text)                 # 与 text 等长，列偏移可直接查 SegMap
+    masked = _mask(text)                 # 与 text 等长，列偏移可直接查 SegMap
     if len(subroutines) > 128:
         problems.append((0, "error", "子程序最多 128 个，现在 %d 个" % len(subroutines)))
     for section, names in declared.items():

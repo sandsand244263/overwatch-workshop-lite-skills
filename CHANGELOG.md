@@ -14,6 +14,53 @@
 
 ---
 
+## [3.22.0] - 2026-10-25
+
+把 74 条 `check_*` 的「读哪一行」一次审完：**29 条有病，全部修掉**（误报 23 / 漏报 6，两条两个方向都有）。
+病根是同一个写法习惯——在**原始文本**上按名字找，字符串、行注释、**跨行块注释**一概没遮。
+另外用 4 格探针换读数：真假字面量坐实、设置枚举坐实、死斗结束动作收口（动作无效）、「循环缺等待」被否定。
+事实表 48 → 51 行，未点名函数 41 → 39，反向用例 66 → 67。
+
+**读数（E-87，用户实机导入）**
+
+| 写法 | 游戏反应 | 结论 |
+|---|---|---|
+| `全局.b = True;` | 拒导入：「第57行的"="之后应有一个值」 | `check_bool_literal_raw` 立必改（L3）；同句换 `真` 的对照导入成功 |
+| `游戏模式开始: 立即` | 拒导入：「第34行的"综合("之后应有一个游戏模式设置」 | `check_setting_enum_values` 立必改（L3）；同块写 `即时` 能导入 |
+| 死斗里 `宣告队伍胜利(队伍1)` | 导入成功、08 秒调用返回、**28 秒时规则还在跑**（整场没结束） | v13 的「未验证」收口为**动作无效**（L3，级别仍提示） |
+| `While(假)` / 有限循环（体首不是等待）/ 有限循环（体首是等待） | 三格**全部导入成功**，运行时也无报错 | 50045 不是靠「循环体第一条有没有等待」触发 → 不立检查，只在 `docs/errors.md` 写清「触发条件未验证」 |
+
+**修法只有两种，都是「换读哪一行」（E-88）**
+
+- **入口整段遮**：只需要看「代码里有没有这个词」的检查，入口加 `text = _mask(text)`。
+  根因是 `strip_noise` 是**逐行**遮，跨行 `/* … */` 里的行会被当成代码——一份文件里块注释写一句
+  `获胜得分: 9999` 就能把整个文件判成必改。
+- **逐调用核对**：要解析参数的检查（参数本身可能是 `自定义字符串("…")`），在原文上找匹配，
+  再用等长的遮过文本核对「匹配起点那几个字没被遮」——新增 `_is_code(masked, text, pos, n)`。
+
+**修过的 29 条（逐条读数在 `v14-re/stringscan.tsv`，修前/修后两列）**
+
+- 误报：`team_slots` `hero_slots` `var_slot_bare` `map_codes` `hud_no_text_slots` `arg_counts`
+  `dropdown_values` `local_values` `map_names` `extensions` `setting_enum_values` `setting_range`
+  `lobby_team_sum` `percent_operator` `hero_enable_layer` `event_player_scope` `local_player_in_global`
+  `hero_rule_multiplier` `health_percent_param` `speed_percent_param` `rule_semantics` `probe_output`
+- 漏报：`missing_settings_block` `missing_var_block` `loop_missing_end` `rule_semantics`
+  `reassign_create` `probe_invisible` `probe_output`
+
+**顺带修的性能坑**：`check_setting_range` 的键正则用了无界惰性量词，在 `rule-too-long.ow`（101KB 单行）上
+回溯 **76 秒**；`check-all` 一度从 8.8 秒涨到 85 秒，profile 抓到后收窄成 `{0,39}?` 并跳过空行，回到 1.5 秒。
+
+**新工具**：`tools/audit_stringscan.py` —— 输入一条检查名 + 目标词/真语句/豁免词，自动在 7 个位置生成探针、
+只调这一条检查、输出「命中/不命中」与修前修后读数（只读，只写临时目录）。
+
+**新增反例**：`tools/probes/negative/map-subarea-name.ow`（`启用地图 { 釜山寺院 }` → 「不能单独写」），
+反向用例 66 → 67，README 三处与 `validator-coverage.md` 反向用例表同步。
+
+**回归**：生成器 14/136/23 无漂移 · selftest 通过 · 正样本 **84/84** · 反向用例 **67/67** · calib 43 偏差 0 ·
+模式 55 干净 · 事实表 **51 行** 错 0 / 疑似 0 / 未定 0（未点名函数 39）· 带语料 devcheck 第 4 行「语料 通过」（0 新增）。
+
+---
+
 ## [3.21.0] - 2026-10-25
 
 把 6 条「只有数据表或官方说明撑着」的检查换上**实机读数**，并按读数改级别：4 条坐实（游戏真的拒导入）、

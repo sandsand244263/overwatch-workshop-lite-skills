@@ -65,3 +65,4 @@ hero-rule-multiplier.ow	两者相乘	英雄页 200% × 规则 50% = 100%：两�
 hud-no-text-slots.ow	三个颜色参数都写 空	建了 HUD 但三个颜色都是 空、正文有字：屏幕上看不到（E-34）
 prestart-damage.ow	比赛开始前伤害无效	持续 - 全局 首句就 伤害()：开赛前掉血 0（E-16）
 array-add-plus.ow	对数组 arr 用了「加」	加 是对数组求和不是追加：写了不报错、运行结果算错，追加要用 添加至数组（E-11）
+map-subarea-name.ow	不能单独写	子区域名不能单独写，要写主图名

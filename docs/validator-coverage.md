@@ -185,7 +185,7 @@
 
 ## 反向用例（防退化）
 
-`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（**58 个**，以文件行数为准，`check-all` 会逐条跑）。
+`tools/probes/negative/` 存"必须报错"的坏样本，清单在 `expect.tsv`（一行一个，**以文件行数为准**，`check-all` 会逐条跑并打印总数）。
 `python tools/ws.py check-all` 会同时跑正样本（必须全过）和反向用例（必须报出预期错误）。
 
 **只测正样本是不够的**——校验器最容易的退化方式，是"什么都放行"。
@@ -204,6 +204,7 @@
 | `element-over-limit.ow` | 元素数上限 |
 | `value-as-action.ow` / `bare-function.ow` / `event-missing-param.ow` / `event-player-in-global.ow` / `setting-out-of-range.ow` / `missing-var-block.ow` | 格式层 |
 | `map-bad-variant.ow` | 地图编号抄错一位 |
+| `map-subarea-name.ow` | 编辑器里选不到的子区域名（`启用地图 { 釜山寺院 }`）：只写子图名不成立，要写主图名 |
 | `hero-block-wrong-layer.ow` | 英雄块层级（`启用英雄` 挂在 `英雄` 直属层） |
 | `local-value-into-global.ow` | 全局变量存局部值（裸赋值写法） |
 | `percent-in-number.ow` | 数值参数写 `%` 后缀 |
@@ -479,6 +480,7 @@ python tools/fuzz_check.py --corpus --rounds 6
 | 9 份真实语料误报 | **0**（语料里 0 处裸 `True/False`） |
 | 82 正样本误报 | **0** |
 | 反向用例 | `bool-ascii-true.ow`（反 57 → **58**） |
+| 实机读数（v14，L3） | `p1r`（`全局.b = True;`）被拒：「第57行的"="之后应有一个值」；同句换成 `真` 的对照 `p1cr` 导入成功、查看器打出两条。读数文件：`tools/probes/lab/v14-evidence/p1r-bool-assign.ow` / `p1cr-bool-assign-control.ow` |
 
 ### 被语料否掉的一条（记下来，别再试）
 
