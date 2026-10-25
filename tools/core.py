@@ -1572,8 +1572,26 @@ def check_duplicate_rule_names(text, problems):
     复制整条规则 25/25 零输出。接上后按提示级报（同名不挡导入，但排查时找不到是谁）。
     """
     seen = {}
-    # 注释行里的 规则("x") 不算：把注释行换成空行，行号不变
-    text = "\n".join("" if ln.strip().startswith("//") else ln for ln in text.split("\n"))
+    # 注释里的 规则("x") 不算：`//` 行和 `/* … */` 整段都换成空行（行号不变）。
+    # 块注释这条 v3.24.0 漏了：块注释里写一句 规则("A") 就会把真正的那条规则判成「重名」（实测复现）。
+    clean, in_block = [], False
+    for ln in text.split("\n"):
+        st = ln.strip()
+        if in_block:
+            if "*/" in ln:
+                in_block = False
+            clean.append("")
+            continue
+        if st.startswith("/*"):
+            if "*/" not in ln:
+                in_block = True
+            clean.append("")
+            continue
+        if st.startswith("//"):
+            clean.append("")
+            continue
+        clean.append(ln)
+    text = "\n".join(clean)
     for m in re.finditer(r'规则\(\s*"([^"]+)"\s*\)', text):
         name = m.group(1)
         line = text.count("\n", 0, m.start()) + 1
@@ -4271,7 +4289,9 @@ def check_var_refs(text, problems):
         _add(problems, text, m.start(), "error",
              "全局.%s 没有在变量块「全局:」段声明（A~Z 之外的变量必须先声明）"
              "；也可以先给个初值再当默认变量用" % name)
-    for m in re.finditer(r"(?:设置|修改|在索引处修改)全局变量\(\s*([A-Za-z_]\w*)", text):
+    # 四个动作名显式列出（以前靠「设置|修改」在「在索引处设置全局变量」里子串碰巧命中，
+    # 换个写法就漏；S1 复核指出后改成点名）
+    for m in re.finditer(r"(?:在索引处设置|在索引处修改|设置|修改)全局变量\(\s*([A-Za-z_]\w*)", text):
         name = m.group(1)
         if _is_default_var(name) or name in gl or name in seen_ref:
             continue
