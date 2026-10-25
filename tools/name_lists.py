@@ -9,6 +9,7 @@
 2. `tools/name-list-scopes.tsv` 里登记「哪处清单对应哪张表的哪个子族」。
 3. 差集非空就报；「故意不收」的名字逐行写进 `tools/name-list-whitelist.tsv`（带理由与依据）。
 4. 没登记、但一眼是「表里名字」的清单 → 也算失败：逼下一个人登记或改成查表。
+   门槛是「≥3 个表内名字」：2 个名字的清单拦不住（这种小集合太多，全报会淹没真问题——R1 复核实测确认的边界）。
 
 跑法：`python tools/ws.py selftest`（会调本模块）。也可以单独跑 `python tools/name_lists.py`。
 """
