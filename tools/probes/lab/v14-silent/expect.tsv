@@ -1,0 +1,7 @@
+文件	证明哪条检查	应该报什么
+arg_count.ow	check_arg_count	修改全局变量 至少要 3 个参数，这里只有 2 个
+block_layers.ow	check_block_layers	「死斗」不该直接挂在「主程序」下；语料里它只出现在：模式
+dup_blocks.ow	check_duplicate_blocks	顶层 `变量` 块出现了 2 次
+types.ow	check_types	For 循环的控制变量 counter 没有在变量块里声明
+var_refs.ow	check_var_refs	事件玩家.hp 没有在变量块「玩家:」段声明
+misc.ow	check_misc（子规则：变量名只差大小写）	变量名只差大小写，工坊会当成同一个：HP / hp

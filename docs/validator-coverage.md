@@ -205,6 +205,12 @@
 | `value-as-action.ow` / `bare-function.ow` / `event-missing-param.ow` / `event-player-in-global.ow` / `setting-out-of-range.ow` / `missing-var-block.ow` | 格式层 |
 | `map-bad-variant.ow` | 地图编号抄错一位 |
 | `map-subarea-name.ow` | 编辑器里选不到的子区域名（`启用地图 { 釜山寺院 }`）：只写子图名不成立，要写主图名 |
+| `arg-count.ow` | `修改全局变量` 只给 2 个参数（这条检查在 160 个样本里从没触发过，v14 补的） |
+| `block-wrong-layer.ow` | 模式块挂到 `主程序` 下（块套错层） |
+| `duplicate-block.ow` | 两个顶层 `变量` 块 |
+| `undeclared-for-var.ow` | `For 全局变量(counter, …)` 但 counter 没声明 |
+| `undeclared-player-var.ow` | `事件玩家.hp` 但「玩家:」段没声明 |
+| `var-case-collision.ow` | 变量名只差大小写（`hp` / `HP`），工坊当同一个 |
 | `hero-block-wrong-layer.ow` | 英雄块层级（`启用英雄` 挂在 `英雄` 直属层） |
 | `local-value-into-global.ow` | 全局变量存局部值（裸赋值写法） |
 | `percent-in-number.ow` | 数值参数写 `%` 后缀 |
