@@ -1269,6 +1269,8 @@ def check_mode_names(text, problems, modes=None):
     两个合法形态：
       · 块头：`死斗 { … }`（名字也可能带全角冒号，比如 `星际守望：银河救兵`）
       · 清单行 / 块头：`禁用 勇夺锦旗`（语料实测写法，前缀是开关词）
+
+    依据：data/mode-list.tsv（手工固化 v2.93.2，无生成器）
     """
     modes = modes if modes is not None else load_workshop_modes()
     if not modes:
@@ -1353,6 +1355,8 @@ def check_block_layers(text, problems):
       模式名      → 父级 = 模式
       其它块      → 父级 ∈ format-spec-corpus.tsv 里该块出现过的父级
     只对 `设置` 树生效；规则体里的 事件/动作/条件 不参与。
+
+    依据：data/format-spec-corpus.tsv（生成源 tools/spec_extract.py）
     """
     parents = load_corpus_block_parents()
     if not parents:
@@ -1479,6 +1483,8 @@ def check_element_kind(text, kinds, problems):
 
     典型错误：把「比赛结束()」当动作写（它是值，表示"比赛是否已结束"）。
     游戏报「"比赛结束()"之后应有一个赋值运算符」。
+
+    依据：data/element-kinds.tsv（手工固化 v2.53.0，无生成器）
     """
     if not kinds:
         return
@@ -1606,6 +1612,8 @@ def check_bare_functions(text, sigs, problems, bare_ok=None):
 
     典型：大字体信息(所有玩家, …) 应为 大字体信息(所有玩家(所有队伍), …)。
     游戏报「"所有玩家"之后应有"("」。
+
+    依据：data/signatures.md（生成源 tools/gen_data.py）
     """
     if not sigs:
         return
@@ -1857,6 +1865,8 @@ def check_hero_names(text, problems, hero_names, declared=None):
     """英雄(名字) 里的英雄名必须还在当前版本英雄表里。
 
     游戏只报「"英雄("之后应有一个英雄名」，指不到「这个英雄没了」。
+
+    依据：data/heroes.tsv（生成源 tools/gen_name_tables.py）
     """
     if not hero_names:
         return
@@ -1870,7 +1880,10 @@ def check_hero_names(text, problems, hero_names, declared=None):
 
 
 def check_button_names(text, problems, button_names):
-    """按钮(名字) 里的按钮名必须还在当前版本按钮表里。"""
+    """按钮(名字) 里的按钮名必须还在当前版本按钮表里。
+
+    依据：data/buttons.tsv（生成源 tools/gen_name_tables.py）
+    """
     if not button_names:
         return
     for m in re.finditer(r"(?<![\w\u4e00-\u9fff])按钮\(([^()]*)\)", text):
@@ -1948,6 +1961,8 @@ def check_ability_names(text, problems, abilities, hero_names):
     """英雄设置块里的技能名必须还在当前版本技能表里。
 
     游戏更新会改技能中文名；写错了只会报「之后应有一个…」这类看不懂的话。
+
+    依据：data/abilities.tsv（生成源 tools/gen_name_tables.py）
     """
     if not abilities:
         return
