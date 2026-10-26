@@ -1798,7 +1798,11 @@ def check_event_params(text, event_params, problems, event_param_words=None):
 
 
 def check_duplicate_blocks(text, problems):
-    """顶层的 设置 / 变量 / 子程序 块只能各出现一次，重复会报「未知的变量」这类错。"""
+    """顶层的 设置 / 变量 / 子程序 块只能各出现一次，重复会报「未知的变量」这类错。
+
+    依据（E-95，2026-10-26 实机 P17）：顶层写两份「变量」块，游戏报
+    「第 48 行的"变量"之后出现未知的变量」（模板 60278）并拒绝导入。
+    """
     for kw in ("设置", "变量", "子程序"):
         hits = [m.start() for m in re.finditer(r"^%s\s*$" % kw, text, re.M)]
         if len(hits) > 1:
@@ -3358,6 +3362,8 @@ def check_balance(text, problems, strict=False, raw_masked=None):
     """全局括号配对（只查括号；`If/While/For` 与 `End;` 的配对检查已撤回）。
 
     实测：删掉一个右括号，绝大多数校验器抓不到，但游戏直接报错。
+    依据（E-95，2026-10-26 实机 P16）：左 4 右 3 的文件，游戏报
+    「第 59 行的"全局.t"之后应有")"」（模板 51129）并拒绝导入。
 
     括号数必须在**合并折行之前**的原文上统计：语料里有 `…)),//【点位1】` 这种
     行内注释，合并之后 `//` 会把同行后面的代码一起吃掉，导致少一个括号（假警报）。
