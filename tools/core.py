@@ -1557,6 +1557,41 @@ def check_element_kind(text, kinds, problems):
 
 
 
+def check_percent_doubled(text, problems):
+    """设置值里写成两个百分号（`复生时间: 5%%`）：游戏报「之后应有一个游戏模式设置」并拒绝导入。
+
+    依据（E-94，2026-10-26 实机）：v17 探针生成时把 `5%` 写成了 `5%%`，同一份文件
+    游戏停在「第 37 行的"5%"之后应有一个游戏模式设置」；改回 `5%` 后导入正常。
+    机制：`%` 是取余运算符，`5 %%` 后面缺右操作数（与 check_percent_operator 同一个根因）。
+    只查 `设置` 块里的 `键: 值` 行，规则里的取余（`60 % 360`）不受影响。
+    """
+    depth = 0
+    in_settings = False
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if s == "设置":
+            in_settings = True
+            depth = 0
+            continue
+        if not in_settings:
+            continue
+        if s == "{":
+            depth += 1
+            continue
+        if s.startswith("}"):
+            depth -= 1
+            if depth <= 0:
+                in_settings = False
+            continue
+        if depth >= 1 and "%%" in s and re.match(r"^[^:：\n]{1,40}\s*[:：]\s*\S", s):
+            problems.append((ln, "error",
+                             "设置值里出现了两个百分号（" + s + "）：`%%` 里的 `%` 是取余运算符，"
+                             "游戏会报「之后应有一个游戏模式设置」并拒绝导入（E-94 实测）；应写成 "
+                             + s.replace("%%", "%")))
+
+
 def check_string_interp(text, problems):
     """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配（按括号配对取实参）。
 
@@ -5351,6 +5386,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_speed_percent_param(text, problems)
     check_hero_rule_multiplier(text, problems)
     check_percent_operator(text, problems)
+    check_percent_doubled(text, problems)
     check_wait_behaviour(masked, problems)
     check_team_word(masked, problems)
     check_hero_enable_layer(text, problems)

@@ -83,3 +83,4 @@ ffa-round-victory.ow	在死斗里无效
 event-filter-all-teams.ow	队伍过滤	E-94：所有队伍 不是事件选择器词
 mode-name-ui-alias.ow	是界面上的模式名	E-94：模式块写 攻击/护送 被拒
 no-settings-block.ow	格式不完整	E-94：没设置块导不进去
+double-percent-setting.ow	两个百分号	E-94：5%% 被游戏拒
