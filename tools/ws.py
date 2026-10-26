@@ -1064,7 +1064,8 @@ def cmd_devcheck(a):
     bad_gen, gen_info = [], []
     for name, script in (("setting-values", "gen_setting_values.py"),
                          ("errors", "gen_errors.py"),
-                         ("word-lists", "gen_word_lists.py")):
+                         ("word-lists", "gen_word_lists.py"),
+                         ("meta 计数", "gen_meta.py")):
         rc, out, _ = _devcheck_run([py, os.path.join(tools, script), "--check"], 300)
         if verbose:
             print("── %s --check ──\n%s" % (script, out))

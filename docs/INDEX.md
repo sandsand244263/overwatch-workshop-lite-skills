@@ -51,7 +51,7 @@
 | `defaults.tsv` | 参数省略时的默认值 |
 | `enums.md` | 英雄 / 地图 / 下拉选项全集 |
 | `action-tags.tsv` | 484 动作的功能分类 |
-| `meta.json` | 数据基线的 build 与导出日期 |
+| `meta.json` | 数据基线的 build / 导出日期 + 五项计数（actions / values / dropdowns / heroes / maps）；计数由 `python tools/gen_meta.py` 从各表重算，`--check` 已接进 `devcheck` 第 1 行 |
 
 ### 阶段 1 新增（S1a / S1b 表 + 两个生成脚本）
 

@@ -3,8 +3,8 @@
   "exported": "2026-10-21",
   "actions": 225,
   "values": 267,
-  "dropdowns": 45,
+  "dropdowns": 74,
   "heroes": 54,
-  "maps": 305,
+  "maps": 306,
   "generator": "gen_data.py"
 }
