@@ -15,15 +15,19 @@ python tools/ws.py probe-template --cells 8 --out 探针.ow
 # 2) 校验（必须 0 error 再进游戏）
 python tools/ws.py check 探针.ow
 
-# 3) 进游戏跑一次 → 打开查看器 → 点底部「复制记录到剪贴板」→ 粘进 records.txt
-#    （游戏自己落盘的那个 Log-*.txt 时有时无，不能当依赖）
+# 3) 进游戏跑一次，然后**退到大厅再退游戏**（别在比赛里直接结束进程）
+#    前提：设置里「启用地图工坊查看器日志文件」必须开着，否则不落盘
 
 # 4) 判读：出「预期 | 实际 | 结论」差异表
-python tools/ws.py readlog --file records.txt --expect-file 探针.expect.tsv
+python tools/ws.py readlog --expect-file 探针.expect.tsv
+
+# 想边跑边等（用户一导入就盯目录，写完自动判读，不碰键鼠）：
+python tools/ws.py readlog --watch --expect-file 探针.expect.tsv
 ```
 
-记录格式统一是 `[时:分:秒] [标签] 内容`（UTF-8、LF）。查看器复制出来的内容与落盘文件**同格式**，
-所以两条路都能喂给 `readlog`：`--file` 指定文件，不给就去找目录里最新的 `Log-*.txt`。
+读取的日志是游戏自己落盘的 `%USERPROFILE%\Documents\Overwatch\Workshop\Log-<时间>.txt`，
+格式 `[时:分:秒] [标签] 内容`，不需要用户手抄。`--file` 指定某一份，不给就取最新的。
+拿不到文件时（开关没开 / 没正常退出），让用户从查看器复制，存成 `records.txt` 用 `--file` 一样能判。
 
 ## 为什么一格一计数器
 

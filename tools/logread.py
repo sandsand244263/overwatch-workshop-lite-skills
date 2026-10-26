@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
-"""读工坊查看器记录。
+"""读工坊查看器日志。
 
-两种来源，格式相同（`[时:分:秒] [标签] 内容`，UTF-8、LF）：
+游戏会把 `记入查看器` 的每一条落盘成：
 
-1. **用户从查看器复制出来的文本**（可靠，默认）——存成 `records.txt` 用 `--file` 读；
-2. 游戏自己落盘的文件（**时有时无，不能依赖**）：
+    %USERPROFILE%\\Documents\\Overwatch\\Workshop\\Log-<年-月-日-时-分-秒>.txt
 
-       %USERPROFILE%\\Documents\\Overwatch\\Workshop\\Log-<年-月-日-时-分-秒>.txt
+**前提是游戏设置里开着开关**：设置 → 游戏 → 综合 → 自定游戏-地图工坊 →
+「启用地图工坊查看器日志文件」（同页「启用地图工坊查看器」也要开）。关掉时一局也不生成——
+2026-10-24 之后连续几天没有文件，查到最后就是这两个被关了（排查见私有仓
+`v16-re/viewer-log-analysis.md`）。
 
-2026-10-20~24 生成过 38 份；10-25 起同一台机、同一份探针不再生成，原因未定
-（排查见私有仓 `v16-re/viewer-log-analysis.md`）。所以落盘这一层是「有则更好」，不是流程依赖。
+`--watch`：盯目录，出现新文件且大小稳定 `--settle` 秒后自动判读。纯文件轮询，不碰键鼠，
+所以用户自己导入、自己玩也能用。
+
+拿不到文件时，让用户从查看器点「复制记录到剪贴板」，存成 `records.txt` 再用 `--file` 判读（同格式）。
 
 对外只有 `run(args)`：由 `ws.py readlog` 转调。
 """
@@ -368,6 +372,42 @@ def check_expect(entries, spec):
     return ok, rows, missing
 
 
+def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None):
+    """等目录里出现「之前没有的」Log-*.txt，并在它大小稳定 settle 秒后返回。
+
+    `show` 是可选的进度输出函数（默认打印）。返回路径或 None。
+    """
+    import time
+    before = set(os.listdir(folder)) if os.path.isdir(folder) else set()
+    if show:
+        show("盯 %s（现有 %d 个文件，等新文件…）" % (folder, len(before)))
+    t0 = time.time()
+    path, last_size, last_change = None, -1, 0.0
+    while time.time() - t0 < timeout:
+        try:
+            now = set(os.listdir(folder))
+        except OSError:
+            now = set()
+        fresh = sorted(n for n in (now - before) if n.lower().startswith("log-"))
+        if path is None and fresh:
+            path = os.path.join(folder, fresh[-1])
+            last_size, last_change = -1, time.time()
+            if show:
+                show("  新文件出现：%s" % fresh[-1])
+        if path is not None:
+            try:
+                size = os.path.getsize(path)
+            except OSError:
+                size = last_size
+            if size != last_size:
+                last_size, last_change = size, time.time()
+            elif time.time() - last_change >= settle:
+                if show:
+                    show("  %d 字节，已 %d 秒没变 → 认为写完" % (size, settle))
+                return path
+        time.sleep(poll)
+    return None
+
 def run(args):
     folder = getattr(args, "dir", None) or default_dir()
     if not os.path.isdir(folder):
@@ -385,6 +425,21 @@ def run(args):
             print("  %-42s %6d 字节  %s" % (os.path.basename(p), os.path.getsize(p),
                                           _mtime_str(p)))
         return 0
+
+    if getattr(args, "watch", False) and not getattr(args, "file", None):
+        # 纯文件轮询：不碰键鼠、不启动游戏，所以用户自己导入自己玩也能用
+        got = wait_new_log(folder,
+                           timeout=getattr(args, "timeout", 900) or 900,
+                           settle=getattr(args, "settle", 8) or 8)
+        if not got:
+            print("✗ 等了 %d 秒没有新日志文件：%s"
+                  % (getattr(args, "timeout", 900) or 900, folder))
+            print("  先确认开关：设置 → 游戏 → 综合 → 自定游戏-地图工坊 →"
+                  "「启用地图工坊查看器日志文件」（同页另一个也开）")
+            print("  或者拿查看器底部「复制记录到剪贴板」的内容，存成 records.txt 用 --file 指定。")
+            return 2
+        args.file = got
+        files = list_logs(folder)
 
     path = getattr(args, "file", None)
     if path:
