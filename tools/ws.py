@@ -7,7 +7,7 @@
   python tools/ws.py 知道 创建HUD文本                查一个元素的六段事实（身份/参数/能出现在哪/取值/已知坑/出处）
   python tools/ws.py defaults 创建HUD文本              查参数默认值（省略时游戏用什么）
   python tools/ws.py publish 模式.ow --outdir out [--obf numbers,vars]
-  python tools/ws.py readlog [--list|--raw|--expect c1=2]  读工坊日志（游戏自己落盘）
+  python tools/ws.py readlog [--list|--raw|--expect c1=2]  读工坊记录（查看器复制出来的 / 落盘文件）
   python tools/ws.py gen --src 导出目录                 重新生成 data/
   python tools/ws.py diff --prev 旧导出 --cur 新导出     全量对照
 
@@ -667,7 +667,7 @@ def cmd_corpus(args):
 
 
 def cmd_readlog(args):
-    """转调 tools/logread.py：读游戏自动落盘的工坊查看器日志。"""
+    """转调 tools/logread.py：读工坊记录（用户从查看器复制的 records.txt，或恰好存在的 Log-*.txt）。"""
     import logread
     return logread.run(args)
 
@@ -1356,7 +1356,7 @@ def main():
     p.add_argument("--cur", required=True)
     p.set_defaults(func=lambda a: __import__("data_diff").main_with_args(a))
 
-    p = sub.add_parser("readlog", help="读工坊查看器日志（游戏自动落盘，不用用户复制）")
+    p = sub.add_parser("readlog", help="读工坊记录（默认读用户从查看器复制的 records.txt；也吃 Log-*.txt）")
     p.add_argument("--dir", help="日志目录，默认 %%USERPROFILE%%\\Documents\\Overwatch\\Workshop")
     p.add_argument("--file", help="指定日志文件（不给就取最新的那个）")
     p.add_argument("--list", action="store_true", help="列出最近 10 个日志文件")
