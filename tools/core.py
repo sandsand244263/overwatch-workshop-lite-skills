@@ -80,7 +80,10 @@ GENERAL_KEYS = ("允许切换英雄", "复生时间", "急救包刷新", "游戏
 
 
 def check_mode_general(text, problems):
-    """检查 `模式 { ... 综合 { ... } }` 里的键是否在实测白名单内。"""
+    """检查 `模式 { ... 综合 { ... } }` 里的键是否在实测白名单内。
+
+    依据：无数据表（白名单 GENERAL_KEYS 硬编码在 core.py:78，靠实测攒的、已过期，见 DISABLED_CHECKS）
+    """
     idx = text.find("模式")
     while idx != -1:
         brace = text.find("{", idx)
@@ -697,6 +700,8 @@ def check_setting_range(text, ranges, problems):
 
     边界可能只有一侧（大厅页只能看到滑杆最大值）；只有一侧有证据时就只查那一侧。
     level 跟着数据来源走：游戏数据里的 min/max 是 error，实机看到的滑杆边界是 warning。
+
+    依据：data/setting-ranges.tsv（手工固化 v3.14.0，无生成器）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     if not ranges:
@@ -2020,6 +2025,8 @@ def check_setting_keys(text, problems, setting_keys, hero_names=None):
 
     键改名（比如「急救包刷新时间」→「急救包刷新」）导入时只报
     「之后应有一个游戏模式设置」，看不出是键没了。
+
+    依据：data/setting-keys.tsv（生成源 tools/gen_name_tables.py）
     """
     if not setting_keys:
         return
@@ -2142,7 +2149,10 @@ def _hero_names():
 
 
 def check_event_names(text, problems, event_names):
-    """事件块第一行的事件名必须还在当前版本事件表里。"""
+    """事件块第一行的事件名必须还在当前版本事件表里。
+
+    依据：data/events.tsv（生成源 tools/enrich.py）
+    """
     if not event_names:
         return
     lines = text.split("\n")
@@ -2214,7 +2224,10 @@ ELEMENT_HI_RATIO = 1.23       # 与 ws.py cmd_count 的 RATIO_HI 同步（S2b �
 
 
 def check_limits(path, text, problems, sigs=None, labels=None):
-    """单条规则字节数上限 + 元素数上限。"""
+    """单条规则字节数上限 + 元素数上限。
+
+    依据：data/limits-mutex.tsv（生成源 tools/gen_element_facts.py）
+    """
     for m in re.finditer(r"^\s*规则\(", text, re.M):
         ob = text.find("{", m.end())
         if ob < 0:
@@ -2864,6 +2877,8 @@ def check_map_codes(text, problems, strict=False):
     1. 前缀必须是 9727775195…（error 级思路，warning 输出）
     2. 前缀对、但三张编号表里都查不到 → 多半手抄错一位（warning）
        实测（2026-10-23）：8 个真实模式 + 104 个回归样本，除故意的反例外零命中
+
+    依据：data/map-codes-derived.tsv（手工固化 v2.95.0，无生成器）
     """
     known = load_known_map_codes()
     for i, raw in enumerate(text.split("\n"), 1):
@@ -2928,6 +2943,8 @@ def check_map_mode(text, problems, traits=None, pools=None, strict=False):
     2026-10-23 修：以前只有「名字 + 时段编号」的行会被检查，**只写地图名（文档推荐的写法）
     会被当成裸标签行缓冲掉**，池子数据实际上从未生效。现在 `启用地图` 块里的一行就是地图，
     不论带不带编号都查。
+
+    依据：data/map-pools.tsv（手工固化 v3.10.22，无生成器）
     """
     traits = traits if traits is not None else load_map_traits()
     pools = pools if pools is not None else load_map_pools()
@@ -2997,7 +3014,10 @@ def load_importer_verified(path=None):
 
 
 def check_importer_verified(text, problems, types=None):
-    """实机确认被拒的「键 + 层」组合 → 必改，不再让用户重新试一遍。"""
+    """实机确认被拒的「键 + 层」组合 → 必改，不再让用户重新试一遍。
+
+    依据：data/importer-verified.tsv（手工固化 v3.10.20，无生成器）
+    """
     table = load_importer_verified()
     if not table:
         return
@@ -3844,6 +3864,8 @@ def check_bare_value_names(text, problems, zero=None):
     实测（2026-10-24）：`全局.g4 = 上一个效果ID;` —— 这个函数根本不存在（只有 上一个文本ID /
     上一个伤害调整ID / 最后创建的实体() 等），游戏报「第114行的"上"之后应有';'」，而 check 放过。
     边界处理：前面不能紧贴中文/字母（`玩家造成最后一击` 不算），后面接 `:` 的是设置键（`随机英雄复生:`）。
+
+    依据：data/signatures.md（生成源 tools/gen_data.py）
     """
     zero = zero if zero is not None else load_zero_arg_funcs()
     if not zero:
@@ -3999,7 +4021,10 @@ def load_extensions(path, values_path=None):
 
 
 def check_extensions(text, problems, costs, unlocked=None, base_options=None):
-    """扩展块：名字合法性、点数合计、派生上限；以及「用了扩展效果却没开扩展」。"""
+    """扩展块：名字合法性、点数合计、派生上限；以及「用了扩展效果却没开扩展」。
+
+    依据：data/extensions.tsv（生成源 tools/gen_extensions.py）
+    """
     if not costs:
         return
     m = re.search(r"^\s*扩展\s*\n\s*\{", text, re.M)
@@ -4039,7 +4064,10 @@ def check_extensions(text, problems, costs, unlocked=None, base_options=None):
 
 
 def check_dropdown_values(text, problems, dropdowns):
-    """下拉参数的取值必须在该参数的可选项里（数据来自 param-docs.tsv）。"""
+    """下拉参数的取值必须在该参数的可选项里（数据来自 param-docs.tsv）。
+
+    依据：data/param-options.tsv（生成源 tools/gen_param_options.py）
+    """
     if not dropdowns:
         return
     text = strip_comments(text)
@@ -4103,7 +4131,10 @@ def check_dropdown_values(text, problems, dropdowns):
 
 
 def check_arg_count(text, problems):
-    """少数函数的参数不可省略，少给会报「之后应有一个选项」。"""
+    """少数函数的参数不可省略，少给会报「之后应有一个选项」。
+
+    依据：data/signatures.md（生成源 tools/gen_data.py）
+    """
     for name, need in MIN_ARGS.items():
         for m in re.finditer(re.escape(name) + r"\(", text):
             depth, j = 0, m.end() - 1
@@ -4177,6 +4208,8 @@ def check_map_names(text, problems, map_names):
 
     游戏更新会删改地图，旧模式里的地图名会失效；游戏只报
     「"地图("之后应有一个地图名称」，指不到根本原因。
+
+    依据：data/maps.tsv（生成源 tools/enrich.py）
     """
     if not map_names:
         return
