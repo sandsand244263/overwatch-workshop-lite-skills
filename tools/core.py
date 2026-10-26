@@ -612,6 +612,8 @@ def check_event_player_scope(text, problems):
     """「持续 - 全局」这类规则里不能用 事件玩家（没有事件上下文）。
 
     游戏报：「"事件玩家"值在"持续-全局"的规则中不被允许」。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     lines = text.split("\n")
@@ -756,6 +758,8 @@ def check_lobby_team_sum(text, problems):
     「两队都是 0」只报提示——那多半不是导入失败，而是开不了局，未实测不敢升。
     栏位还跟扩展点数挂钩（可用点数 = 4 × 空栏位数，见 docs/extensions.md 第七节），
     但因为大厅键在真实文件里常被整段省略，这里不按栏位去推算扩展点数。
+
+    依据（E-16）：大厅栏位边界，两队合计最多 12（2026-10-23 用户实机）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     vals = {}
@@ -903,6 +907,8 @@ def check_reassign_create(text, problems):
 
     2026-10-23 实机：HUD 规则里用 `创建HUD文本(…, 字符串, 默认可见度)` 每 0.5 秒调一次，
     游戏里完全看不到 HUD。要出现，首次必须带可见性：`可见` 或 `可见和字符串`。
+
+    依据（E-28）：重新赋值的三种语义（2026-10-23 实机 + 语料对照）
     """
     text = _mask(text)   # 整段先遮：注释/文案里的「, 可见,」不能当作「已经创建过」
     # 文件里只要有一处用「可见 / 可见和字符串」创建过，就说明文本会出现，
@@ -927,6 +933,8 @@ def check_health_percent_param(text, problems):
 
     2026-10-23 实机踩过：写 `设置最大生命值(事件玩家, 300)` 以为给 300 血，
     实际是 300%（3 倍）。想给 600 血的路霸一半血，要写 50。
+
+    依据（E-56）：能力矩阵第一轮 8 格（2026-10-24）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for m in re.finditer(r"设置最大生命值\(([^,，]*)[,，]\s*(\d+(?:\.\d+)?)\s*\)", text):
@@ -945,6 +953,8 @@ def check_speed_percent_param(text, problems):
     设置最大生命值 同一条读数）：想要 1.5 倍就写 150；写 1000 是 10 倍，几乎不可能是本意。
     阈值放在 250：9 份真实语料里这个参数的字面量最大 200（100×5 / 110×4 / 200×3 / 150 / 140…），
     250 上命中 0 条，82 个正样本同样 0 条。
+
+    依据（E-56）：能力矩阵第一轮 8 格（2026-10-24）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     for pos, n, args in _iter_calls(text, "设置移动速度"):
@@ -1045,6 +1055,8 @@ def check_hero_enable_layer(text, problems):
     「第38行的"200% })"之后应有一个队伍设置」——报错文案完全不提「启用英雄」，容易查错方向。
     合法父级：`综合`（猪猪钩钩乐·原版）或 `队伍1` / `队伍2`（找蛋躲猫猫，两个都是能玩的真实模式）。
     只有直接挂在 `英雄` 下才是错的——游戏那句报错「之后应有一个队伍设置」就是这么来的。
+
+    依据（E-18）：`启用英雄` 挂错层、游戏报错指错行（T15 探针）
     """
     text = _mask(text)   # 整段先遮：跨行块注释里的内容不算代码
     stack, pending = [], None
@@ -1143,6 +1155,8 @@ def check_maps_not_in_editor(text, problems):
 
     按**整词**匹配，不做子串匹配：`春节釜山寺院` 是池子里真实存在的条目（勇夺锦旗有），
     用子串匹配会把它误判成「釜山寺院」（2026-10-23 实测到的误报）。
+
+    依据（E-26）：地图变体以编辑器为准（2026-10-23 用户实机）
     """
     table = load_maps_not_in_editor()
     if not table:
@@ -1409,6 +1423,8 @@ def check_probe_invisible(path, text, problems):
 
     正确工具是 `隐藏英雄HUD` / `隐藏游戏模式HUD`（隐藏游戏自带 HUD），不是 `设置不可见`
     ——后者只让别人看不见你，自己屏幕上照样持枪。两条都放规则最前面（开赛前就生效）。
+
+    依据（E-35）：屏幕隐蔽最终配方（2026-10-23 用户实测）
     """
     p = (path or "").replace("\\", "/")
     if "probes/lab/" not in p:
@@ -1471,6 +1487,8 @@ def check_action_as_value(text, kinds, problems):
 
     实机：`事件玩家.hudId = 创建HUD文本(…)` 报「第111行的"="之后应有一个值」。
     正确写法是先调动作，再用值函数取结果：`创建HUD文本(…); 事件玩家.hudId = 上一个文本ID;`
+
+    依据（E-29）：动作不能当值（2026-10-23 实机报错）
     """
     for ln, line in enumerate(text.split("\n"), 1):
         s = strip_noise(line).strip()
@@ -1654,6 +1672,8 @@ def check_event_params(text, event_params, problems, event_param_words=None):
 
     .ow 里的写法是「事件名;」后面跟 N 行裸值（队伍 / 玩家筛选），
     例如 玩家造成最后一击 要跟 双方; 全部;。少写会报「之后应有一个队伍」。
+
+    依据：data/event-params.tsv（手工固化 v2.51.0，无生成器）
     """
     if not event_params:
         return
@@ -2197,7 +2217,10 @@ def check_event_names(text, problems, event_names):
 
 
 def check_subroutines(text, problems, subroutines):
-    """子程序完整性：调用必存在（error）、声明必被调用（warning）。"""
+    """子程序完整性：调用必存在（error）、声明必被调用（warning）。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
+    """
     if not isinstance(subroutines, dict):
         subroutines = {n: 0 for n in subroutines}
     called = {}
@@ -2470,6 +2493,8 @@ def check_hero_slots(text, problems, types=None, heroes=None):
     实测（2026-10-23）：`生成机器人(死神, 队伍1, …)` 游戏报
     「第49行的"生成机器人("之后应有一个值」——裸写英雄名不认，
     语料里一律是 `生成机器人(英雄(破坏球), …)`。
+
+    依据（E-51）：队伍值集 + 英雄参数必须包 `英雄(…)`
     """
     types = types or load_param_types()
     heroes = heroes if heroes is not None else load_hero_names()
@@ -2509,6 +2534,8 @@ def check_bare_var_assign(text, problems):
     """裸变量名赋值：`i = 1;` 应为 `事件玩家.i = 1;` 或 `全局.i = 1;`。
 
     实测：写成裸名字游戏报「'1);' 之后应有一个值」，指不到真正原因。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     span = _var_block_span(text)
     names = set()
@@ -2657,6 +2684,8 @@ def check_bare_strings(text, problems):
 
     实测：`记入查看器("[测试] 开始")` 报「"记入查看器("之后应有一个值」。
     单独成行的 "注释" 是合法写法，不受影响（那种行不以 ; 结尾）。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     for line_no, raw in enumerate(text.split("\n"), 1):
         s = raw.strip()
@@ -3061,6 +3090,8 @@ def check_setting_belongs(text, problems, types=None):
 
     实测：复生时间属于「英雄」层，丧尸把 复生时间 写进「决斗先锋」块 → 导入报
     「之后应有一个游戏模式设置」。决斗先锋里对应的是「复生时间倍率」。
+
+    依据（E-47）：持续规则 8 格矩阵 + F1 别名复核（2026-10-23）
     """
     types = types or load_setting_types()
     if not types:
@@ -3227,6 +3258,8 @@ def check_empty_setting_values(text, problems):
 
     实测：导出会把某些值吞掉（招架姿态恢复倍率:）。这类键报提示而不是必改：
     文件本身是导出产物，值是被导出弄丢的，补上真实数值即可。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     in_settings = False
     depth = 0
@@ -3584,6 +3617,8 @@ def check_prestart_counter(text, problems):
       4) 整条规则里既没有 `游戏正在进行中` 也没有 `正在设置`（有一句就算加过门）。
     只放宽到「持续规则里有自增」会是纯噪声（`check_prestart_damage` 记过同类放宽 112 处）。
     9 份真实语料 0 条命中。
+
+    依据（E-89）：开局倒计时读数补录（持续规则在倒计时期间就在跑）
     """
     for rname, body in _iter_rule_blocks(text):
         ev = _rule_event_lines(body)
@@ -3818,6 +3853,8 @@ def check_arg_counts(text, problems, counts=None):
     实测（2026-10-24）：`创建效果(…, 球体, 颜色, 位置, 5)` 只有 5 个参数，
     签名里第 6 个「可以省略」，但游戏报「第113行的"50"之后应有';'」；语料里同一动作全是 6 个。
     只对表里给了硬下限的元素生效（当前只有 `创建效果`）——语料统计只是参考，不当约束用。
+
+    依据（E-55）：两类「签名说能省、引擎不认」实测（2026-10-24）
     """
     counts = counts if counts is not None else load_arg_counts()
     exceptions = load_param_exceptions()
@@ -3910,6 +3947,8 @@ def check_game_end_actions(text, problems):
     只认**动作行**里的调用：匹配跑在 `mask_text` 遮过字符串/注释的文本上，
     所以写在 `描述:` 字符串、`记入查看器("…")` 文案、`规则("…")` 名字里的动作名不算命中
     （v13 探针 c3：一份文件原来报 4 处，实际只有动作行那一处是真的）。
+
+    依据（E-84 + E-87）：六格证据探针 + v14 探针（2026-10-25）
     """
     lines = mask_text(text).split("\n")
     code_lines = [(i, ln) for i, ln in enumerate(lines) if not ln.strip().startswith("//")]
@@ -3936,7 +3975,10 @@ def check_game_end_actions(text, problems):
 
 
 def check_rule_semantics(text, problems):
-    """两条实测行为：`持续` 规则只跑一次（要循环必须 While + 等待）；While(真) 必须有退出手段。"""
+    """两条实测行为：`持续` 规则只跑一次（要循环必须 While + 等待）；While(真) 必须有退出手段。
+
+    依据（E-47）：持续规则 8 格矩阵（2026-10-23）
+    """
     text = _mask(text)   # 注释/文案里写一句 While(真) 不该被当成循环
     for m in re.finditer(r"^\s*规则\(\s*\"([^\"]*)\"\)", text, re.M):
         name = m.group(1)
@@ -4179,6 +4221,8 @@ def check_local_values(text, problems):
     两种写法都要查：函数式 `设置全局变量(x, …本地玩家…)`，以及裸赋值 `全局.x = …本地玩家…;`
     （2026-10-23 实机：探针里写 `全局.hpBefore = 生命值(本地玩家);` 就是栽在裸赋值这种写法上——
     当时只查了函数式，这行没被拦住，游戏直接报错）。
+
+    依据（E-19）：全局变量存了本地玩家 → 游戏报「局部值只能用于视觉效果或HUD动作」
     """
     seen = set()
     masked = _mask(text)
@@ -4249,6 +4293,8 @@ def check_missing_var_block(text, problems):
     2026-10-24 实机：把 `变量 { 全局: 0: V }` 整段删掉，游戏照样导入成功——
     以前这条对内置字母也报「必改」，把合法文件拦下来了（误报，已修）。
     只有 A~Z 之外的名字才要求声明。
+
+    依据（E-58）：内置字母变量不需要声明（2026-10-24 用户实机）
     """
     if re.search(r"^\s*变量\s*$", _mask(text), re.M):
         return
@@ -4282,6 +4328,8 @@ def check_var_letter_index(text, problems):
 
     索引 ≥26 的字母名不判：真实语料里有 `玩家: 77: S` / `78: E`，那是游戏自己导出来的，
     能导入（见 2026-10-24 语料读数），按「索引不在一等区」放过。
+
+    依据（E-58）：字母名绑错索引撞车（2026-10-24 用户实机）
     """
     span = _var_block_span(text)
     if not span:
@@ -4824,6 +4872,8 @@ def check_odd_quotes_raw(raw, problems):
 
     依据：`52840`「文本字符串中出现了换行」——字符串不能跨行，所以单行引号为奇数就是没闭合。
     S7 在 138 个语料样本、19,263 行上实测 **0 行命中**（D-006 门槛内）。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
         n, open_str = _scan_line_quotes(line)
@@ -4837,6 +4887,8 @@ def check_rule_missing_event_raw(raw, problems):
     """每条规则必须有 事件 块（`51160`「之后的规则没有以事件结尾」）。
 
     S7 实测：219 个规则块，0 个缺（含 9 份真实语料里能导入的 3 份）。
+
+    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
     """
     name, start, has_event, in_event = None, 0, False, False
     depth = 0
