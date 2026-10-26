@@ -2,6 +2,6 @@ check	var	table	family	filter	semantics
 check_var_slot_bare	check_var_slot_bare.specs	element-kinds.tsv	动作	^(设置|修改|在索引处修改|在索引处设置)(全局|玩家)变量$	exact
 check_arg_count	MIN_ARGS	element-kinds.tsv	动作	^(设置|修改|在索引处修改|在索引处设置)(全局|玩家)变量$	exact
 check_victory_in_loop	VICTORY_ACTIONS	element-kinds.tsv	动作	^(宣告|宣布)(玩家|队伍|回合|比赛)	exact
-check_game_end_actions	check_game_end_actions.names	element-kinds.tsv	动作	^(宣告|宣布)(玩家|队伍|回合|比赛)	exact
 check_lobby_ffa_slots	FFA_MODES,TEAM_MODES	mode-list.tsv	ow_name	^(?!全部)	coverage
 check_var_slot_ops	VAR_MODIFY_OPS	element-kinds.tsv	动作	^(修改|在索引处修改)(全局|玩家)变量$	exact
+check_game_end_actions	END_ACTIONS_ALL	element-kinds.tsv	动作	^(宣告|宣布)(玩家|队伍|回合|比赛)	exact

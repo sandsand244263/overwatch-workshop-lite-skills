@@ -3854,6 +3854,13 @@ def check_bare_value_names(text, problems, zero=None):
                              % (name, "、".join(sorted(n for n in zero if n.startswith(name[:2]))[:5]) or "（同前缀的也没有）")))
 
 
+END_ACTIONS_ALL = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局",
+                   "宣告回合胜利", "宣布回合为平局")
+# 死斗里无效的四个（E-93 实测：宣告回合胜利 也无效）；宣告玩家胜利 只在死斗有效
+END_ACTIONS_FFA_INVALID = tuple(n for n in END_ACTIONS_ALL if n != "宣告玩家胜利")
+END_ACTIONS_ONLY_FFA = tuple(n for n in END_ACTIONS_ALL if n == "宣告玩家胜利")
+
+
 def check_game_end_actions(text, problems):
     """结束比赛的动作要跟模式匹配（官方说明里写死了适用范围）。
 
@@ -3869,7 +3876,7 @@ def check_game_end_actions(text, problems):
     """
     lines = mask_text(text).split("\n")
     code_lines = [(i, ln) for i, ln in enumerate(lines) if not ln.strip().startswith("//")]
-    names = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局")
+    names = END_ACTIONS_ALL
     if not any(n in ln for _i, ln in code_lines for n in names):
         return
     modes = _ffa_enabled_modes(text)
@@ -3877,7 +3884,7 @@ def check_game_end_actions(text, problems):
         return
     ffa = any(("死斗" in m) and ("团队" not in m) and (not m.startswith("禁用")) for m in modes)
     mode_txt = "、".join(modes) or "该模式"
-    bad = ("宣布比赛为平局", "宣告队伍胜利") if ffa else ("宣告玩家胜利",)
+    bad = END_ACTIONS_FFA_INVALID if ffa else END_ACTIONS_ONLY_FFA
     for i, ln in code_lines:
         for name in bad:
             if name in ln:

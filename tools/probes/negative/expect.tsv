@@ -80,3 +80,4 @@ var-slot-prefix-index.ow	变量槽要写裸名	check_var_slot_bare：在索引�
 empty-event-block.ow	事件 块是空的
 duplicate-rule-name.ow	规则名「重复的名字」重复
 undeclared-global-var.ow	没有在变量块「全局:」段声明
+ffa-round-victory.ow	在死斗里无效
