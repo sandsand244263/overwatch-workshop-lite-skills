@@ -1218,7 +1218,7 @@ def load_mode_aliases(path=None):
     依据 E-94（2026-10-26 用户实机）：`模式 { 攻击/护送 { … } }` 游戏报
     「第 23 行的"模式 {"之后应有一个游戏模式设置」并拒绝导入——`.ow` 里只认 `攻击护送`。
     2026-10-26 扩到**所有差异名**：不只带斜杠的，`占领要点（6V6）` 这类界面变体同样要翻成
-    `占领要点 6v6`（同类问题，界面名 ≠ .ow 名；括号变体本身还没单独实测，报错文案里会说明）。
+    `占领要点 6v6`。括号形式已补对照实测（E-96）：P19 写界面名被拒、P20 换 ow_name 导入成功。
     """
     if getattr(load_mode_aliases, "_cache", None) is not None:
         return load_mode_aliases._cache
@@ -1338,7 +1338,7 @@ def _check_mode_name(name, line_no, problems, modes):
     if alias:
         problems.append((line_no, "error",
                          "「%s」是界面上的模式名，`.ow` 里必须写「%s」"
-                         "（E-94 实测：写成界面显示名，游戏报「模式 { 之后应有一个游戏模式设置」并拒绝导入）"
+                         "（E-94 / E-96 实测：写成界面显示名，游戏报「模式 { 之后应有一个游戏模式设置」并拒绝导入）"
                          % (name, alias)))
         return
     if not name or name in EXTRA_SETTING_BLOCKS or name in modes:
