@@ -536,7 +536,37 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 名单差集断言自身出错：%s" % e)
         bad += 1
-    # 检查名单 ⇄ lint() 的漂移：定义了却没接进 lint，等于「76 条检查」里混着死代码。
+    # 文档里的 E 编号必须真存在（docs 引了 EVIDENCE.md 里没有的编号 = 编造依据）
+    # v17-批 5：把「文档说依据是 E-xx」这件事也变成机器可判——图纸上一写、代码里没依据、
+    # 证据库里也没有，就会一路传下去没人发现。
+    try:
+        import re as _re2
+        import anchors as _anchors
+        ids = _anchors._evidence_ids()
+        root = os.path.dirname(here)
+        scanned = [os.path.join(root, "SKILL.md"), os.path.join(root, "CHANGELOG.md")]
+        scanned += sorted(glob.glob(os.path.join(root, "docs", "*.md")))
+        cited, missing = set(), {}
+        for p in scanned:
+            if not os.path.isfile(p):
+                continue
+            src = open(p, encoding="utf-8", errors="replace").read()
+            for e in set(_re2.findall(r"E-\d+", src)):
+                cited.add(e)
+                if e not in ids:
+                    missing.setdefault(e, []).append(os.path.basename(p))
+        if missing:
+            print("✗ 文档里引用了 EVIDENCE.md 没有的 E 编号：%s"
+                  % "; ".join("%s（%s）" % (e, "/".join(v[:3])) for e, v in sorted(missing.items())))
+            bad += 1
+        else:
+            core_src = open(os.path.join(here, "core.py"), encoding="utf-8").read()
+            not_in_code = sorted(e for e in cited if e not in core_src)
+            print("· 文档 E 编号：%d 个，全部在 EVIDENCE.md 里（其中 %d 个还没写进 core.py）"
+                  % (len(cited), len(not_in_code)))
+    except Exception as e:
+        print("· 文档 E 编号断言跳过：%s" % e)
+    # 检查名单 ⇄ lint() 的漂移：定义了却没接进 lint，等于「77 条检查」里混着死代码。
     # v16 实测：check_duplicate_rule_names 从来没跑过（已接上）；check_mode_general 停用后在 v17 批 3 删掉。
     try:
         import re as _re
