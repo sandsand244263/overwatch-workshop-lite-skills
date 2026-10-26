@@ -65,7 +65,8 @@ def main():
             f.write(text)
         errs = [p for p in core.full_lint(path, DATA)
                 if p[1] == "error"
-                and "不是工坊里能选到的模式" not in p[2]]
+                and "不是工坊里能选到的模式" not in p[2]
+                and "是界面上的模式名" not in p[2]]
         if errs:
             bad.append((mode, "第 %s 行：%s" % (errs[0][0], errs[0][2][:70])))
         elif args.verbose:

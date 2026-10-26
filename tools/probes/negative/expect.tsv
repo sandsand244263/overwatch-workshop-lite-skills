@@ -28,7 +28,7 @@ lobby-spectator-over.ow	观战者人数上限 的值 999	观战者写 999（超�
 lobby-zero-slots.ow	至少要留 1 个栏位	两队都写 0，开不了局
 lobby-one-team-twelve.ow	只写了 玩家上限	只写 队伍1: 12，另一队按默认 5 人算
 lobby-one-team-eight.ow	只写了 玩家上限	只写 队伍1: 8，8+5=13 超栏位
-lobby-ffa-in-team-mode.ow	必须写 0	团队模式却写了自由混战 10
+lobby-ffa-in-team-mode.ow	一般写 0	团队模式却写了自由混战 10
 lobby-ffa-zero-in-deathmatch.ow	至少 1	死斗却写自由混战 0
 action-as-value.ow	不能写在等号右边	玩家.hudId = 创建HUD文本(…)：动作不能当值
 team-word-in-player-slot.ow	队伍筛选词	播放效果(双方, …)：可见参数要玩家，不是队伍
@@ -71,7 +71,6 @@ block-wrong-layer.ow	不该直接挂在	check_block_layers：模式块挂到「�
 duplicate-block.ow	块出现了 2 次	check_duplicate_blocks：两个顶层变量块
 undeclared-for-var.ow	没有在变量块里声明	check_types：For 的控制变量没声明
 undeclared-player-var.ow	没有在变量块「玩家:」段声明	check_var_refs：事件玩家.hp 未声明
-var-case-collision.ow	变量名只差大小写	check_misc 子规则：hp / HP
 ffa-team-filter.ow	取到的是空数组	check_ffa_team_filter：死斗里 所有玩家(队伍1)
 prestart-counter.ow	一进游戏就每秒给	check_prestart_counter：持续-全局 自增无开赛守卫
 hud-id-not-saved.ow	删除参数拿不到真实 ID	check_hud_id_not_saved：循环里先删后建但没存 上一个文本ID
@@ -81,3 +80,6 @@ empty-event-block.ow	事件 块是空的
 duplicate-rule-name.ow	规则名「重复的名字」重复
 undeclared-global-var.ow	没有在变量块「全局:」段声明
 ffa-round-victory.ow	在死斗里无效
+event-filter-all-teams.ow	队伍过滤	E-94：所有队伍 不是事件选择器词
+mode-name-ui-alias.ow	是界面上的模式名	E-94：模式块写 攻击/护送 被拒
+no-settings-block.ow	格式不完整	E-94：没设置块导不进去

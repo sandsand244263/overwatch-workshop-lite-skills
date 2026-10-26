@@ -791,10 +791,13 @@ def _mode_block_names(text):
 
 
 def check_lobby_ffa_slots(text, problems):
-    """`自由混战人数上限` 要看模式：团队模式必须 0，死斗类至少 1。
+    """`自由混战人数上限` 要看模式：团队模式一般写 0，死斗类至少 1。
 
-    2026-10-23 用户实机：团队模式下自然混战栏位必须为 0（占着栏位大厅设置无效）；
-    死斗这类自由混战模式最低 1。认不出的模式、两种模式混写，一律不判。
+    2026-10-23 用户实机：团队模式下自然混战栏位占着会「大厅设置无效」。
+    **2026-10-26 复核（E-94，v17 探针 P7）**：团队模式（攻击护送）+ 上限写 2，
+    导入成功、比赛照常开始（心跳 11 次），没有挡住开局——所以团队分支从必改降为提示：
+    「大厅栏位会不会被悄悄置 0」还没看到，等一次大厅读数再定去留。
+    死斗分支仍按 2026-10-23 读数判（至少 1）。认不出的模式、两种模式混写，一律不判。
     """
     names = [n for n in _mode_block_names(text) if n not in ("综合", "英雄", "地图工坊")]
     if not names:
@@ -819,9 +822,10 @@ def check_lobby_ffa_slots(text, problems):
                              "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
     elif team and not ffa:
         if v > 0:
-            problems.append((idx, "error",
-                             "团队模式下 自由混战人数上限 必须写 0，这里写的是 %g"
-                             "（界面会提示「大厅设置无效」%s）" % (v, LOBBY_ERR)))
+            problems.append((idx, "warning",
+                             "团队模式下 自由混战人数上限 一般写 0，这里写的是 %g"
+                             "（大厅可能出现「大厅设置无效」%s；但 E-94 实测写 2 也能开局，"
+                             "这条只提示、不挡导入）" % (v, LOBBY_ERR)))
 
 
 
@@ -973,6 +977,8 @@ def check_percent_operator(text, problems):
 
     2026-10-23 实机：`设置受到伤害(事件玩家, 50%)` 报「第64行的"50%"之后应有一个值」——
     游戏把 `50 %` 当成「50 取余 …」，缺右操作数。
+    2026-10-26 复核（E-94，v17 探针 P8）：`50 % 7` 每轮 +1（11 秒读到 11），
+    `50 % 5` 每轮 +0（读到 0）——取余语义确认，不是百分号。
     语料实证：`总计消耗时间 * 60 % 360`（9 处）说明 `%` 确实存在且是取余。
     百分比在工坊里就是普通数字：要 50% 就写 `50`。
     """
@@ -1205,6 +1211,39 @@ def check_setting_key_layers(text, problems):
         pending = s
 
 
+def load_mode_aliases(path=None):
+    """模式名的「界面写法 → .ow 写法」对照（`data/mode-list.tsv` 里带斜杠的那些）。
+
+    依据 E-94（2026-10-26 用户实机）：`模式 { 攻击/护送 { … } }` 游戏报
+    「第 23 行的"模式 {"之后应有一个游戏模式设置」并拒绝导入——`.ow` 里只认 `攻击护送`，
+    带斜杠的是界面/表里的名字。只映射带斜杠的界面名，避免把 ow_name 自己映射成别人。
+    """
+    if getattr(load_mode_aliases, "_cache", None) is not None:
+        return load_mode_aliases._cache
+    path = path or os.path.join(DATA_DIR, "mode-list.tsv")
+    best, fallback = {}, {}
+    if os.path.isfile(path):
+        import csv as _csv
+        for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
+            ow = (r.get("ow_name") or "").strip()
+            if not ow:
+                continue
+            mode = (r.get("mode") or "").strip()
+            base = (r.get("base") or "").strip()
+            for ui in (mode, base):
+                if not ui or ui == ow or ("/" not in ui and "／" not in ui):
+                    continue
+                # 优先「界面名自己那一行」（mode 列等于它），别把 6v6 变体当成正解
+                if ui == mode:
+                    best.setdefault(ui, ow)
+                else:
+                    fallback.setdefault(ui, ow)
+    out = dict(fallback)
+    out.update(best)
+    load_mode_aliases._cache = out
+    return out
+
+
 def load_workshop_modes(path=None):
     """工坊「设置 → 模式」里**真能选到**的模式名（`data/mode-list.tsv` 的 ow_name + base）。
 
@@ -1296,6 +1335,15 @@ def _check_mode_name(name, line_no, problems, modes):
         if name.startswith(prefix):
             name = name[len(prefix):].strip()
             break
+    # 界面名（带斜杠）≠ .ow 里的名字。E-94 实机：`模式 { 攻击/护送 { … } }` 被游戏拒绝，
+    # 报「模式 { 之后应有一个游戏模式设置」；.ow 里只认 `攻击护送`。
+    alias = load_mode_aliases().get(name)
+    if alias:
+        problems.append((line_no, "error",
+                         "「%s」是界面上的模式名，`.ow` 里必须写「%s」"
+                         "（E-94 实测：写成带斜杠的界面名，游戏报「模式 { 之后应有一个游戏模式设置」并拒绝导入）"
+                         % (name, alias)))
+        return
     if not name or name in EXTRA_SETTING_BLOCKS or name in modes:
         return
     problems.append((line_no, "error",
@@ -1509,7 +1557,12 @@ def check_element_kind(text, kinds, problems):
 
 
 def check_string_interp(text, problems):
-    """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配（按括号配对取实参）。"""
+    """自定义字符串 / 字符串 的 {N} 数量必须与实参数量匹配（按括号配对取实参）。
+
+    依据（E-94，2026-10-26 实机 P9）：模板 `"ab{0}{1}"` 只给一个实参时，
+    游戏**不报错、照常导入**，但 `字符串长度` 读出 4（补齐时是 4 个字符的怪值，不是预期的 3）——
+    属于「静默产出错值」，所以这里只提示、不判必改。
+    """
     for m in re.finditer(r"(自定义字符串|字符串)\(", text):
         fn = m.group(1)
         i = m.end()
@@ -1684,14 +1737,23 @@ def check_event_params(text, event_params, problems, event_param_words=None):
                         continue
                     break
                 if event_param_words:
-                    for v in seen_vals:
+                    for k, v in enumerate(seen_vals):
+                        if k == 0:
+                            # 事件选择器第一行是「队伍过滤」。实机（E-94）：只认 双方 / 全部 / 队伍1 / 队伍2。
+                            # 写 `所有队伍` 时游戏报「第 N 行的"每名玩家:"之后应有一个队伍」并拒绝整份导入——
+                            # v17 的 9 个探针全因为这一行被拒（此前这里只查 warning 且词表里收了 所有队伍）。
+                            if v not in EVENT_TEAM_FILTERS:
+                                problems.append((j2, "error",
+                                                 "事件选择器的第一行是队伍过滤，只认 %s；「%s」游戏不认"
+                                                 "（E-94 实测：报「之后应有一个队伍」并拒绝导入）"
+                                                 % (" / ".join(EVENT_TEAM_FILTERS), v)))
+                            continue
                         # 第 3 段是英雄限制：可以写 全部 / 某个英雄名（实测「卢西奥」「黑影」）
                         if v in event_param_words or v in _hero_names():
                             continue
-                        if True:
-                            problems.append((j2, "warning",
-                                             "事件参数「%s」不在已知取值里（已知：%s）"
-                                             % (v, " / ".join(sorted(event_param_words)))))
+                        problems.append((j2, "warning",
+                                         "事件参数「%s」不在已知取值里（已知：%s）"
+                                         % (v, " / ".join(sorted(event_param_words)))))
                 if got < need:
                     problems.append((i + 1, "error",
                                      "事件「%s」需要 %d 个参数（队伍 / 玩家筛选），这里只有 %d 个"
@@ -2353,6 +2415,11 @@ STRING_WRAPPERS = {"自定义字符串", "字符串"}
 
 
 TEAM_VALUES = {"所有队伍", "队伍1", "队伍2"}
+# 事件选择器第一行（队伍过滤）能写的词——比 TEAM_VALUES 窄：**没有 所有队伍**。
+# 依据 E-94（2026-10-26 用户实机）：团队模式探针把这一行写成 `所有队伍;`，
+# 游戏报「第 108 行的"每名玩家:"之后应有一个队伍」并拒绝整份导入；同一批改成 `双方;` 后 8 个文件全部导入成功。
+# 与 E 系列一致：30724 双方 / 46194 队伍1 / 46193 队伍2 / 30718 全部。
+EVENT_TEAM_FILTERS = ("双方", "全部", "队伍1", "队伍2")
 # 宽松集：这些词「看着像队伍词」，出现在 Team 参数里要报错。
 # 实测（2026-10-23）：`玩家数量(全部)` 游戏报「之后应有一个值」——`全部` / `双方`
 # 只在事件块的选择器行里合法，不是队伍值。
@@ -4226,18 +4293,20 @@ def check_map_names(text, problems, map_names):
 
 
 def check_missing_settings_block(text, problems):
-    """只有工坊内容、没有「设置」块 —— 多半是从编辑器「全选复制」拿的。
+    """只有工坊内容、没有「设置」块 —— 导入会被判「格式不完整」，根本进不去。
 
     房间设置页的「复制设置」才会连 设置块（模式/地图/英雄/大厅）一起导出。
-    少了设置块，导入后房间配置会丢，模式可能跑不起来。
+    依据 E-94（2026-10-26 用户实机，v17 探针 P11）：整份文件只留 变量 + 规则 时，
+    游戏那边连导入都触发不了、提示格式不完整 —— 所以这里是必改，不是「配置会丢」。
     """
     if not re.search(r"^\s*规则\s*\(", text, re.M):
         return
     code = _mask(text)          # 注释里单独一行「设置」不算有设置块
     if re.search(r"^\s*设置\s*$", code, re.M) or re.search(r"^\s*设置\s*\{", code, re.M):
         return
-    problems.append((1, "warning",
-                     "这份文件只有工坊内容、没有「设置」块——大概是从编辑器「全选复制」拿的；"
+    problems.append((1, "error",
+                     "这份文件没有「设置」块，游戏会判「格式不完整」、根本导不进去"
+                     "（E-94 实测）——多半是从编辑器「全选复制」拿的；"
                      "要完整模式请回「房间设置」点「复制设置」重新导出"))
 
 
@@ -4457,18 +4526,9 @@ def check_misc(text, problems):
         _add(problems, text, offs[idx], "error", "地图 id 不能是 0：%s" % m.group(1).strip())
 
 
-    # 3) 变量名只差大小写
-    span = _var_block_span(text)
-    if span:
-        names = re.findall(r"^[ \t]*\d+\s*:\s*([A-Za-z_]\w*)\s*$",
-                           text[span[0]:span[1]], re.M)
-        groups = {}
-        for n in names:
-            groups.setdefault(n.lower(), set()).add(n)
-        for group in groups.values():
-            if len(group) > 1:
-                problems.append((0, "warning", "变量名只差大小写，工坊会当成同一个：%s"
-                                 % " / ".join(sorted(group))))
+    # 3) 「变量名只差大小写，工坊会当成同一个」——2026-10-26 实机推翻（E-94，P13）：
+    #    声明 Temp 与 temp，分别设 1 / 2，再分别读回，读出 1 / 2 → 是两个独立变量。
+    #    原判定会把合法文件判成提示，已撤；`check_var_letter_index` 那类「同字母不同段」的检查不受影响。
 
 
 
@@ -4897,19 +4957,40 @@ def check_name_too_long_raw(raw, problems, limit=32):
     """变量名 / 子程序名超过 32 个字符给提示。
 
     `60206` / `60282` 那族只说明「有过长的名称」，**上限值没测出来**，所以只能是 warning。
+    依据（E-94，2026-10-26 实机 P14）：39 个字符的子程序名被游戏拒绝，原话
+    「子程序"1"过长」——上限确实存在，但具体是 32 还是更大没测出来，所以仍按 32 只提示。
+    子程序名写在 `子程序 { 1: 名字 }` 里（不是 `子程序("…")`，那种写法 .ow 里不存在，
+    以前这条分支永远不触发，E-94 顺手揪出来的）。
     只查变量名与子程序名（语料实测最长 17 / 10）；
     **规则名不查** —— 真实语料里规则名常带「## 」「———」这类排版前缀、动辄 40 字符，
     9 份语料上一查就 20+ 条误报（D-006 门槛 3 条），整条规则名判定撤回。
     """
     text = raw.replace("\r\n", "\n")
+    in_sub = False
     for i, line in enumerate(text.split("\n"), 1):
-        m = re.match(r'^\s*子程序\("([^"]*)"', line)
+        st = line.strip()
+        if re.match(r"^子程序\s*$", st) or re.match(r"^子程序\s*\{", st):
+            in_sub = True
+            continue
+        if in_sub and st == "}":
+            in_sub = False
+        if in_sub:
+            body = st.split("//", 1)[0].strip()   # 真实语料里子程序名后面常跟 //【中文说明】
+            m = re.match(r"^\d+\s*:\s*(\S+)$", body)
+            if m and len(m.group(1)) > limit:
+                problems.append((i, "warning",
+                                 "子程序名「%s」有 %d 个字符，超过 %d —— 游戏会报「子程序过长」"
+                                 "并拒绝导入（E-94 实测 39 字符被拒；上限具体值未验证，"
+                                 "语料最长 10），建议缩到 20 内"
+                                 % (m.group(1), len(m.group(1)), limit)))
+                continue
+        m = re.match(r"^\s*子程序\(\"([^\"]*)\"", line)
         if m and len(m.group(1)) > limit:
             problems.append((i, "warning",
                              "子程序名「%s」有 %d 个字符，超过 %d —— 引擎有名字长度上限（具体值未验证，"
                              "语料最长 10），建议缩到 20 内" % (m.group(1), len(m.group(1)), limit)))
             continue
-        m = re.match(r'^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$', line)
+        m = re.match(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", line)
         if m and len(m.group(1)) > limit:
             problems.append((i, "warning",
                              "变量名「%s」有 %d 个字符，超过 %d —— 见 60206/60282，上限值未验证"
