@@ -536,8 +536,8 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 名单差集断言自身出错：%s" % e)
         bad += 1
-    # 检查名单 ⇄ lint() 的漂移：定义了却没接进 lint，等于「77 条检查」里混着死代码。
-    # v16 实测：check_duplicate_rule_names / check_mode_general 两条从来没跑过。
+    # 检查名单 ⇄ lint() 的漂移：定义了却没接进 lint，等于「76 条检查」里混着死代码。
+    # v16 实测：check_duplicate_rule_names 从来没跑过（已接上）；check_mode_general 停用后在 v17 批 3 删掉。
     try:
         import re as _re
         src = open(os.path.join(here, "core.py"), encoding="utf-8").read()

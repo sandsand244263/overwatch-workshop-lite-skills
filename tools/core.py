@@ -73,52 +73,6 @@ VERIFIED_NO_SLOTS = {
 # 依据：塔萨达练枪房 / 暴打大锤3 等真实模式在 占领要点、团队死斗、攻防作战… 下都写了这些键且能导入。
 COMMON_MODE_KEYS = {"复生时间", "英雄限制"}
 
-# 模式 > 综合 块里实测能导入的键（其余报「综合 { 之后应有一个游戏模式设置」）。
-# 数据里的设置分类（技能/武器/决斗先锋…）跟 .ow 的块结构不是一回事，推不出来，只能靠实测。
-GENERAL_KEYS = ("允许切换英雄", "复生时间", "急救包刷新", "游戏模式开始", "英雄限制",
-                "重装职责被动生命值加成", "随机英雄复生")
-
-
-def check_mode_general(text, problems):
-    """检查 `模式 { ... 综合 { ... } }` 里的键是否在实测白名单内。
-
-    依据：无数据表（白名单 GENERAL_KEYS 硬编码在 core.py:78，靠实测攒的、已过期，见 DISABLED_CHECKS）
-    """
-    idx = text.find("模式")
-    while idx != -1:
-        brace = text.find("{", idx)
-        if brace == -1:
-            break
-        depth, j = 1, brace + 1
-        while j < len(text) and depth:
-            if text[j] == "{":
-                depth += 1
-            elif text[j] == "}":
-                depth -= 1
-            j += 1
-        block = text[brace:j]
-        start = block.find("综合")
-        while start != -1:
-            ob = block.find("{", start)
-            depth2, k = 1, ob + 1
-            while k < len(block) and depth2:
-                if block[k] == "{":
-                    depth2 += 1
-                elif block[k] == "}":
-                    depth2 -= 1
-                k += 1
-            inner = block[ob:k]
-            for m in re.finditer(r"^\s*([^\s:]+)\s*:", inner, re.M):
-                key = m.group(1)
-                if key not in GENERAL_KEYS:
-                    line = text.count(chr(10), 0, brace) + 1
-                    problems.append((line, "warning",
-                                     "综合 块里的键 %s 未在实测样本中出现；实测有效：%s"
-                                     % (key, " / ".join(GENERAL_KEYS))))
-            start = block.find("综合", k)
-        idx = text.find("模式", j)
-
-
 
 def split_args(text):
     args, buf = [], []
@@ -1597,8 +1551,10 @@ def check_string_interp(text, problems):
 def check_duplicate_rule_names(text, problems):
     """同名规则会互相覆盖/难以排查。
 
-    v16：这条以前定义了但没接进 lint()（77 条里只有 75 条真在跑），
+    v16：这条以前定义了但没接进 lint()（定义 77 条里只有 75 条真在跑），
     复制整条规则 25/25 零输出。接上后按提示级报（同名不挡导入，但排查时找不到是谁）。
+
+    依据（E-92）：P3 同名规则实机导入成功、照常运行——所以只能做提示级，不能判必改。
     """
     seen = {}
     # 注释里的 规则("x") 不算：`//` 行和 `/* … */` 整段都换成空行（行号不变）。
@@ -1763,10 +1719,9 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "
 # 以前有两条检查写了却从没被 lint() 调用（check_duplicate_rule_names / check_mode_general），
 # 「77 条检查」这个说法里混着没在跑的，用户看不出来。现在由 selftest 盯住：
 # 定义 − 调用 − 本表 = 空，否则报错。
-DISABLED_CHECKS = {
-    "check_mode_general": "综合块键白名单已过期：5/9 真实语料 16 条误报（启用威能/急救包刷新时间/主动复生 都是合法键），"
-                          "要接上必须先重抓综合块键表（见 v16-re/notes）",
-}
+# 现在表是空的：最后一条 check_mode_general（综合块键白名单）已在 v17-批 3 删除——
+# 白名单过期、lint 从不调用，留着只会让「有 76 条检查」这个数虚高。
+DISABLED_CHECKS = {}
 _CACHE = {}
 
 
@@ -4106,7 +4061,7 @@ def check_extensions(text, problems, costs, unlocked=None, base_options=None):
 
 
 def check_dropdown_values(text, problems, dropdowns):
-    """下拉参数的取值必须在该参数的可选项里（数据来自 param-docs.tsv）。
+    """下拉参数的取值必须在该参数的可选项里（数据来自 param-options.tsv）。
 
     依据：data/param-options.tsv（生成源 tools/gen_param_options.py）
     """
@@ -4356,7 +4311,11 @@ def check_var_letter_index(text, problems):
 
 
 def check_var_refs(text, problems):
-    """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。"""
+    """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。
+
+    依据（E-92）：P2b 隔离格实机——未声明全局变量被游戏拒绝，报「设置全局变量( 之后应有一个变量」；
+    同一轮里 P2（变量块整段删掉）反而能导入，所以变量块整段缺失不归这条管。
+    """
     span = _var_block_span(text)
     if not span:
         return
