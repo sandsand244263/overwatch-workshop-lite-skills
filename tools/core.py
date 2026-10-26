@@ -4297,7 +4297,8 @@ def check_var_refs(text, problems):
             continue
         seen_ref.add(name)
         _add(problems, text, m.start(), "error",
-             "变量 %s 没有在变量块「全局:」段声明（A~Z 之外的变量必须先声明）" % name)
+             "变量 %s 没有在变量块「全局:」段声明（A~Z 之外的变量必须先声明；"
+             "游戏会报「设置全局变量( 之后应有一个变量」并拒绝导入，E-92 实机）" % name)
 
 
 def check_unassigned(text, problems):
