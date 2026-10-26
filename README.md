@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.24.5**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.25.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -106,7 +106,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 ## 校验器查什么
 
-三层，69 个检查函数。
+三层，77 个检查函数。
 
 **第一层 格式**：括号配对、分号、块结构、函数名、参数个数、变量名只能用英文、变量声明与引用、子程序声明、事件参数行数。
 
@@ -114,7 +114,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 | 对象 | 数据源 |
 |---|---|
-| 地图 | 291 张 |
+| 地图 | 306 行 / 216 个地名（含时段与节日变体） |
 | 英雄 | 54 个 |
 | 技能 | 196 个 |
 | 按钮 | 10 个 |
@@ -156,13 +156,13 @@ workshop-lite/
 │   ├── lobby-keys.tsv             大厅 12 键（数据侧无出处，来自实测样本）
 │   ├── mode-schemas.tsv           137 个模式 → 各自的 schema 列表
 │   ├── hero-schemas.tsv           135 个英雄 → 各自的 schema 列表
-│   ├── maps.tsv                   291 张地图 + GUID + 变体标记
+│   ├── maps.tsv                   306 行 / 216 个地名 + GUID + 变体标记
 │   ├── events.tsv                 14 个事件 + 参数位
 │   ├── strings.md                 615 条内置 `字符串(...)` 词条
 │   ├── defaults.tsv               每个参数省略时的默认值
 │   ├── dropdowns.tsv              下拉参数在编辑器里的常用候选值（非唯一合法值）
 │   ├── enums.md                   英雄 / 地图 / 下拉选项全集
-│   ├── action-tags.tsv            484 个动作的功能分类
+│   ├── action-tags.tsv            484 个元素（动作 + 值函数）的功能分类
 │   ├── settings-blocks/           8 份实测导入成功的设置块模板
 │   └── meta.json                  数据基线：build、导出日期
 ├── docs/                        数据里没有的知识，手写（29 篇）

@@ -38,7 +38,7 @@ python tools/ws.py fix 文件.ow --fix-bools
 | 表 | 管什么 | 谁生成 | 生效范围 |
 |---|---|---|---|
 | `data/setting-schemas.tsv` | 键的类型 / 归属 schema / 每个 schema 的 Min~Max / 编辑器显示词 | `tools/gen_setting_schemas.py`（源：CASC `ruleset_schemas.json`） | 类型判定、层级判定、`settings` 生成回填 |
-| `data/setting-ranges.tsv` | 数值键的上下界（454 键，含英雄技能层） | 手工维护（游戏数据 + 实机滑杆） | `check_setting_range`，error 级 |
+| `data/setting-ranges.tsv` | 数值键的上下界（459 键，含英雄技能层） | 手工维护（游戏数据 + 实机滑杆） | `check_setting_range`，error 级 |
 | `data/setting-ranges-lobby.tsv` | 大厅滑杆边界（界面里才看得到） | 手工维护（实机） | 同上，warning 级 |
 | `data/setting-values.tsv` | **词类键的合法取值**（13 个 ENUM 键，多 schema 取并集） | `tools/gen_setting_values.py`（源：`setting-schemas.tsv` + `enum-values.tsv`，`--check` 防漂移） | `check_setting_enum_values`，error 级 |
 | `data/setting-aliases.tsv` | 导出显示词 → 导入词的改写表（`禁用→关闭`…），以及「这个词在这个键上合法」的例外（`重装职责被动生命值加成: 禁用`） | 手工维护（每条带实测证据） | `check_setting_bools` / `ws.py fix --fix-bools` 的词表来源 |

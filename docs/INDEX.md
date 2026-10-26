@@ -40,12 +40,12 @@
 
 | 文件 | 内容 |
 |---|---|
-| `signatures.md` | 225 动作 + 266 值函数的参数签名（含类型与下拉可选值） |
-| `settings.tsv` | 269 设置键：类型与可写值 |
+| `signatures.md` | 225 动作 + 267 值函数的参数签名（含类型与下拉可选值） |
+| `settings.tsv` | 255 个设置键（370 行，含 5 行空键）：类型与可写值 |
 | `schema-keys.tsv` | schema → 键名（475 条），设置项归属的权威来源 |
-| `mode-schemas.tsv` | 模式 → schema 列表（137 模式） |
-| `hero-schemas.tsv` | 英雄 → schema 列表（135 英雄） |
-| `maps.tsv` | 291 地图名 + GUID + 变体标记 |
+| `mode-schemas.tsv` | 模式 → schema 列表（137 条，覆盖 56 个模式） |
+| `hero-schemas.tsv` | 英雄 → schema 列表（135 条，覆盖 108 个英雄） |
+| `maps.tsv` | 306 行 / 216 个地名 + GUID + 变体标记 |
 | `events.tsv` | 14 个事件 + 参数位 |
 | `strings.md` | 615 条文本选项（`字符串(...)` 只能用这里面的） |
 | `defaults.tsv` | 参数省略时的默认值 |

@@ -528,11 +528,11 @@ python python tools/ws.py check 你的文件.ow
 
 ### 可见键集的现状
 
-`data/hero-visible-keys.tsv`：**35 个英雄 / 151 条键**，来源两种——
+`data/hero-visible-keys.tsv`：**53 个英雄 / 1570 条键**，来源两种——
 - `golden2.ow` 真实导出（导入通过）：137 键 / 35 英雄，且 137/137 能被命名规则对上
 - 死神截图：15 键
 
-还差 19 个英雄：D.Mon、D.Va、埃姆雷、奥丽莎、安娜、拉玛刹、死怨、毛加、渣客女王、生命之梭、破坏球、秩序之光、莫伊拉、西拉、金驭、雾子、飞天猫、骇灾、黑百合。
+覆盖 53 个英雄（`data/heroes.tsv` 共 54 个，仅缺 `血律`）——曾列过「还差 19 个」，那 19 个现已全部补齐（2026-10-26 核对）。
 
 ## 英雄页的三层结构（UI 实测推导结论，2026-10-21）
 
@@ -559,8 +559,8 @@ python python tools/ws.py check 你的文件.ow
 
 ### 新增数据表
 
-- `data/settings-pages.tsv`：402 行，123 个页（分区 / 归属 / 页名 / 条目数 / 可写性）
-- `data/settings-page-entries.tsv`：2970 行（页 → 有序条目 → 显示名 → `.ow` 名 → 绑定技能 → 类型）
+- `data/settings-pages.tsv`：401 行，123 个页（分区 / 归属 / 页名 / 条目数 / 可写性）
+- `data/settings-page-entries.tsv`：2969 行（页 → 有序条目 → 显示名 → `.ow` 名 → 绑定技能 → 类型）
 - `data/hero-page-entries.tsv`：1752 行，带 `visibility` 与 `basis` 两列（visible / hidden / 条件不满足）
 
 ### UI 版式是写死的（不必再找）
@@ -577,7 +577,7 @@ python python tools/ws.py check 你的文件.ow
            − tag 门控条目（终极技能持续时间/_无限，仅持续型终极技能英雄）
 ```
 
-数据：`data/hero-visible-keys.tsv` 现为**可写键**语义，覆盖 **53 个英雄 / 1607 条**（26–38 条/英雄）。
+数据：`data/hero-visible-keys.tsv` 现为**可写键**语义，覆盖 **53 个英雄 / 1570 条**（26–38 条/英雄）。
 
 ### tag 门控的已知范围
 
