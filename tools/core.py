@@ -1213,44 +1213,41 @@ def check_setting_key_layers(text, problems):
 
 
 def load_mode_aliases(path=None):
-    """模式名的「界面写法 → .ow 写法」对照（`data/mode-list.tsv` 里带斜杠的那些）。
+    """模式名的「界面写法 → .ow 写法」对照（`data/mode-list.tsv` 里界面名与 ow_name 不同的那些）。
 
     依据 E-94（2026-10-26 用户实机）：`模式 { 攻击/护送 { … } }` 游戏报
-    「第 23 行的"模式 {"之后应有一个游戏模式设置」并拒绝导入——`.ow` 里只认 `攻击护送`，
-    带斜杠的是界面/表里的名字。只映射带斜杠的界面名，避免把 ow_name 自己映射成别人。
+    「第 23 行的"模式 {"之后应有一个游戏模式设置」并拒绝导入——`.ow` 里只认 `攻击护送`。
+    2026-10-26 扩到**所有差异名**：不只带斜杠的，`占领要点（6V6）` 这类界面变体同样要翻成
+    `占领要点 6v6`（同类问题，界面名 ≠ .ow 名；括号变体本身还没单独实测，报错文案里会说明）。
     """
     if getattr(load_mode_aliases, "_cache", None) is not None:
         return load_mode_aliases._cache
     path = path or os.path.join(DATA_DIR, "mode-list.tsv")
-    best, fallback = {}, {}
+    out = {}
     if os.path.isfile(path):
         import csv as _csv
         for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
             ow = (r.get("ow_name") or "").strip()
             if not ow:
                 continue
+            # **只拿 `mode` 列（界面显示名）做映射**：`base` 列是「这一行属于哪个基础模式」，
+            # 在 6v6 行里 base=运载目标 而 ow_name=运载目标 6v6——拿 base 映射会把合法名改坏
+            # （2026-10-26 实测：语料 4 份被误报「运载目标/闪点作战 要写 6v6 版」）。
             mode = (r.get("mode") or "").strip()
-            base = (r.get("base") or "").strip()
-            for ui in (mode, base):
-                if not ui or ui == ow or ("/" not in ui and "／" not in ui):
-                    continue
-                # 优先「界面名自己那一行」（mode 列等于它），别把 6v6 变体当成正解
-                if ui == mode:
-                    best.setdefault(ui, ow)
-                else:
-                    fallback.setdefault(ui, ow)
-    out = dict(fallback)
-    out.update(best)
+            if mode and mode != ow:
+                out.setdefault(mode, ow)
     load_mode_aliases._cache = out
     return out
 
 
 def load_workshop_modes(path=None):
-    """工坊「设置 → 模式」里**真能选到**的模式名（`data/mode-list.tsv` 的 ow_name + base）。
+    """工坊「设置 → 模式」里**真能写进 `.ow`** 的模式名（`data/mode-list.tsv` 的 `ow_name`，21 个）。
 
     2026-10-24 用户实测反馈：动感斗球 / 温斯顿的沙滩排球这类模式在工坊界面里选不到。
-    它们只存在于内部 schema 表（`mode-pages.tsv` 有 55 个），和「能选的 21 个」不是一回事。
-    写这些名字进 `.ow`，导入时哪一步都过不去。
+    它们只存在于内部 schema 表（`mode-pages.tsv` 有 56 个），和「能选的 21 个」不是一回事。
+    2026-10-26（E-94）：**只收 ow_name**。`mode` / `base` 两列是界面显示名（`占领要点（6V6）`、
+    `攻击/护送`），写进 `.ow` 会被游戏拒（「模式 { 之后应有一个游戏模式设置」），
+    所以它们不进这个集合，而在 `load_mode_aliases()` 里翻成 ow_name 报给用户。
     """
     if getattr(load_workshop_modes, "_cache", None) is not None:
         return load_workshop_modes._cache
@@ -1259,10 +1256,9 @@ def load_workshop_modes(path=None):
     if os.path.isfile(path):
         import csv as _csv
         for r in _csv.DictReader(open(path, encoding="utf-8"), delimiter="\t"):
-            for col in ("ow_name", "base", "mode"):
-                v = (r.get(col) or "").strip()
-                if v and v != "全部":
-                    names.add(v)
+            v = (r.get("ow_name") or "").strip()
+            if v and v != "全部":
+                names.add(v)
     load_workshop_modes._cache = names
     return names
 
@@ -1342,7 +1338,7 @@ def _check_mode_name(name, line_no, problems, modes):
     if alias:
         problems.append((line_no, "error",
                          "「%s」是界面上的模式名，`.ow` 里必须写「%s」"
-                         "（E-94 实测：写成带斜杠的界面名，游戏报「模式 { 之后应有一个游戏模式设置」并拒绝导入）"
+                         "（E-94 实测：写成界面显示名，游戏报「模式 { 之后应有一个游戏模式设置」并拒绝导入）"
                          % (name, alias)))
         return
     if not name or name in EXTRA_SETTING_BLOCKS or name in modes:
