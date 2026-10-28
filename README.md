@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.26.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.26.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -193,7 +193,7 @@ workshop-lite/
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   ├── selfcheck_modes.py         55 个模式全生成一遍自查（生成器与校验器不许打架）
-│   └── probes/                    85 正样本 + 86 反向用例（含 4 个可运行样例）
+│   └── probes/                    85 正样本 + 86 反向用例（含 4 个可运行样例）；lab/ 是历史证据档，check-all 不扫
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
