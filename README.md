@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.30.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.30.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -106,7 +106,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 ## 校验器查什么
 
-三层，77 个检查函数。
+三层，81 个检查函数。
 
 同一句文案刷屏时只印一次（导出文件常见：54 处只有 9 类），给前 6 个行号 + 总处数；
 要全部行号用 `check --json`。
@@ -194,7 +194,7 @@ workshop-lite/
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   ├── selfcheck_modes.py         55 个模式全生成一遍自查（生成器与校验器不许打架）
-│   └── probes/                    85 正样本 + 86 反向用例（含 4 个可运行样例）；lab/ 是历史证据档，check-all 不扫
+│   └── probes/                    85 正样本 + 89 反向用例（含 4 个可运行样例）；lab/ 是历史证据档，check-all 不扫
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -271,7 +271,7 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-85 正样本 + 86 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑（Ubuntu + Windows 双平台）。
+85 正样本 + 89 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑（Ubuntu + Windows 双平台）。
 
 ```bash
 python tools/ws.py calib            # 43 个元素标定样本，偏差必须为 0
