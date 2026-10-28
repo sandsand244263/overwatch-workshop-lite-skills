@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.26.1**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.27.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -149,6 +149,7 @@ workshop-lite/
 ├── SKILL.md                     技能入口：目录契约、入口命令、工作流、生成纪律
 ├── data/                        游戏导出生成，禁止手改
 │   ├── signatures.md              225 动作 + 267 值函数的参数签名（含类型与下拉值）
+│   ├── element-types.tsv          505 个元素的类别与返回类型（`check --strict` 的类型诊断用）
 │   ├── settings.tsv               370 条设置项：schema / 键 / 类型 / 可选值
 │   ├── setting-ranges.tsv         459 个设置键的数值上下界（含英雄技能层）
 │   ├── setting-values.tsv         13 个枚举键的合法取值（多 schema 取并集）

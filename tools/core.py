@@ -1485,6 +1485,136 @@ def load_element_kinds(path):
     return out
 
 
+def load_element_outputs(path=None):
+    """元素名 -> 返回类型（Float / Boolean / Player / Vector / String …）。
+
+    期望类型不另建表：`load_param_types()` 已经能给出 (元素 → {序号: 类型})，口径同一份。
+    """
+    import csv as _csv
+    path = os.path.abspath(path or os.path.join(DATA_DIR, "element-types.tsv"))
+    if not os.path.isfile(path):
+        return {}
+    out = {}
+    for r in _csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"):
+        name = (r.get("element") or "").strip()
+        t = (r.get("output") or "").strip()
+        if name and t and t != "-":
+            out[name] = t
+    return out
+
+
+# 类型对不上的组合。**只收「引擎不做过隐式转换」的槽位**：
+# 2026-10-28 实测（9 份真实语料）：`If(数量(…))`、`已过滤的数组(arr, 数量(…))` 这种
+# 「数值当布尔」是合法写法（非 0 即真）；`Y方向分量(选择英雄的玩家(…))`、
+# `最近的可行走位置(距离最近的玩家(…))` 这种「玩家当位置」也合法。所以
+# Boolean / Float / Integer / Vector 不再收玩家和数值——收了就是误报。
+TYPE_CONFLICTS = {
+    "String": {"Float", "Integer", "Number", "Player", "Vector", "Team", "Hero", "Boolean"},
+    "Float": {"String", "Player", "Vector", "Team", "Hero"},
+    "Integer": {"String", "Player", "Vector", "Team", "Hero"},
+    "Boolean": {"String", "Vector", "Team", "Hero"},
+    "Vector": {"String", "Team", "Hero", "Boolean"},
+    "Player": {"String", "Vector", "Boolean"},
+    "Team": {"String", "Vector", "Boolean"},
+    "Hero": {"String", "Vector", "Boolean"},
+}
+
+
+def _sole_call(arg):
+    """实参是不是「整个实参就是一个调用」：是则返回名字，否则 None。
+
+    必须平衡扫描到结尾：`If(相距距离(事件玩家) < 5)` 的第一个实参以 `)` 结尾但后面还有 `< 5`，
+    用 `^名字\\(.*\\)$` 这种正则会把它当成「相距距离(...)」，于是把比较表达式误判成类型冲突。
+    """
+    m = re.match(r"^([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*)\s*\(", arg)
+    if not m:
+        return None
+    depth, in_str, i = 0, False, m.end() - 1
+    while i < len(arg):
+        c = arg[i]
+        if in_str:
+            if c == "\\":
+                i += 1
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+        elif c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                return m.group(1) if i == len(arg) - 1 else None
+        i += 1
+    return None
+
+
+def check_type_conflicts(text, sigs, problems, outputs=None, params=None, strict=False):
+    """实参整个就是一个值函数调用时，比对它的返回类型和目标参数的期望类型。
+
+    窄形态：只认「第 N 个实参 = 一个函数调用」这一种写法（`等待(生命值(事件玩家), 无视条件)`），
+    不递归表达式树；期望或实际类型是 Generic / 未记录 的一律跳过。
+    数据来自 data/element-types.tsv（导出 OutputType）+ data/param-options.tsv（导出的输入类型）。
+
+    **默认关（`check --strict` 才跑）**：依据是导出字段（L0，没有实机读数）。
+    2026-10-28 在 9 份真实语料上量过：数值当布尔、玩家当位置都是合法的隐式转换，
+    这两类已经排除；剩下的 String / Vector / Player 槽位组合在语料上命中 0 条，
+    但「0 命中」只说明不吵，不等于「游戏真的会拒」。
+    """
+    outputs = outputs if outputs is not None else load_element_outputs()
+    params = params if params is not None else load_param_types()
+    if not outputs or not params:
+        return
+    lines = text.split("\n")
+    for ln, line in enumerate(lines, 1):
+        s = strip_noise(line)
+        if "(" not in s:
+            continue
+        # 逐个找出本行的调用；只处理「名字在签名表里」且后面紧跟括号的
+        for m in re.finditer(r"([\u4e00-\u9fa5A-Za-z_][\w\u4e00-\u9fa5]*(?: [\u4e00-\u9fa5]+)?)\s*\(", s):
+            name = m.group(1).strip()
+            if name not in sigs:
+                continue
+            start = m.end() - 1
+            depth, j, in_str = 0, start, False
+            while j < len(s):
+                c = s[j]
+                if in_str:
+                    if c == "\\":
+                        j += 1
+                    elif c == '"':
+                        in_str = False
+                elif c == '"':
+                    in_str = True
+                elif c == "(":
+                    depth += 1
+                elif c == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            if depth != 0:
+                continue
+            inner = s[start + 1:j]
+            args = split_args(inner) if inner.strip() else []
+            for idx, arg in enumerate(args):
+                want = (params.get(name) or {}).get(idx) or ""
+                if not want:
+                    continue
+                a = arg.strip()
+                inner_name = _sole_call(a)
+                if not inner_name:
+                    continue
+                got = outputs.get(inner_name)
+                if not got or got == "Generic" or want == "Generic":
+                    continue
+                if got in TYPE_CONFLICTS.get(want, ()):
+                    problems.append((ln, "warning",
+                                     "「%s」的第 %d 个参数要「%s」，这里填的是「%s(…)」，它返回「%s」；"
+                                     "类型对不上时游戏会按槽位拒（导入报「之后应有一个值」一类）。"
+                                     % (name, idx + 1, want, inner_name, got)))
+
+
 def check_action_as_value(text, kinds, problems):
     """赋值右边直接写了一个「动作」函数 → 游戏报「"="之后应有一个值」。
 
@@ -5438,6 +5568,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)
+        check_type_conflicts(masked, sigs, problems, strict=True)   # 类型诊断：依据导出字段，未实机（L0）
     check_extensions(text, problems, extensions, extension_values, base_options)
     check_map_names(text, problems, map_names)
     check_missing_settings_block(text, problems)
