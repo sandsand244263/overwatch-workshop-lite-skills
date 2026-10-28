@@ -599,6 +599,58 @@ def check_event_player_scope(text, problems):
                                      "改用 玩家变量(玩家, …) / 本地玩家 / 所有玩家(所有队伍)" % event_line))
 
 
+NO_ATTACKER_EVENTS = ("持续 - 全局", "持续 - 每名玩家", "玩家加入比赛", "玩家离开比赛", "子程序")
+
+
+def check_attacker_scope(text, problems):
+    """「攻击者 / 被攻击者」只在带攻击语义的事件里存在。
+
+    依据：CASC 50041（“攻击者”与“被攻击者”只被允许出现在特定的事件类型中）。
+    只判「一定没有该上下文」的 5 类事件，别的（伤害 / 消灭 / 治疗 / 阵亡…）一律放行——
+    哪些事件真有这两个变量，数据表里没有，宁漏不误报。
+    """
+    text = _mask(text)
+    lines = text.split("\n")
+    starts = [i for i, l in enumerate(lines) if l.strip().startswith("规则(")]
+    for n, start in enumerate(starts):
+        end = starts[n + 1] if n + 1 < len(starts) else len(lines)
+        chunk = lines[start:end]
+        event_line, in_ev = None, False
+        for l in chunk:
+            t = l.strip()
+            if t == "事件":
+                in_ev = True
+                continue
+            if in_ev and t and t not in ("{", "}") and t.endswith(";"):
+                event_line = t[:-1].strip()
+                break
+        if event_line not in NO_ATTACKER_EVENTS:
+            continue
+        for off, l in enumerate(chunk):
+            if "攻击者" in l or "被攻击者" in l:
+                problems.append((start + off + 1, "error",
+                                 "「%s」规则里不能用 攻击者 / 被攻击者（这个事件不提供该上下文）；"
+                                 "改写成 玩家受到伤害 / 玩家造成伤害 这类事件的规则，或用 玩家变量 取值"
+                                 % event_line))
+
+
+def check_divide_by_zero(text, problems):
+    """字面量除以 0 / 余数(x, 0) → 运行时「错误：除数为零」。
+
+    窄形态：只认字面量 0（`1 / 0`、`余数(a, 0)`）；除数是变量的一概不管。
+    级别只到提示——这不是导入错误，是跑起来才炸。
+    """
+    masked = _mask(text)
+    for ln, line in enumerate(masked.split("\n"), 1):
+        if re.search(r"/\s*0(?![\d.])", line):
+            problems.append((ln, "warning",
+                             "除数是 0：运行时会报「除数为零」并中断这条规则；"
+                             "加个 `最大(除数, 1)` 或先判断再除"))
+        elif re.search(r"余数\(\s*[^,()]+,\s*0\s*\)", line):
+            problems.append((ln, "warning",
+                             "「余数」的第二个参数是 0：运行时报「除数为零」；改成非 0 值"))
+
+
 GLOBAL_LOCAL_ACTIONS = ("伤害", "隐藏英雄HUD", "开始镜头")
 
 
@@ -5615,6 +5667,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_var_letter_index(text, problems)
     check_var_index_dup(text, problems)
     check_var_refs(masked, problems)
+    check_attacker_scope(text, problems)
+    check_divide_by_zero(text, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)
     check_duplicate_rule_names(text, problems)

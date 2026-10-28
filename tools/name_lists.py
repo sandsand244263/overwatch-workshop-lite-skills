@@ -70,6 +70,11 @@ def table_names(table, family=None):
             v = (r.get("name") or list(r.values())[0] or "").strip()
             if v:
                 names[v] = ""
+    elif table == "events.tsv":
+        for r in _read_tsv(path):
+            e = (r.get("event") or "").strip()
+            if e:
+                names[e] = ""
     return set(names), names
 
 

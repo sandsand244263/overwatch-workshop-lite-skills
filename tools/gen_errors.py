@@ -387,7 +387,7 @@ GROUPS: list[dict] = [
         trigger="攻击者/被攻击者 出现在不是「玩家参与消灭」一类的事件里",
         cause="事件选错，或在持续规则里引用这两个值",
         fix="换到对应事件（玩家造成最后一击 / 玩家参与消灭）",
-        pre="不能", kind="类型", rf="无", ev="L0+L1",
+        pre="部分", kind="类型", rf="check_attacker_scope", ev="L2",
     ),
     dict(
         ids=[52256], cat="类型", slots="",
@@ -566,7 +566,7 @@ GROUPS: list[dict] = [
         trigger="运行时除数为零",
         cause="表达式里除数可能是 0（或数组长度的差）",
         fix="除数加保护：先判断再除，或 最大值(除数, 1)",
-        pre="不能", kind="—", rf="无", ev="L0+L1",
+        pre="部分", kind="运行时", rf="check_divide_by_zero", ev="L2",
     ),
     dict(
         ids=[50050], cat="其他", slots="",

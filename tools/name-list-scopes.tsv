@@ -5,3 +5,4 @@ check_victory_in_loop	VICTORY_ACTIONS	element-kinds.tsv	动作	^(宣告|宣布)(
 check_lobby_ffa_slots	FFA_MODES,TEAM_MODES	mode-list.tsv	ow_name	^(?!全部)	coverage
 check_var_slot_ops	VAR_MODIFY_OPS	element-kinds.tsv	动作	^(修改|在索引处修改)(全局|玩家)变量$	exact
 check_game_end_actions	END_ACTIONS_ALL	element-kinds.tsv	动作	^(宣告|宣布)(玩家|队伍|回合|比赛)	exact
+check_attacker_scope	NO_ATTACKER_EVENTS	events.tsv	event	^(子程序|玩家加入比赛|玩家离开比赛)$	exact
