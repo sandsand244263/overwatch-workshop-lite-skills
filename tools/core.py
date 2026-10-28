@@ -4551,6 +4551,45 @@ def check_var_letter_index(text, problems):
                          % (section, name, idx, name, want, section, name, want, name)))
 
 
+def check_var_index_dup(text, problems):
+    """变量块里同一段（全局 / 玩家）出现重复索引 → 游戏报「之后出现重复的变量索引」。
+
+    依据：CASC 文案 60280（L2，未单独实机）。只查「索引重复」这一种窄形态：
+    同名、空名、越界分别另说，不混在一起报。
+    """
+    section, depth, in_block = None, 0, False
+    seen = {}
+    for ln, line in enumerate(text.split("\n"), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if not in_block:
+            if s == "变量":
+                in_block, depth, section = True, 0, None
+            continue
+        if s.endswith("{"):
+            depth += 1
+            continue
+        if s == "}":
+            depth -= 1
+            if depth <= 0:
+                in_block, section = False, None
+            continue
+        if s in ("全局:", "玩家:"):
+            section = s[:-1]
+            continue
+        m = re.match(r"^(\d+)\s*:\s*(\S*)$", s)
+        if m and section:
+            idx = int(m.group(1))
+            if idx in seen.get(section, {}):
+                problems.append((ln, "error",
+                                 "变量索引 %d 在「%s」里重复（第 %d 行已经用过）；"
+                                 "游戏会报「之后出现重复的变量索引」"
+                                 % (idx, section, seen[section][idx])))
+            else:
+                seen.setdefault(section, {})[idx] = ln
+
+
 def check_var_refs(text, problems):
     """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。
 
@@ -5574,6 +5613,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_missing_settings_block(text, problems)
     check_missing_var_block(masked, problems)
     check_var_letter_index(text, problems)
+    check_var_index_dup(text, problems)
     check_var_refs(masked, problems)
     check_misc(masked, problems)
     check_duplicate_blocks(masked, problems)

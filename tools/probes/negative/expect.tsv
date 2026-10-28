@@ -85,3 +85,4 @@ mode-name-ui-alias.ow	是界面上的模式名	E-94：模式块写 攻击/护送
 no-settings-block.ow	格式不完整	E-94：没设置块导不进去
 double-percent-setting.ow	两个百分号	E-94：5%% 被游戏拒
 mode-name-6v6-ui.ow	是界面上的模式名	E-94 同类：占领要点（6V6）应写 占领要点 6v6
+dup-var-index.ow	变量索引 0 在「玩家」里重复	CASC 60280：同一段里索引复用
