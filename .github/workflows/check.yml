@@ -6,11 +6,24 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    # Windows 是目标平台：GBK 控制台、路径分隔符、编码只有这里会暴露。
+    # 2026-10-28 的 `check` 在 GBK 管道下 UnicodeEncodeError 就是只有 Windows 能测出来的。
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: 回归全部样本
+
+      - name: 编译检查（语法级，秒级）
+        run: python -m compileall -q tools
+
+      - name: 回归全部样本（逐条明细）
         run: python tools/ws.py check-all
+
+      - name: 发版门禁（生成器漂移 / selftest / 标定 / 模式 / 语料）
+        run: python tools/ws.py devcheck

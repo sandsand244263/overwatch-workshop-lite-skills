@@ -165,3 +165,8 @@ gh release create vX.Y.Z --title "vX.Y.Z" --notes "- 一句一条"
 | 目标 | **≥95% 且连续三轮不掉** → 才可以在 STATUS/README 里写「成熟」 |
 
 维护期的日常动作就是这条：交付 → 用户导入 → 记一行。掉下来就查原因，**别用「已知限制」糊过去**。
+
+记完一行还有一步：**把这一个被拒文件的原字节冻进私有仓 `rejected/`**，并在 `manifest.tsv`
+里写「必须命中」那句文案。否则修好之后原地覆盖，这个指标就只剩数字、没有证据
+（v17 那 10 个文件已经吃过一次：`P8-percent-modulo.ow` 进 git 时事件选择器已是修好的 `双方`，
+被拒那一版哪里都找不回来了）。冻结后用 `python tools/corpus_check.py --rejected-only` 复验。

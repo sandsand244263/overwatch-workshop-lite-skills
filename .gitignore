@@ -19,6 +19,9 @@ Desktop.ini
 # Node (just in case)
 node_modules/
 
+# 运行期缓存（更新检查）：落在 %LOCALAPPDATA%\WorkshopLite，这里挡的是老版本残留
+data/.update-cache.json
+
 # Project archive (local only, not for public repo)
 CLAUDE.md
 __pycache__/

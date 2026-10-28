@@ -27,6 +27,9 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+import console  # noqa: E402
+
+console.harden()
 import core  # noqa: E402
 import local_paths  # noqa: E402
 

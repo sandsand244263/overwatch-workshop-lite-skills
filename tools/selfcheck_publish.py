@@ -17,6 +17,11 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 SK = os.path.dirname(HERE)
 
+sys.path.insert(0, HERE)
+import console  # noqa: E402
+
+console.harden()
+
 SAMPLE = """设置
 {
 	模式
@@ -66,7 +71,8 @@ def main():
     with open(src, "w", encoding="utf-8", newline="") as f:
         f.write(SAMPLE.replace("\n", "\r\n"))
     r = subprocess.run([sys.executable, os.path.join(HERE, "ws.py"), "publish", src,
-                        "--obf", "all", "--outdir", tmp], capture_output=True, text=True)
+                        "--obf", "all", "--outdir", tmp], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
     out = r.stdout + r.stderr
     obf = os.path.join(tmp, "sample.obf.ow")
     ok = r.returncode == 0 and os.path.isfile(obf)

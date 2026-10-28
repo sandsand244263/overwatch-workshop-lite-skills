@@ -34,6 +34,10 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import console  # noqa: E402
+
+console.harden()
 ROOT = os.path.dirname(HERE)
 RULES = os.path.join(ROOT, "docs", "rules.tsv")
 CORE = os.path.join(HERE, "core.py")

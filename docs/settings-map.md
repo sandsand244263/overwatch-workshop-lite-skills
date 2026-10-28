@@ -28,10 +28,11 @@
 **所以拿到导出文件先跑这个，别手改几十行**：
 
 ```bash
-python tools/ws.py fix 文件.ow --fix-bools
+python tools/ws.py fix 文件.ow
 ```
 
 校验器认得出这种文件：同一份里这类问题 ≥8 条时会合成一条提示，直接指向上面的命令（E-24）。
+`fix` 默认就改布尔词；只想动「无」那半边时加 `--no-bools`。
 
 ## 三之二、值校验靠哪几张表（2026-10-24 接线后）
 
@@ -41,7 +42,7 @@ python tools/ws.py fix 文件.ow --fix-bools
 | `data/setting-ranges.tsv` | 数值键的上下界（459 键，含英雄技能层） | 手工维护（游戏数据 + 实机滑杆） | `check_setting_range`，error 级 |
 | `data/setting-ranges-lobby.tsv` | 大厅滑杆边界（界面里才看得到） | 手工维护（实机） | 同上，warning 级 |
 | `data/setting-values.tsv` | **词类键的合法取值**（13 个 ENUM 键，多 schema 取并集） | `tools/gen_setting_values.py`（源：`setting-schemas.tsv` + `enum-values.tsv`，`--check` 防漂移） | `check_setting_enum_values`，error 级 |
-| `data/setting-aliases.tsv` | 导出显示词 → 导入词的改写表（`禁用→关闭`…），以及「这个词在这个键上合法」的例外（`重装职责被动生命值加成: 禁用`） | 手工维护（每条带实测证据） | `check_setting_bools` / `ws.py fix --fix-bools` 的词表来源 |
+| `data/setting-aliases.tsv` | 导出显示词 → 导入词的改写表（`禁用→关闭`…），以及「这个词在这个键上合法」的例外（`重装职责被动生命值加成: 禁用`） | 手工维护（每条带实测证据） | `check_setting_bools` / `ws.py fix`（默认改）的词表来源 |
 
 三条口径，写代码时别再踩：
 

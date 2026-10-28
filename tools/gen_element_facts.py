@@ -9,6 +9,7 @@
   python tools/gen_element_facts.py                # 全量重算，写 data/ 四张表
   python tools/gen_element_facts.py --no-corpus    # 没有语料也能跑（语料相关列留空、反向例外降为 0）
   python tools/gen_element_facts.py --check        # 只算不写，和磁盘上的表比对是否漂移
+                                                  # 没语料时 defaults-full / dropdown-aliases 自动跳过（语料列复算不了）
 
 产物（全部本脚本生成，禁止手改）：
   data/defaults-full.tsv      元素参数默认值全集（官方文档 ⇄ defaults.tsv ⇄ 语料对账）
@@ -525,6 +526,10 @@ TABLES = {
                      ["类别", "限制项", "数值或互斥对", "来源", "证据等级", "依据", "备注"]),
 }
 
+# 这三张表有「语料反例数 / 写出次数 / 众数 / 反向例外」列，没有语料就复算不出来。
+# 没语料时 check 跳过它们而不是报漂移——CI 与公开仓永远没有语料，报漂移等于天天假红灯。
+CORPUS_DEPENDENT = {"defaults-full", "dropdown-aliases", "param-exceptions"}
+
 
 def main():
     ap = argparse.ArgumentParser(description="生成四张元素事实表")
@@ -567,6 +572,10 @@ def main():
             old = open(path, encoding="utf-8").read()
         same = (old == text)
         if a.check:
+            if not files and key in CORPUS_DEPENDENT:
+                # 没语料：这几列复算不出来，跳过而不是报漂移（否则每次都假红灯）
+                print("- %-22s %4d 行  跳过（没语料，语料列无从复算）" % (rel, len(built[key])))
+                continue
             print("%s %-22s %4d 行  %s" % ("=" if same else "≠", rel,
                                            len(built[key]), "无漂移" if same else "有漂移"))
             drift += 0 if same else 1

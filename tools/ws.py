@@ -27,6 +27,10 @@ DATA = os.path.join(ROOT, "data")
 REPO = "sandsand244263/overwatch-workshop-lite-skills"
 sys.path.insert(0, TOOLS)
 
+import console  # noqa: E402
+
+console.harden()  # 管道/GBK 控制台里 ✓ ✗ 会 UnicodeEncodeError，见 console.py
+
 import core  # noqa: E402
 import local_paths  # noqa: E402
 
@@ -70,6 +74,30 @@ def _base_options():
 LAST_CHECK = {}   # cmd_check 最近一次统计，供 check-all 打正样本汇总
 
 
+def _group_by_msg(items, keep_lines=6):
+    """同一条文案的报错合成一组：[(文案, 前几个行号, 总处数)]，按首次出现排序。
+
+    为什么要有它：导出文件里同一句文案能刷 54 遍（「主要攻击模式」是布尔项…
+    实际只有 9 类）。逐条刷屏对人是一屏红字，对 agent 是几百 token 的重复。
+    行号不丢：同一类里给前 6 个行号 + 总处数，要全部行号走 --json。
+    """
+    order, groups = {}, []
+    for ln, level, msg in items:
+        if msg in order:
+            groups[order[msg]][1].append(ln)
+        else:
+            order[msg] = len(groups)
+            groups.append((msg, [ln]))
+    return [(msg, lines[:keep_lines], len(lines)) for msg, lines in groups]
+
+
+def _fmt_line_list(lines, total):
+    seg = ", ".join("?" if ln in (None, "") else str(ln) for ln in lines)
+    if total > len(lines):
+        return "第 %s … 行（共 %d 处）" % (seg, total)
+    return "第 %s 行" % seg
+
+
 def cmd_check(args):
     """校验。默认输出分两段：必改（会挡导入）/ 提示（多数可忽略）。
 
@@ -108,12 +136,23 @@ def cmd_check(args):
             continue
 
         if errors:
-            print("✗ %s：%d 个问题会导致导入失败（另有 %d 条提示，可以先不管）"
-                  % (name, len(errors), len(warns)))
+            groups = _group_by_msg(errors)
+            kinds = ["%d 类" % len(groups)] if len(groups) < len(errors) else []
+            if warns:
+                kinds.append("另有 %d 条提示，可以先不管" % len(warns))
+            print("✗ %s：%d 个问题会导致导入失败%s"
+                  % (name, len(errors), "（%s）" % "，".join(kinds) if kinds else ""))
             print("\n  ── 必改 ──")
-            for ln, level, msg in errors:
-                print("  第 %s 行：%s" % (ln if ln else "?", msg))
-                tip = core.suggest(msg)
+            for msg, lines, total in groups:
+                # 同类 >1 时只印第一句（「哪个键、错在哪」），依据长尾在 --json / docs 里；
+                # 单条仍给全文，手写文件要的是细节
+                shown = msg if total == 1 else msg.split("——")[0].rstrip("。")
+                if total == 1:
+                    print("  第 %s 行：%s" % (lines[0] if lines[0] not in (None, "") else "?", shown))
+                    tip = core.suggest(msg)
+                else:
+                    print("  %s：%s" % (_fmt_line_list(lines, total), shown))
+                    tip = core.suggest(msg)
                 if tip:
                     print("      → %s" % tip)
             if warns:
@@ -868,8 +907,9 @@ def cmd_fix(args):
     b_err = sum(1 for p in before if p[1] == "error")
     b_warn = len(before) - b_err
 
+    no_bools = getattr(args, "no_bools", False)
     new_text, merged, none_fixed, bool_fixed = nz.normalize_text(
-        text, fix_bools=args.fix_bools, drop_empty=not args.keep_empty)
+        text, fix_bools=not no_bools, drop_empty=not args.keep_empty)
 
     out = args.out or (os.path.splitext(args.src)[0] + ".fixed.ow")
     open(out, "w", encoding="utf-8", newline="\n").write(new_text)
@@ -881,15 +921,16 @@ def cmd_fix(args):
     print("修复：合并折行 %d 处，「无」→「全部禁用」%d 处，删空值行%s，布尔词%s"
           % (merged, none_fixed,
              "已删" if not args.keep_empty else "未动",
-             ("%d 处" % bool_fixed) if args.fix_bools else "未动"))
+             "未动（--no-bools）" if no_bools else "%d 处" % bool_fixed))
     print("校验：error %d → %d，warning %d → %d" % (b_err, a_err, b_warn, a_warn))
     print("输出：%s" % out)
     left = [p for p in after if p[1] == "error"]
     if left:
-        print("\n还剩 %d 个 error（无法自动修）：" % len(left))
-        for ln, lv, msg in left[:10]:
-            print("   第 %s 行：%s" % (ln, msg))
-        tip = core.suggest(left[0][2])
+        groups = _group_by_msg(left, keep_lines=6)
+        print("\n还剩 %d 个 error（%d 类，无法自动修）：" % (len(left), len(groups)))
+        for msg, lines, total in groups[:6]:
+            print("   %s：%s" % (_fmt_line_list(lines, total), msg))
+        tip = core.suggest(groups[0][0])
         if tip:
             print("   第一条的改法：%s" % tip)
     return 0 if a_err == 0 else 1
@@ -1037,9 +1078,12 @@ def _devcheck_run(cmd, timeout):
     import subprocess as sp
     import time
     t0 = time.time()
+    env = dict(os.environ)
+    env["PYTHONIOENCODING"] = "utf-8"   # 下面按 utf-8 读；子进程若用 GBK 会崩在半路被误判成失败
+    env["PYTHONUTF8"] = "1"
     try:
         p = sp.run(cmd, cwd=ROOT, capture_output=True, text=True,
-                   encoding="utf-8", errors="replace", timeout=timeout)
+                   encoding="utf-8", errors="replace", env=env, timeout=timeout)
         return p.returncode, (p.stdout or "") + (p.stderr or ""), time.time() - t0
     except sp.TimeoutExpired:
         return 124, "超时（%d 秒）" % timeout, time.time() - t0
@@ -1074,6 +1118,17 @@ def cmd_devcheck(a):
             gen_info.append(m.group(1))
         if rc != 0:
             bad_gen.append("%s → python tools/%s" % (name, script))
+    # 四张元素事实表：有语料时四张全对账；没语料时三张自动跳过（语料列复算不了），只留在场的
+    rc_f, out_f, _ = _devcheck_run([py, os.path.join(tools, "gen_element_facts.py"), "--check"], 300)
+    if verbose:
+        print("── gen_element_facts --check ──\n%s" % out_f)
+    n_eq = len(re.findall(r"^=\s", out_f, re.M))
+    n_skip = len(re.findall(r"^-\s", out_f, re.M))
+    facts_info = ""
+    if rc_f == 0:
+        facts_info = "元素事实 %d 表无漂移%s" % (n_eq, "（%d 表跳过：没语料）" % n_skip if n_skip else "")
+    else:
+        bad_gen.append("元素事实 → python tools/gen_element_facts.py --check")
     # 事实表 ⇄ 校验器：写法、悬空函数名、反例文件、"表说不接但代码在管"（PLAN v11 战役 A）
     rc_a, out_a, _ = _devcheck_run([py, os.path.join(tools, "audit_rules.py")], 300)
     if verbose:
@@ -1082,6 +1137,8 @@ def cmd_devcheck(a):
     seg1 = []
     if gen_info:
         seg1.append("生成器 %s 行无漂移" % "/".join(gen_info))
+    if facts_info:
+        seg1.append(facts_info)
     if m_a:
         seg1.append("事实表 %s 行 错 %s / 疑似 %s / 未定 %s / 已复核 %s（未点名函数 %s）"
                     % (m_a.group(1), m_a.group(2), m_a.group(3), m_a.group(4), m_a.group(5), m_a.group(6)))
@@ -1140,19 +1197,21 @@ def cmd_devcheck(a):
         bad4.append("selfcheck_modes")
         seg.append("模式 ✗")
 
-    want_corpus = getattr(a, "corpus", False) or bool(os.environ.get("WS_CORPUS"))
+    # 语料 + 被拒样本：只要本机配了其中一个就跑（被拒样本是游戏真拒过的原字节，见私有仓 rejected/）
+    want_corpus = (getattr(a, "corpus", False) or bool(os.environ.get("WS_CORPUS"))
+                   or bool(local_paths.corpus_dir()) or bool(local_paths.rejected_dir()))
     if want_corpus:
         rc, out, _ = _devcheck_run([py, os.path.join(tools, "corpus_check.py")], 1800)
         if verbose:
             print("── corpus ──\n%s" % out)
         m = re.search(r"结论：(通过|失败)", out)
         if rc == 0 and m and m.group(1) == "通过":
-            seg.append("语料 通过")
+            seg.append("语料/被拒 通过")
         else:
             bad4.append("corpus")
-            seg.append("语料 ✗")
+            seg.append("语料/被拒 ✗")
     else:
-        seg.append("语料 跳过（没设 WS_CORPUS）")
+        seg.append("语料/被拒 跳过（没配目录）")
     if bad4:
         fails.append("标定/模式/语料")
         print("[4/5] calib/模式/语料      ✗ %s（%s）" % ("、".join(seg), "、".join(bad4)))
@@ -1181,12 +1240,14 @@ def cmd_deliver(a):
     problems = core.full_lint(path, DATA)
     errors = [p for p in problems if p[1] == "error"]
     if errors:
-        print("✗ %s：%d 处必改，先修再交付（python tools/ws.py check \"%s\"）"
-              % (os.path.basename(path), len(errors), path))
-        for ln, level, msg in errors[:3]:
-            print("  第 %s 行：%s" % (ln if ln else "?", msg))
-        if len(errors) > 3:
-            print("  …还有 %d 处，用 check 看全部" % (len(errors) - 3))
+        groups = _group_by_msg(errors, keep_lines=3)
+        print("✗ %s：%d 处必改（%d 类），先修再交付（python tools/ws.py check \"%s\"）"
+              % (os.path.basename(path), len(errors), len(groups), path))
+        for msg, lines, total in groups[:3]:
+            shown = msg if total == 1 else msg.split("——")[0].rstrip("。")
+            print("  %s：%s" % (_fmt_line_list(lines, total), shown))
+        if len(groups) > 3:
+            print("  …还有 %d 类，用 check 看全部" % (len(groups) - 3))
         return 1
     text = open(path, encoding="utf-8", errors="replace").read()
     m = re.search(r"模式名称\s*[:：]\s*\"([^\"]*)\"", text)
@@ -1325,7 +1386,9 @@ def main():
     p = sub.add_parser("fix", help="检查 + 自动修出可导入版本，再复校")
     p.add_argument("src")
     p.add_argument("-o", "--out")
-    p.add_argument("--fix-bools", action="store_true", help="布尔项的 禁用/启用 改成 关闭/开启")
+    p.add_argument("--no-bools", action="store_true",
+                   help="不修布尔词（默认修：导出把 开启/关闭 写成 启用/禁用，导入会整块被拒）")
+    p.add_argument("--fix-bools", action="store_true", help=argparse.SUPPRESS)  # 兼容旧命令，默认已开
     p.add_argument("--keep-empty", action="store_true", help="保留「键:」后面没值的行（默认删掉）")
     p.set_defaults(func=cmd_fix)
 
@@ -1333,7 +1396,7 @@ def main():
     p.add_argument("src")
     p.add_argument("-o", "--out", required=True)
     p.add_argument("--drop-empty", action="store_true", help="删掉「键:」后面没值的行（导出会把值吞掉）")
-    p.add_argument("--fix-bools", action="store_true", help="把布尔项的 禁用/启用 改成 关闭/开启（实测对部分模式必要）")
+    p.add_argument("--fix-bools", action="store_true", help="同时把布尔项的 禁用/启用 改成 关闭/开启")
     p.set_defaults(func=cmd_normalize)
 
     p = sub.add_parser("selftest", help="工具自身体检（重复定义等）")
@@ -1734,15 +1797,32 @@ def _skill_version():
     return None
 
 
+def _cache_path():
+    """更新检查的缓存落在用户目录，不写进技能目录。
+
+    以前写在 `data/.update-cache.json`，还进了 git：每跑一次 check 就脏一次工作区，
+    私有仓的 sync_diff 也会因为它报一条假差异。`data/` 按铁律是生成物，不该被运行期写。
+    """
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_CACHE_HOME") or tempfile.gettempdir()
+    d = os.path.join(base, "WorkshopLite")
+    try:
+        os.makedirs(d, exist_ok=True)
+    except OSError:
+        d = tempfile.gettempdir()
+    return os.path.join(d, "update-cache.json")
+
+
 def check_update(quiet=True, force=False):
     """查 GitHub 最新 release。缓存 24 小时；任何失败都静默。"""
     import json, time, urllib.request
-    cache = os.path.join(DATA, ".update-cache.json")
+    cache = _cache_path()
+    legacy = os.path.join(DATA, ".update-cache.json")   # 老安装留下的位置，只读兼容
     now = time.time()
     info = None
-    if not force and os.path.isfile(cache):
+    src = cache if os.path.isfile(cache) else legacy
+    if not force and os.path.isfile(src):
         try:
-            c = json.load(open(cache, encoding="utf-8"))
+            c = json.load(open(src, encoding="utf-8"))
             if now - c.get("t", 0) < 86400:
                 info = c
         except (OSError, ValueError):

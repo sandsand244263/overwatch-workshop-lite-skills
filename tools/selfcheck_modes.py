@@ -26,6 +26,8 @@ ROOT = os.path.dirname(HERE)
 DATA = os.path.join(ROOT, "data")
 sys.path.insert(0, HERE)
 
+import console         # noqa: E402
+console.harden()
 import core            # noqa: E402
 import ws              # noqa: E402
 

@@ -33,6 +33,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+import console  # noqa: E402
+
+console.harden()
+
 SRC = ROOT / "tools" / "word-lists-src.tsv"
 OUT = ROOT / "data" / "word-lists.tsv"
 COLS = ["checkpoint", "func_va", "slot", "n_words", "words",

@@ -40,6 +40,10 @@ import os
 import re
 import sys
 
+import console
+
+console.harden()  # 管道/GBK 下 ✓ ✗ 会炸；放在库入口，所有 import core 的脚本自动生效
+
 PLACEHOLDER = re.compile(r"\{(\d)\}")
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 COMPARISON = re.compile(r"==|!=|>=|<=|>|<")
@@ -345,7 +349,7 @@ def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None, legal
                             continue      # data/limits-mutex.tsv「合法写法」：这个槽写「无」是对的
                         problems.append((line, "error",
                                          "%s 第 %d 个参数要选项，导出把「全部禁用」写成了「无」；"
-                                         "改成 全部禁用（ws.py fix 文件 --fix-bools 可自动改）"
+                                         "改成 全部禁用（ws.py fix 文件 可自动改）"
                                          % (name, _slot + 1)))
 
                 for slot in (VERIFIED_NO_SLOTS.get(name) or {}).get("slots", ()):
@@ -3230,7 +3234,7 @@ def collapse_export_noise(problems, path=None):
         return problems
     rest = [p for p in problems if not (any(m in p[2] for m in marks) and "是布尔项" not in p[2])]
     tip = ("这份文件像是游戏导出的（%d 处槽位写成「无」）："
-           "导入前先跑 python tools/ws.py fix 文件 --fix-bools，别手改这 %d 行"
+           "导入前先跑 python tools/ws.py fix 文件，别手改这 %d 行"
            % (len(hits), len(hits)))
     rest.append((hits[0][0], "warning", tip))
     rest.sort(key=lambda p: (p[0] or 0))
@@ -3291,7 +3295,7 @@ def check_setting_bools(text, problems, types=None, lobby_keys=None, aliases=Non
 
             problems.append((i, "error",
                              "「%s」是布尔项，这里写的是「%s」——导入只认 开启/关闭。"
-                             "导出文件里到处都是这类显示词，导入前先跑 ws.py fix 文件 --fix-bools"
+                             "导出文件里到处都是这类显示词，导入前先跑 ws.py fix 文件"
                              "（实测 2026-10-23：队伍界面/阵亡镜头 写 禁用 整块被拒，改成 关闭 就通过）"
                              % (key, val)))
         elif val in noise and key not in lobby_keys:

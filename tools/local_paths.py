@@ -46,6 +46,12 @@ def real_totals():
     return get("real_totals", "WS_REAL_TOTALS")
 
 
+def rejected_dir():
+    """被拒样本目录：游戏真的拒过的 .ow 原字节 + manifest.tsv（私有仓，不外传）。"""
+    return get("rejected", "WS_REJECTED")
+
+
 def hint():
     """给用户的提示文案：本机没配路径时说什么。"""
-    return "本机没配置相关路径（维护者才有）：设环境变量 WS_CORPUS / WS_REAL_TOTALS，或在技能根目录建 local_paths.json"
+    return ("本机没配置相关路径（维护者才有）：设环境变量 WS_CORPUS / WS_REAL_TOTALS / WS_REJECTED，"
+            "或在技能根目录建 local_paths.json")

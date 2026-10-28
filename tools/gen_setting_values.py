@@ -29,6 +29,10 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import console  # noqa: E402
+
+console.harden()
 DATA = os.path.join(HERE, "..", "data")
 OUT_NAME = "setting-values.tsv"
 

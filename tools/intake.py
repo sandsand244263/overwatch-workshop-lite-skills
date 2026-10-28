@@ -28,7 +28,7 @@ ROUTES = [
         read=["docs/errors.md"],
         query=["ws.py explain <关键词>"],
         avoid=["别猜原因：先拿报错原文走 locate，它会给出模板 + 第几行 + 改法",
-               "别把导出文件直接导入（先 fix --fix-bools）"],
+               "别把导出文件直接导入（先 fix）"],
     ),
     dict(
         key="能导入但行为不对",
@@ -110,8 +110,9 @@ ROUTES = [
     dict(
         key="导出失真",
         kw=["导出失真", "导出后", "导出文件", "布尔", "值被吞", "乱码", "导出再导入",
-            "导出后导入", "导出之后再导入", "导出后再导入", "导出就坏"],
-        run=["python tools/ws.py fix 模式.ow --fix-bools", "python tools/ws.py check 模式.ow"],
+            "导出后导入", "导出之后再导入", "导出后再导入", "导出就坏",
+            "游戏导出", "导出的", "从游戏导", "修好", "能修", "修一下"],
+        run=["python tools/ws.py fix 模式.ow", "python tools/ws.py check 模式.ow"],
         read=["docs/pitfalls-export.md"],
         query=["ws.py normalize 模式.ow"],
         avoid=["别手改导出文件：布尔词、下拉「无」这两类会挡导入，用 fix",

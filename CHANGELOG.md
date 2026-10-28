@@ -14,6 +14,97 @@
 
 ---
 
+## [3.26.0] - 2026-10-28
+
+### 修复：Windows 下 `check` / `devcheck` 在管道或 GBK 控制台里直接崩
+
+2026-10-28 实测（默认控制台，无 `PYTHONIOENCODING`）：
+
+```
+python tools/ws.py check 模式.ow
+UnicodeEncodeError: 'gbk' codec can't encode character '\u2713' in position 0
+```
+
+`check` 打印第一行 `✓ …` 就死，`devcheck` 同样；更糟的是 `devcheck` 用
+`encoding="utf-8"` 读子进程，子进程崩在半路会被读成「生成器有漂移」——
+发版门禁在 Windows 上默认给出假红灯。目标平台就是 Windows，这条把主力命令废了一半。
+
+- 新增 `tools/console.py`：非 UTF-8 的 stdout/stderr 统一切 UTF-8（真控制台不动），
+  管道消费方（devcheck 的 subprocess、agent 抓输出、CI）按 UTF-8 解码才对得上
+- `core.py` import 时即调 `console.harden()`，所有 `import core` 的脚本自动生效；
+  另给 `ws.py` / 四个 `gen_*` / `selfcheck_publish` / `selfcheck_modes` / `audit_rules` /
+  `fuzz_check` / `corpus_check` 补了显式调用与 `PYTHONIOENCODING=utf-8` 子进程环境
+- `selfcheck_publish.py` 补 `encoding="utf-8"`：原来按 GBK 读子进程输出，
+  UTF-8 字节一进来就 `UnicodeDecodeError` → `TypeError: NoneType + str`
+
+### 修复：README 的回归样本数过期
+
+`check-all` 实际是 **85 正 / 86 反**（读数为准），README 四处还写着 84 / 78。
+
+### 变更：CI 加 Windows 矩阵并跑发版门禁
+
+`.github/workflows/check.yml` 原来只在 Ubuntu 跑 `check-all`；现在
+Ubuntu + Windows 双平台，`compileall` → `check-all` → `devcheck` 三层。
+上面那条编码崩溃只有 Windows 会暴露，这是它一直没被 CI 拦住的原因。
+
+### 改进：`fix` 默认就修布尔词（导出这条路原来是两道坎）
+
+实测（`丧尸守桥.ow`，真实导出）：`check` 报 54 error → 默认 `fix` **仍是 54**
+（提示「布尔词未动」）→ 加 `--fix-bools` 才 0。而 `找蛋躲猫猫.ow` 的 28 error
+默认 `fix` 自动修掉 24 处。同是导出失真，一个自动一个要 flag，`check` 的文案还在教用户
+去跑 `fix --fix-bools`——但 `fix` 自己不做。
+
+- `fix` 默认 `fix_bools=True`；要保留原词加 `--no-bools`（`--fix-bools` 仍接受，不报错）
+- 报错文案与 `intake` 路由去掉 `--fix-bools` 尾巴：拿到导出文件直接 `fix` 就够
+- 口径同步：`docs/settings-map.md`、`docs/pitfalls-export.md`、`docs/rules.tsv`（导出文件直导那行）
+
+### 改进：同类报错聚合成一条，行号不丢
+
+导出文件会刷屏：`丧尸守桥.ow` 54 条 error 只有 **9 类**（最大一类 37 条同一句文案）。
+现在同一句文案只印一次，给前 6 个行号 + 总处数；单条报错仍是原来的逐行文案。
+
+- 影响 `check` / `fix` 的「还剩 N 个 error」/ `deliver` 的必改预览三处
+- 完整行号仍走 `check --json`（结构化输出未改）
+- `check-all` 的汇总数字、反向用例判据不受影响（它们读的是 lint 结果，不是打印文本）
+
+### 新增：被拒样本回归（把 0/10 这个指标变成可回归资产）
+
+问题：`import-log.tsv` 记的 10 个「首次导入被拒」文件，修好后是**原地覆盖**的
+（`P8-percent-modulo.ow` 进 git 时已经是 `双方`），于是指标不可复验，也没法当回归。
+
+- 私有仓新增 `rejected/`：游戏真拒过的 `.ow` 原字节 + `manifest.tsv`（判定 / 游戏原话 / 必须命中的文案）
+- `corpus_check.py` 支持被拒样本：`--rejected-only` 单跑；配了目录就与语料一起跑
+- `local_paths.py` 新增 `rejected` 键（环境变量 `WS_REJECTED`），与 `corpus` 同一套约定
+- `devcheck` 的第 4 块改成「语料/被拒」：本机配了任一目录就跑，没配才跳过
+- 首批 9 条（8 被拒 + 1 对照），对照那条要求 0 error——谁把检查写宽了它先掉
+
+### 修复：更新检查的缓存不再写进 `data/`
+
+`check` 每次（24 小时一次）把 `.update-cache.json` 写回 `data/`——那是 tracked 文件，
+于是跑一次就脏一次工作区，私有仓 `sync_diff.py` 还会报一条假差异（「只在公开仓有」
+本来就是他们最怕的误判）。缓存改到 `%LOCALAPPDATA%\WorkshopLite\update-cache.json`，
+老位置只读兼容；文件从 git 里移除并进 `.gitignore`。
+
+### 修复：`intake` 认不出 README 的第一个例子
+
+README 写「这个模式是我从游戏导出的，能修好吗」→ 实际路由到「其他」。补了
+`游戏导出 / 导出的 / 从游戏导 / 修好 / 能修 / 修一下` 六个词，现在正确落到「导出失真」。
+
+### 修复：元素事实表漂移，且这条检查没进门禁
+
+`gen_element_facts.py --check` 早就报红（`defaults-full` / `dropdown-aliases` / `param-exceptions`
+三张有漂移），但它没接进 `devcheck`，所以发版门禁一直是绿的——典型的「检查坏了但没人跑」。
+
+- 根因：这三张表带语料列（反例数 / 写出次数 / 众数 / 反向例外），落库那份是**没带语料**生成的旧口径；
+  列序也与当前生成器不同
+- 用带语料的生成器重算并落库（`丧尸守桥` 那批 9 份语料在场时的读数）
+- `--check` 改成**没语料就跳过这三张**（打印「跳过（没语料，语料列无从复算）」并把它们排除在漂移之外）：
+  CI 与公开仓永远没有语料，报红等于天天假红灯；`limits-mutex` 无语料依赖，任何环境都必须对得上
+- 接进 `devcheck` 第 1 块：维护机出「元素事实 4 表无漂移」，仓库/CI 出
+  「元素事实 1 表无漂移（3 表跳过：没语料）」，两种环境都不假绿也不假红
+
+---
+
 ## [3.25.0] - 2026-10-26
 
 **收尾版本**：v17 的「依据写回代码」到此收口，之后进维护模式（只在你实际踩到坑时加一条检查）。
