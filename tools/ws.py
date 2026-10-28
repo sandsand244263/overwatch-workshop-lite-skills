@@ -402,11 +402,46 @@ def cmd_stats(a):
     abilities = load("ability-stats.tsv")
     dmg = load("ability-values.tsv") if os.path.isfile(os.path.join(DATA, "ability-values.tsv")) else (load("ability-damage.tsv") if os.path.isfile(os.path.join(DATA, "ability-damage.tsv")) else [])
     kw = a.name
+    ab = (getattr(a, "ability", "") or "").strip()
+    fd = (getattr(a, "field", "") or "").strip()
+    as_json = getattr(a, "json", False)
+
+    # 带 --ability / --field 时走「过滤清单」：不按英雄名收敛，直接给匹配行
+    if ab or fd:
+        pool = [r for r in dmg if r.get("ability") != "英雄属性" and (r.get("value") or "").strip()]
+        if ab:
+            pool = [r for r in pool if ab in r["ability"]]
+        if fd:
+            pool = [r for r in pool if fd in r["field"]]
+        if any(r["hero"] == kw for r in heroes):
+            pool = [r for r in pool if r["hero"] == kw]
+        if as_json:
+            print(json.dumps(pool[: a.limit], ensure_ascii=False, indent=2))
+            return 0 if pool else 1
+        if not pool:
+            print("没有匹配 技能≈%s / 字段≈%s 的数值（共 %d 行全量）" % (ab or "*", fd or "*", len(dmg)))
+            return 1
+        print("=== 匹配「%s」的数值（%d 条）===" % (" / ".join(x for x in (ab, fd) if x), len(pool)))
+        cur = None
+        for r in sorted(pool, key=lambda x: (x["hero"], x["ability"], x["field"]))[: a.limit]:
+            key = "%s / %s" % (r["hero"], r["ability"])
+            if key != cur:
+                cur = key
+                print("  [%s]" % key)
+            print("    %-24s %s %s" % (r["field"], r["value"], r["unit"]))
+        if len(pool) > a.limit:
+            print("  … 还有 %d 条，用 --limit 调大" % (len(pool) - a.limit))
+        return 0
 
     hh = [r for r in heroes if r["hero"] == kw] or [r for r in heroes if kw in r["hero"]]
     aa = [r for r in abilities if r["hero"] == kw] or [r for r in abilities if kw in r["hero"] or kw in r["ability"]]
     dd = [r for r in dmg if r["hero"] == kw and r["ability"] != "英雄属性" and r["value"].strip()] or \
          [r for r in dmg if (kw in r["hero"] or kw in r["ability"]) and r["ability"] != "英雄属性" and r["value"].strip()]
+
+    if as_json:
+        print(json.dumps({"query": kw, "hero": hh, "abilities": aa, "values": dd[: a.limit]},
+                         ensure_ascii=False, indent=2))
+        return 0 if (hh or aa or dd) else 1
     if not hh and not aa:
         # 退化为全局搜索：技能名 / 字段名
         hits = [r for r in dmg if kw in r["ability"] or kw in r["field"]]
@@ -1326,6 +1361,9 @@ def main():
 
     p = sub.add_parser("stats", help="查英雄/技能数值（生命值/冷却/弹匣）")
     p.add_argument("name", help="英雄名、技能名或字段名，如 半藏 / 岚 / 屏障生命值")
+    p.add_argument("--ability", default="", help="再按技能名过滤（子串），如 --ability 岚")
+    p.add_argument("--field", default="", help="再按字段名过滤（子串），如 --field 伤害")
+    p.add_argument("--json", action="store_true", help="输出结构化结果（给编辑器/CI）")
     p.add_argument("--limit", type=int, default=40)
     p.set_defaults(func=cmd_stats)
 

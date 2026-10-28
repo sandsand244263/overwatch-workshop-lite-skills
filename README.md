@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.29.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.30.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -220,6 +220,8 @@ python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式�
 python tools/ws.py doc 创建HUD文本                  # 查官方说明
 python tools/ws.py doc --search 范围               # 按关键词搜
 python tools/ws.py stats 半藏                      # 查英雄数值
+python tools/ws.py stats 半藏 --ability 岚          # 只看某个技能
+python tools/ws.py stats 技能 --field 冷却时间       # 跨英雄按字段找
 python tools/ws.py settings --mode 死斗            # 生成该模式的设置块
 python tools/ws.py explain 应有一个关系运算子        # 报错文案反查
 python tools/ws.py fix 导出.txt                                # 修成可导入版本并复校

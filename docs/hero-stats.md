@@ -15,9 +15,13 @@
 查询：
 
 ```bash
-python tools/ws.py stats 半藏
-python tools/ws.py stats 天使
+python tools/ws.py stats 半藏                       # 英雄属性 + 全部技能数值
+python tools/ws.py stats 半藏 --ability 岚           # 只看某个技能
+python tools/ws.py stats 技能 --field 冷却时间        # 跨英雄按字段找（如所有冷却）
+python tools/ws.py stats 半藏 --ability 岚 --json    # 结构化输出（给编辑器 / CI）
 ```
+
+`--ability` / `--field` 是子串匹配；`name` 命中英雄名时先按英雄收敛，否则当关键词全局搜。
 
 ## 方法（关键）
 

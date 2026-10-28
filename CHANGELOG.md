@@ -14,6 +14,25 @@
 
 ---
 
+## [3.30.0] - 2026-10-28
+
+### 改进：`ws.py stats` 三个过滤器（数值本来就全，难在查）
+
+`data/ability-values.tsv` 已经有 1,935 行 / 54 英雄 / 426 个「英雄×技能」组合，
+但 `stats 半藏` 一次吐几十行，问「岚 的伤害」得自己翻。加三个参数：
+
+```bash
+python tools/ws.py stats 半藏 --ability 岚          # 只看某个技能（子串）
+python tools/ws.py stats 技能 --field 冷却时间       # 跨英雄按字段找（子串）
+python tools/ws.py stats 半藏 --ability 岚 --json    # 结构化输出
+```
+
+- 带过滤器时不按英雄收敛（除非 `name` 正好是英雄名），直接给匹配行 + 条数
+- `--json` 不带过滤器时输出 `{query, hero, abilities, values}` 四段
+- 默认输出不变；`docs/hero-stats.md` 与 README 命令表同步补了例子
+
+---
+
 ## [3.29.0] - 2026-10-28
 
 ### 新增：两条「原本判不出」的报错做成检查（第 80、81 条）
