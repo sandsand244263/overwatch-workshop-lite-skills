@@ -90,3 +90,4 @@ attacker-in-global.ow	「持续 - 全局」规则里不能用 攻击者 / 被攻
 divide-by-zero.ow	除数是 0	CASC 24164：运行时除数为零
 single-word-few-args.ow	参数不够	取整(5) / 随机整数(1)：签名 2 个参数没有可选尾参，游戏报「之后应有逗号」（issue #2）
 retired-map.ow	已经用不了	地图(万圣节艾兴瓦尔德)：map 在 maps.tsv 里但当前客户端没有（issue #2）
+comment-in-multiline-array.ow	占位符只能到 {2}	跨行 数组(…) 里带 // 注释后，后面的规则仍要照常查（issue #4）

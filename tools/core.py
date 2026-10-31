@@ -5211,6 +5211,45 @@ def check_odd_quotes_raw(raw, problems):
                          "跨行字符串本身合法，缺的是另一半引号" % opened_at))
 
 
+def blank_line_comments(text):
+    """把 // 行注释换成等长空格（字符串里的 // 不动），行号、列号都不变。
+
+    为什么必须在「合并跨行语句」之前做：合并会把后续几行并到一行上，行尾那个 // 注释
+    随后就把同一行里并进来的代码一起当注释吃掉（issue #4：跨行 数组(…) 里带 // 注释 →
+    语句被截断、括号永远配不平，后面的语义检查整片静默失效，还报「可以导入」）。
+    """
+    out = []
+    in_str = escaped = False
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            out.append(ch)
+            i += 1
+            continue
+        if ch == '"':
+            in_str = True
+            out.append(ch)
+            i += 1
+            continue
+        if ch == "/" and i + 1 < n and text[i + 1] == "/":
+            j = text.find("\n", i)
+            if j == -1:
+                j = n
+            out.append(" " * (j - i))
+            i = j
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
 def check_rule_missing_event_raw(raw, problems):
     """每条规则必须有 事件 块（`51160`「之后的规则没有以事件结尾」）。
 
@@ -5423,6 +5462,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_rule_missing_event_raw(text, raw_probs)
     check_name_too_long_raw(text, raw_probs)
     check_bool_literal_raw(text, raw_probs, DATA_DIR)
+    # 先剥行尾注释再合并跨行：合并会把后几行并到一行，注释会把并进来的代码一起吃掉（issue #4）
+    text = blank_line_comments(text)
     # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
     text, s_str = join_multiline_strings_mapped(text)
     text, s_merge = merge_continuations_mapped(text)
@@ -5438,6 +5479,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
 
     stack, pending = [], None
     paren_depth = 0
+    paren_start = 0
     var_section = None
     declared = {"全局": set(), "玩家": set()}
     subroutines = {}
@@ -5601,7 +5643,17 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
                 problems.append((ln, "error", "不允许尾逗号"))
 
         if opens > 0:
+            if paren_depth == 0:
+                paren_start = ln
             paren_depth += opens
+
+    if paren_depth > 0:
+        # 括号没配平 = 解析到这里就断了，后面的规则全被当成续行跳过。
+        # 必须报结构错误：从前是「静默什么都不查」，用户看到「可以导入」却导不进去（issue #4）。
+        _ps = orig_line(paren_start or 1)
+        problems.append((_ps, "error",
+                         "第 %d 行开始的语句括号一直没闭合（左括号比右括号多 %d 个）——"
+                         "后面的规则都被当成续行跳过了，等于没检查" % (_ps, paren_depth)))
 
     # 用 finditer 而不是 findall：要报得出行号。以前这里写死 0，用户看到的是「第 ? 行」，
     # 全文几十条事件块时根本找不到是哪一条（R1 复核记账）。
