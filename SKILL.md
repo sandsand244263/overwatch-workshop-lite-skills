@@ -58,7 +58,8 @@ L0/L1 只能说「未验证」。查表用 `ws.py rule <关键词>`，别凭记�
 2. 重生成：`python tools/gen_<表>.py`（整库重建用 `ws.py gen`）
 3. 回归：`python tools/ws.py devcheck`，必须全绿、生成器无漂移
 4. 文档同步：`docs/rules.tsv` 那一行 + 对应 `docs/` 篇目 + `CHANGELOG.md`
-5. 发版：`VERSION` / `SKILL.md` / `CHANGELOG.md` 三处版本号对齐，公开仓与私有仓同版本
+5. 发版：`VERSION` / `SKILL.md` frontmatter / `.claude-plugin/marketplace.json`（`plugins[0].version`）
+   三处版本号对齐（`ws.py selftest` 会查，缺字段算错），公开仓与私有仓同版本，再打同名 tag
 
 ## ⑥ 六条铁律
 
