@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.31.1
+version: 3.31.2
 author: 用户
 platforms: [windows]
 metadata:
@@ -69,9 +69,9 @@ L0/L1 只能说「未验证」。查表用 `ws.py rule <关键词>`，别凭记�
 3. **混淆不许手工改**：只走 `ws.py publish 模式.ow --outdir out --obf all`；字符串混淆交 VS Code 插件。
 4. **交付前 `check` 必须 0 error**，一次粘贴导入成功才算交付；报元素成本要说清省在哪、并声明是估算（真实模式偏低 4%~19%）。
 5. **`data/` 禁止手改**：只由生成器产出；`docs/` 才是手写知识。
-6. **每次交付后记一行**：把模式交给用户导入的结果（一次成功 / 游戏报错原话）追加到
-   `workshop-lite-re/import-log.tsv`，用 `python tools-maintainer/import_rate.py` 看**首次导入成功率**。
-   这是本技能唯一的成熟度指标——**≥95% 且连续三轮不掉**才算成熟。
+6. **每次交付后记一行**：把模式交给用户导入的结果（一次成功 / 游戏报错原话）记进自己的
+   `import-log.tsv`，用它算**首次导入成功率**。这是本技能唯一的成熟度指标——
+   **≥95% 且连续三轮不掉**才算成熟（维护者另有统计脚本，普通使用者记日志就够）。
    `check` 全绿不算数：v17 实测 9 个文件全绿、游戏全拒（E-94）。
 
 ## ⑦ 交付与上报纪律（硬规则，优先于「检查即修」）
