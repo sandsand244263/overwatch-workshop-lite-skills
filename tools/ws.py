@@ -1337,10 +1337,15 @@ def cmd_devcheck(a):
     tools = os.path.join(ROOT, "tools")
     verbose = getattr(a, "verbose", False)
     fails = []
+    fails_out = []          # (标签, 最后几行输出)：失败时必须把原因打出来，不然 CI 日志只剩一句「✗」
     t0 = time.time()
 
+    def note_fail(label, out):
+        lines = [l for l in (out or "").strip().splitlines() if l.strip()]
+        fails_out.append((label, lines[-12:]))
+
     # 1) 生成器 + 事实表对账：生成器漂移会静默用旧数据，表与代码漂移会静默失守
-    bad_gen, gen_info = [], []
+    bad_gen, gen_info, gen_skip = [], [], []
     for name, script in (("setting-values", "gen_setting_values.py"),
                          ("errors", "gen_errors.py"),
                          ("word-lists", "gen_word_lists.py"),
@@ -1351,8 +1356,14 @@ def cmd_devcheck(a):
         m = re.search(r"无漂移（(\d+) 行", out)
         if m:
             gen_info.append(m.group(1))
+        if rc == 2 and "找不到输入" in out:
+            # 生成器的输入是本机 CASC 导出（C:\owdump\…）。公开 CI / 别人机器上没有，
+            # 这时「对不了账」不等于「漂移」，跳过并写明原因，别把环境缺失当回归失败。
+            gen_skip.append(name)
+            continue
         if rc != 0:
             bad_gen.append("%s → python tools/%s" % (name, script))
+            note_fail("%s --check" % script, out)
     # 四张元素事实表：有语料时四张全对账；没语料时三张自动跳过（语料列复算不了），只留在场的
     rc_f, out_f, _ = _devcheck_run([py, os.path.join(tools, "gen_element_facts.py"), "--check"], 300)
     if verbose:
@@ -1364,6 +1375,7 @@ def cmd_devcheck(a):
         facts_info = "元素事实 %d 表无漂移%s" % (n_eq, "（%d 表跳过：没语料）" % n_skip if n_skip else "")
     else:
         bad_gen.append("元素事实 → python tools/gen_element_facts.py --check")
+        note_fail("gen_element_facts --check", out_f)
     # 事实表 ⇄ 校验器：写法、悬空函数名、反例文件、"表说不接但代码在管"（PLAN v11 战役 A）
     rc_a, out_a, _ = _devcheck_run([py, os.path.join(tools, "audit_rules.py")], 300)
     if verbose:
@@ -1372,6 +1384,8 @@ def cmd_devcheck(a):
     seg1 = []
     if gen_info:
         seg1.append("生成器 %s 行无漂移" % "/".join(gen_info))
+    if gen_skip:
+        seg1.append("生成器跳过 %s（缺本机 CASC 导出，不算漂移）" % "、".join(gen_skip))
     if facts_info:
         seg1.append(facts_info)
     if m_a:
@@ -1381,6 +1395,7 @@ def cmd_devcheck(a):
         fails.append("生成器")
         seg1.insert(0, "生成器 ✗ 有漂移：%s" % "；".join(bad_gen))
     if rc_a != 0 or not m_a:
+        note_fail("audit_rules", out_a)
         fails.append("事实表")
         seg1.append("事实表对账 ✗ → python tools/audit_rules.py -v")
     print("[1/5] 数据与事实         %s" % "｜".join(seg1))
@@ -1394,6 +1409,7 @@ def cmd_devcheck(a):
     if rc != 0 and "版本号不一致" in out:
         ver = "版本号不一致（VERSION / SKILL.md / marketplace.json 三处要对齐）"
     if rc != 0:
+        note_fail("selftest", out)
         fails.append("selftest")
         print("[2/5] selftest            ✗ 失败（%s）→ python tools/ws.py selftest" % ver)
     else:
@@ -1408,6 +1424,7 @@ def cmd_devcheck(a):
     pos_txt = "正 %s/%s" % (pos.group(2), pos.group(1)) if pos else "正样本汇总未读到"
     neg_txt = "反 %s/%s" % (neg.group(1), str(int(neg.group(1)) + int(neg.group(2)))) if neg else "反向用例未读到"
     if rc != 0 or not pos or not neg:
+        note_fail("check-all", out)
         fails.append("check-all")
         print("[3/5] check-all           ✗ 失败（%s、%s）→ python tools/ws.py check-all" % (pos_txt, neg_txt))
     else:
@@ -1424,6 +1441,7 @@ def cmd_devcheck(a):
     else:
         bad4.append("calib")
         seg.append("标定 ✗")
+        note_fail("calib", out)
     rc, out, _ = _devcheck_run([py, os.path.join(tools, "selfcheck_modes.py")], 600)
     if verbose:
         print("── selfcheck_modes ──\n%s" % out)
@@ -1433,6 +1451,7 @@ def cmd_devcheck(a):
     else:
         bad4.append("selfcheck_modes")
         seg.append("模式 ✗")
+        note_fail("selfcheck_modes", out)
 
     # 语料 + 被拒样本：只要本机配了其中一个就跑（被拒样本是游戏真拒过的原字节，见私有仓 rejected/）
     want_corpus = (getattr(a, "corpus", False) or bool(os.environ.get("WS_CORPUS"))
@@ -1447,6 +1466,7 @@ def cmd_devcheck(a):
         else:
             bad4.append("corpus")
             seg.append("语料/被拒 ✗")
+            note_fail("corpus", out)
     else:
         seg.append("语料/被拒 跳过（没配目录）")
     if bad4:
@@ -1456,6 +1476,12 @@ def cmd_devcheck(a):
         print("[4/5] calib/模式/语料     %s" % "、".join(seg))
 
     # 5) 结论
+    if fails and fails_out:
+        print("\n失败详情（每块最后 12 行，完整输出加 --verbose）：")
+        for label, lines in fails_out:
+            print("── %s ──" % label)
+            for ln in lines:
+                print("  " + ln)
     if fails:
         print("[5/5] 结论                ✗ 失败：%s —— 先修再往下走（%.0f 秒）"
               % ("、".join(fails), time.time() - t0))
