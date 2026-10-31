@@ -372,9 +372,11 @@ def scan_calls(text, sigs, labels, problems, options=None, dropdowns=None, legal
                                          % (name, total, got)))
                     elif got == 0 and total > 0:
                         problems.append((line, "error", "%s 至少需要 1 个参数" % name))
-                    elif got < total and name in EXACT_ARITY:
-                        # 多词元素名（`设置启用技能 1`、`For 全局变量`…）没有可选尾参，
-                        # 少写就是缺值，游戏会报「之后应有一个值」。修好取词前这一支不生效。
+                    elif got < total and (name in EXACT_ARITY or
+                                          got < _measured_min_args().get(name, 0)):
+                        # 两来源：① 多词元素名没有可选尾参（`设置启用技能 1`、`For 全局变量`…）；
+                        # ② 实机拒收过的「少写尾参」（data/param-exceptions.tsv 的 L2 行：
+                        #    创建效果 / 取整 / 随机整数，issue #2 实测）。
                         _need = "、".join(a.replace(":", "：") for a in (labels.get(name) or []))
                         problems.append((line, "error",
                                          "%s 参数不够：签名要 %d 个（%s），实际写了 %d 个"
@@ -1185,9 +1187,16 @@ def check_maps_not_in_editor(text, problems):
         tokens = set(t for t in TOKEN_SPLIT.split(s) if t)
         for name, (base, reason) in table.items():
             if name in tokens:
-                problems.append((ln, "warning",
-                                 "「%s」不能单独写（%s）；写成「%s」即可"
-                                 % (name, reason or "它属于主图", base or name)))
+                if not base:
+                    # base 空 = 整张图都没了（不是子区域写法问题），导入直接报错
+                    problems.append((ln, "error",
+                                     "地图「%s」已经用不了（%s）；换一张现行地图，"
+                                     "ws.py maps 查可用名"
+                                     % (name, reason or "当前客户端没有这张图")))
+                else:
+                    problems.append((ln, "warning",
+                                     "「%s」不能单独写（%s）；写成「%s」即可"
+                                     % (name, reason or "它属于主图", base)))
                 break
 
 
@@ -4114,6 +4123,8 @@ def check_arg_counts(text, problems, counts=None):
         for pos, n, _args in _iter_calls(text, el, masked):
             if n < lo:
                 line = text.count("\n", 0, pos) + 1
+                if any(p[0] == line and "参数不够" in p[2] and el in p[2] for p in problems):
+                    continue      # 同一处已经按「必改」报过了，别再重复提示一遍
                 problems.append((line, "warning",
                                  "%s 这里写了 %d 个参数，语料里最少写 %d 个（最常见 %d 个）："
                                  "签名允许多省，引擎不一定接受（E-55）" % (el, n, lo, common)))
@@ -4499,6 +4510,9 @@ def check_map_names(text, problems, map_names):
     游戏更新会删改地图，旧模式里的地图名会失效；游戏只报
     「"地图("之后应有一个地图名称」，指不到根本原因。
 
+    「数据表里有、但现在选不到/已下线」是另一件事，走 check_maps_not_in_editor
+    （名单在 data/map-not-in-editor.tsv，一行一条实机依据）。
+
     依据：data/maps.tsv（生成源 tools/enrich.py）
     """
     if not map_names:
@@ -4882,20 +4896,23 @@ def join_multiline_strings_mapped(text):
     """把跨行的字符串字面量接回一行（.ow 允许字符串内直接换行）。
 
     返回 (接好的文本, SegMap)。接好的文本行数与原文一致（续行留空）。
+    注意：必须记住「接在哪一行」（carry）。以前用 out[-1] 找接续行，
+    三行以上的字符串从第二段开始会接到空占位行上，第三段就掉队（真 3 行字符串会报缺分号）。
     """
     lines = text.split("\n")
-    out, in_str = [], False
+    out, in_str, carry = [], False, 0
     smap = SegMap()
     for idx, line in enumerate(lines):
-        if out and in_str:
-            col_start = len(out[-1]) + 1                 # 空格之后
+        if in_str:
+            col_start = len(out[carry]) + 1             # 空格之后
             indent = len(line) - len(line.lstrip())
-            out[-1] += " " + line.strip()
-            smap.add(len(out), col_start, idx + 1, indent)
-            out.append("")                               # 原行留空，保持行号
+            out[carry] += " " + line.strip()
+            smap.add(carry + 1, col_start, idx + 1, indent)
+            out.append("")                              # 原行留空，保持行号
             in_str = _ends_in_string(line, True)
             continue
         out.append(line)
+        carry = len(out) - 1
         in_str = _ends_in_string(line, False)
     return "\n".join(out), smap
 
@@ -5160,19 +5177,38 @@ def _scan_line_quotes(line):
 
 
 def check_odd_quotes_raw(raw, problems):
-    """逐行双引号奇偶（按物理行，跳过注释）。
+    """字符串没闭合（整篇扫，允许字符串跨行）。
 
-    依据：`52840`「文本字符串中出现了换行」——字符串不能跨行，所以单行引号为奇数就是没闭合。
-    S7 在 138 个语料样本、19,263 行上实测 **0 行命中**（D-006 门槛内）。
+    实测（issue #1，2026-10-31，一份 7000 行自用模式）：`自定义字符串("第一行↵第二行")`
+    这种跨行写法游戏照常导入，26 处全部正常发版。以前逐行数奇偶会把跨行那两半判成
+    「字符串没闭合」，是误报。现在按整篇状态机扫：
+    - 字符串跨行 → 合法，不报；
+    - 扫到文件结束还在字符串里 → 真的少了一个右引号 → 必改。
 
-    依据：data/errors-full.tsv（生成源 tools/gen_errors.py）
+    依据：issue #1（实机 26 处跨行字符串导入成功）。
     """
+    in_str, escaped, opened_at = False, False, 0
     for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
-        n, open_str = _scan_line_quotes(line)
-        if n % 2:
-            problems.append((i, "error",
-                             "这一行双引号是奇数（%d 个），字符串没闭合 —— 游戏会报「文本字符串中出现了换行」；"
-                             "字符串必须写在一行内" % n))
+        j = 0
+        while j < len(line):
+            ch = line[j]
+            if in_str:
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == '"':
+                    in_str = False
+            elif ch == '"':
+                in_str, opened_at = True, i
+            elif ch == "/" and j + 1 < len(line) and line[j + 1] == "/":
+                break            # 行尾注释不算字符串
+            j += 1
+    if in_str:
+        problems.append((opened_at, "error",
+                         "第 %d 行开始的字符串一直到文件结束都没有闭合（少了一个右引号）—— "
+                         "游戏会报「文本字符串中出现了换行」或「之后应有逗号」；"
+                         "跨行字符串本身合法，缺的是另一半引号" % opened_at))
 
 
 def check_rule_missing_event_raw(raw, problems):

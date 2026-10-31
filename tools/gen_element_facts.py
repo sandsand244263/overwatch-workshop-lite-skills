@@ -393,26 +393,36 @@ def build_dropdown_aliases(pdocs, popts, extvals, exts, corpus, sigs_labels):
 # --------------------------------------------------- 3. 参数个数例外
 def build_param_exceptions(pdocs, sigs_labels, corpus, argcounts_path, n_files=0):
     rows = []
-    # 正向：签名说可省，引擎要求写（E-55 唯一一例实机）
-    el = "创建效果"
-    labels = sigs_labels.get(el) or []
-    rec = (corpus or {}).get(el)
-    min_a = max_a = None
-    if rec and rec["argc"]:
-        min_a = min(rec["argc"])
-        max_a = max(rec["argc"])
-    else:
-        for r in load_tsv(argcounts_path):
-            if r.get("element") == el:
-                min_a, max_a = int(r["min_args"]), int(r["max_args"])
-    if labels:
+    # 正向：签名看起来能省，但引擎要求写满 —— 只收「实机拒收过」的元素。
+    # 每条的 floor = 签名参数个数：写少一个就是缺参数，游戏当场报错。
+    required_all = [
+        ("创建效果", "只写 5 个 → 游戏报「第N行的“50”之后应有分号」",
+         "E-55 一（实机拒收《创建效果(…, 球体, 颜色(白色), 矢量(0,3,0), 5)》）"),
+        ("取整", "只写 1 个 → 游戏报「之后应有逗号」",
+         "issue #2（2026-10-31 实机：《取整(5)》被拒）"),
+        ("随机整数", "只写 1 个 → 游戏报「之后应有逗号」",
+         "issue #2（2026-10-31 实机：《随机整数(1)》被拒）"),
+    ]
+    for el, symptom, evidence in required_all:
+        labels = sigs_labels.get(el) or []
+        if not labels:
+            continue
+        rec = (corpus or {}).get(el)
+        min_a = max_a = None
+        if rec and rec["argc"]:
+            min_a, max_a = min(rec["argc"]), max(rec["argc"])
+        else:
+            for r in load_tsv(argcounts_path):
+                if r.get("element") == el:
+                    min_a, max_a = int(r["min_args"]), int(r["max_args"])
         rows.append([el, "第%d个参数（%s）" % (len(labels), labels[-1].split(":")[0]),
-                     "是（签名尾参写着「可以省略」）", "是，必须写到 %d 个" % len(labels),
-                     "任何时候都要求；只写 5 个 → 游戏报「第N行的“50”之后应有分号」",
-                     "E-55 一（实机拒收《创建效果(…, 球体, 颜色(白色), 矢量(0,3,0), 5)》）；"
-                     "语料 %s 次调用里最少 %s 个、最多 %s 个；core.MEASURED_MIN_ARGS 已接"
-                     % (rec["calls"] if rec else "?", min_a, max_a), "L2",
-                     "唯一一例实机确认的「签名能省、引擎不认」"])
+                     "是（签名尾参写着「可以省略」）" if el == "创建效果"
+                     else "否（签名列了 %d 个，没有可选尾参）" % len(labels),
+                     "是，必须写到 %d 个" % len(labels),
+                     "任何时候都要求；" + symptom,
+                     "%s；语料 %s 次调用里最少 %s 个、最多 %s 个"
+                     % (evidence, rec["calls"] if rec else "?", min_a, max_a),
+                     "L2", "实机确认的「少写尾参就导不进去」"])
 
     # 反向：签名列了参数，语料里一致的少写（引擎收得下）
     variadic = set(getattr(core, "VARIADIC", ()) or ())

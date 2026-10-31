@@ -39,7 +39,7 @@ team-all-word.ow	个参数是队伍，只能写	玩家数量(全部)：`全部` 
 hero-bare-word.ow	个参数是英雄，要写成 英雄(	生成机器人(死神, …)：裸英雄名游戏报「之后应有一个值」
 event-long-loop.ow	事件规则	事件规则里写 While(真)：忙时事件会丢（E-50）
 ffa-bot-team.ow	生成机器人会静默失败	死斗里 队伍1/队伍2 栏位为 0（E-49）
-few-args.ow	个参数，语料里最少写	创建效果 少写第 6 个参数，游戏报「之后应有';'」（E-55）
+few-args.ow	参数不够	创建效果 少写第 6 个参数，游戏报「之后应有';'」（E-55）；实机拒收过的下限按必改报
 bad-bare-value.ow	值函数「上一个效果ID」不存在	不存在的无参值函数（E-55）
 spaced-name-few-args.ow	参数不够	设置启用技能 1 少写「启用」参数：修好取词前这 7 个元素根本不进参数检查
 spaced-for-few-args.ow	参数不够	For 全局变量 少写「步长」
@@ -48,7 +48,7 @@ victory-in-loop.ow	循环里宣告胜负后没有	循环里宣告胜利、后面
 speed-absolute-value.ow	设置移动速度 的参数是百分比	写 600 想要 6 倍速度：这个参数是百分比，100 = 原值（limits-mutex L3）
 letter-var-wrong-index.ow	与另一个变量冲突	全局: 0: V —— 实机导入报「全局变量“V”与另一个变量冲突」（A~Z 占 0~25 号位）
 var-slot-prefix.ow	变量槽要写裸名	修改全局变量 的变量槽写了 全局.A：实机导入报错，裸名 A 才对（E-59）
-odd-quote.ow	双引号是奇数	52840「文本字符串中出现了换行」：字符串不能跨行，单行奇数就是没闭合（S7 实测 0/19263 行）
+odd-quote.ow	一直到文件结束都没有闭合	真没闭合（跨行本身合法，见 issue #1；只有扫到 EOF 还开着才算错）
 rule-no-event.ow	没有 事件 块	51160「之后的规则没有以事件结尾」：每条规则都必须有事件块（S7 实测 0/219 规则块）
 long-var-name.ow	超过 32	60206/60282 名字过长：上限值未验证，只能 warning（规则名不查，实测 20+ 误报已撤回）
 enum-bad-value.ow	只能写 即时	词类设置键写了表外的值：游戏模式开始 只认 即时/手动/比赛人满后（data/setting-values.tsv）
@@ -88,3 +88,5 @@ mode-name-6v6-ui.ow	是界面上的模式名	E-94 同类：占领要点（6V6）
 dup-var-index.ow	变量索引 0 在「玩家」里重复	CASC 60280：同一段里索引复用
 attacker-in-global.ow	「持续 - 全局」规则里不能用 攻击者 / 被攻击者	CASC 50041：事件不提供攻击者上下文
 divide-by-zero.ow	除数是 0	CASC 24164：运行时除数为零
+single-word-few-args.ow	参数不够	取整(5) / 随机整数(1)：签名 2 个参数没有可选尾参，游戏报「之后应有逗号」（issue #2）
+retired-map.ow	已经用不了	地图(万圣节艾兴瓦尔德)：map 在 maps.tsv 里但当前客户端没有（issue #2）

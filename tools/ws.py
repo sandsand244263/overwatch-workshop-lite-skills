@@ -1391,6 +1391,8 @@ def cmd_devcheck(a):
         print("── selftest ──\n%s" % out)
     m = re.search(r"版本号一致：v(\S+)", out)
     ver = "v" + m.group(1) if m else "版本号未读到"
+    if rc != 0 and "版本号不一致" in out:
+        ver = "版本号不一致（VERSION / SKILL.md / marketplace.json 三处要对齐）"
     if rc != 0:
         fails.append("selftest")
         print("[2/5] selftest            ✗ 失败（%s）→ python tools/ws.py selftest" % ver)

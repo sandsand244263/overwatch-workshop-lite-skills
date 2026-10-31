@@ -194,7 +194,7 @@ workshop-lite/
 │   ├── gen_*.py                   从游戏导出重新生成 data/
 │   ├── selfcheck_publish.py       混淆产物冒烟测试
 │   ├── selfcheck_modes.py         55 个模式全生成一遍自查（生成器与校验器不许打架）
-│   └── probes/                    85 正样本 + 89 反向用例（含 4 个可运行样例）；lab/ 是历史证据档，check-all 不扫
+│   └── probes/                    86 正样本 + 91 反向用例（含 4 个可运行样例）；lab/ 是历史证据档，check-all 不扫
 ├── .github/workflows/check.yml    push 与 PR 自动跑回归
 ├── .claude-plugin/marketplace.json  Claude Code 市场注册
 └── LICENSE                        MIT
@@ -215,7 +215,7 @@ python tools/ws.py fix 导出的.txt                  # 修成可导入版本，
 python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现（不含模式名/内容）
 python tools/ws.py probe-template --cells 8        # 生成探针：自带房间设置 + 自停 + 收尾标记 + README
 python tools/ws.py probe-run 探针.ow               # 探针一条龙：盯着日志，跑完自动出差异表（不用用户复制）
-python tools/ws.py check-all                      # 回归全部样本（85 正 + 86 反例）
+python tools/ws.py check-all                      # 回归全部样本（86 正 + 91 反例）
 python tools/ws.py count 模式.ow                  # 元素数估算
 python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）
 python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架
