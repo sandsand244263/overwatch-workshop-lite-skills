@@ -1240,11 +1240,15 @@ def cmd_calib(a):
     import csv as _csv
     import glob as _glob
     calib_dir = os.path.join(ROOT, "tools", "probes", "calib")
-    files = {}
-    for p in _glob.glob(os.path.join(calib_dir, "*.ow")):
+    files, pref = {}, {}         # 前缀 -> [文件…]；同名前缀有两个文件时不许后写覆盖
+    for p in sorted(_glob.glob(os.path.join(calib_dir, "*.ow"))):
         stem = os.path.splitext(os.path.basename(p))[0]
-        files[stem.split("_")[0]] = p
-        files[stem] = p          # P1.ow 这种没有下划线的也要能查到
+        files[stem] = p          # 完整文件名永远能查到
+        pref.setdefault(stem.split("_")[0], []).append(p)
+    for key, paths in pref.items():
+        if len(paths) == 1:
+            files.setdefault(key, paths[0])   # 前缀唯一才登记（K16 有两个文件，必须写全名）
+    ambiguous = {k: [os.path.basename(p) for p in v] for k, v in pref.items() if len(v) > 1}
     from element_count import estimate
     total = bad = 0
     for manifest in ("measurements.csv", "measurements-k.csv"):
@@ -1258,7 +1262,11 @@ def cmd_calib(a):
                 continue
             f = files.get(key)
             if not f:
-                print("  ? %s 找不到探针文件" % key)
+                if key in ambiguous:
+                    print("  ? %s 有多个候选探针（%s）：csv 里改写成完整文件名"
+                          % (key, "、".join(ambiguous[key])))
+                else:
+                    print("  ? %s 找不到探针文件" % key)
                 continue
             est = estimate(f)[0]
             real = int(r["元素数"])
@@ -1275,7 +1283,11 @@ def cmd_calib(a):
             key = (r["probe"] or "").strip()
             f = files.get(key)
             if not f:
-                print("  ? %s 找不到探针文件" % key)
+                if key in ambiguous:
+                    print("  ? %s 有多个候选探针（%s）：csv 里改写成完整文件名"
+                          % (key, "、".join(ambiguous[key])))
+                else:
+                    print("  ? %s 找不到探针文件" % key)
                 continue
             est = estimate2(f)
             real = int(r["元素数"])
