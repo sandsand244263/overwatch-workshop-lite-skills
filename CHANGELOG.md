@@ -42,6 +42,11 @@
   再盯日志目录，看到 `[end]` 就出差异表、落 `readings.md`。用户只做「导入 + 点开始」，不用复制日志。
 - `logread.wait_new_log` 支持 `end_marker`：有 `[end]` 时文件稳定 3 秒即返回，没有才等 `--settle`。
 
+**防呆：版本号三处一致之前是假绿**
+
+- `selftest` 读的是 `.claude-plugin/marketplace.json` 顶层的 `version`，而这个文件把版本写在 `plugins[0].version` 里——
+  读不到就当空值跳过，所以 marketplace.json 忘了改也能「全绿」。现在按 `plugins[].version` 读，读不到直接判「缺版本字段」。
+
 ---
 
 ## [3.30.1] - 2026-10-28

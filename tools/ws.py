@@ -729,7 +729,14 @@ def cmd_selftest(args):
     mp = os.path.join(ROOT, ".claude-plugin", "marketplace.json")
     if os.path.isfile(mp):
         try:
-            ver_mk = (json.load(open(mp, encoding="utf-8")) or {}).get("version", "")
+            data = json.load(open(mp, encoding="utf-8")) or {}
+            cands = []
+            if isinstance(data, dict) and data.get("version"):
+                cands.append(str(data["version"]))
+            for plug in (data.get("plugins") or []) if isinstance(data, dict) else []:
+                if isinstance(plug, dict) and plug.get("version"):
+                    cands.append(str(plug["version"]))
+            ver_mk = ",".join(sorted(set(cands))) or "缺版本字段"
         except (OSError, ValueError):
             ver_mk = "读取失败"
     versions = {"VERSION": ver_file, "SKILL.md": ver_skill, "marketplace.json": ver_mk}
