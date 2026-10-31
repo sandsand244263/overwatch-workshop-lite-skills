@@ -372,8 +372,24 @@ def check_expect(entries, spec):
     return ok, rows, missing
 
 
-def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None):
-    """等目录里出现「之前没有的」Log-*.txt，并在它大小稳定 settle 秒后返回。
+def _tail_has(path, token, nbytes=8192):
+    """文件末尾 nbytes 内有没有 token（探针的收尾标记）。读不到就当没有。"""
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - nbytes))
+            return token.encode("utf-8") in f.read()
+    except OSError:
+        return False
+
+
+def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None, end_marker=None):
+    """等目录里出现「之前没有的」Log-*.txt，并在它「写完」后返回。
+
+    「写完」有两种判据：
+    - 给了 `end_marker`（探针的 `[end]`）且文件里出现了它 → 只再等 3 秒就返回，不用干等 settle 秒；
+    - 没有标记 → 大小稳定 settle 秒才算写完（老探针/手写探针的兜底）。
 
     `show` 是可选的进度输出函数（默认打印）。返回路径或 None。
     """
@@ -382,7 +398,7 @@ def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None):
     if show:
         show("盯 %s（现有 %d 个文件，等新文件…）" % (folder, len(before)))
     t0 = time.time()
-    path, last_size, last_change = None, -1, 0.0
+    path, last_size, last_change, marker_seen = None, -1, 0.0, False
     while time.time() - t0 < timeout:
         try:
             now = set(os.listdir(folder))
@@ -401,10 +417,18 @@ def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None):
                 size = last_size
             if size != last_size:
                 last_size, last_change = size, time.time()
-            elif time.time() - last_change >= settle:
-                if show:
-                    show("  %d 字节，已 %d 秒没变 → 认为写完" % (size, settle))
-                return path
+            else:
+                quiet = time.time() - last_change
+                if end_marker and not marker_seen and _tail_has(path, end_marker):
+                    marker_seen = True
+                    if show:
+                        show("  看到收尾标记 %s，等 3 秒确认写完" % end_marker)
+                need = 3 if marker_seen else settle
+                if quiet >= need:
+                    if show:
+                        show("  %d 字节，已 %d 秒没变 → 认为写完%s"
+                             % (size, need, "（有收尾标记）" if marker_seen else ""))
+                    return path
         time.sleep(poll)
     return None
 

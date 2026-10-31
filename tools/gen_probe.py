@@ -15,6 +15,8 @@
   后面 30 行内必须有 `中断`，否则报错
 - 持续类规则开头先 `等待直到(正在设置 == 假, 60)` + `等待(6, 无视条件)` 避开开局倒计时
 - 屏幕隐蔽（隐藏英雄HUD / 隐藏游戏模式HUD / 开始镜头）写在「每名玩家」规则里，且在等待之前
+- **全自动**：自带房间设置（死斗 + 地图工坊室内 + 游戏模式开始: 即时），导入点开始就跑，
+  到点自停；开头打 `[base]`、收尾打 `[end]` + 每格终值，读数由 `ws.py probe-run` 自己读日志
 
 同时生成配套 expect.tsv 骨架（格号 / 结构说明 / 期望 / 容差 / 依据 / 备注）。
 模板约定与判读流程见 docs/probe-spec.md。
@@ -282,6 +284,7 @@ def build_probe(plan, seconds, name="探针"):
     # 时钟：只有一个，所有格子读它决定何时收工
     out.append('规则("时钟 每秒一格")\n{\n\t事件\n\t{\n\t\t持续 - 全局;\n\t}\n\n'
                '\t动作\n\t{\n'
+               '\t\t记入查看器(自定义字符串("[base] probe up"));   // 第一行哨兵：有它就说明日志在记\n'
                '\t\t等待直到(正在设置 == 假, 60);\n'
                '\t\t等待(%d, 无视条件);\n'
                '\t\tWhile(全局.t < %d);          // 计时上限，走完就退出\n'
@@ -290,6 +293,18 @@ def build_probe(plan, seconds, name="探针"):
                '\t\tEnd;\n'
                '\t\t记入查看器(自定义字符串("[clock] t={0}", 全局.t));\n'
                '\t}\n}\n' % (GUARD_WAIT, seconds))
+
+    # 收尾：打 [end] + 每格终值。判读端据此知道「这一局跑完了」，不用靠文件大小猜
+    tail = ['规则("收尾 汇总")\n{\n\t事件\n\t{\n\t\t持续 - 全局;\n\t}\n\n',
+            '\t动作\n\t{\n',
+            '\t\t等待直到(全局.t >= %d, 180);   // 等时钟走完（最多再等 3 分钟）\n' % seconds,
+            '\t\t记入查看器(自定义字符串("[end] t={0}", 全局.t));\n']
+    for i in sorted(counters):
+        key = counters[i]
+        tail.append('\t\t记入查看器(自定义字符串("[end %s] %s={0}", 全局.%s));\n'
+                    % (key, key, key))
+    tail.append('\t}\n}\n')
+    out.append("".join(tail))
 
     for i, struct in enumerate(plan, 1):
         out.extend(build_rule(i, struct, counters[i], auxes.get(i), seconds))
@@ -325,6 +340,14 @@ def build_expect(plan, seconds, name="探针"):
 def lint_probe_text(text):
     """生成后的自查：这一份必须满足的写作约定。返回问题列表。"""
     problems, lines = [], text.split("\n")
+    for token, why in (("[base]", "开头哨兵 [base] 丢了：分不清「探针没跑」和「日志没落盘」"),
+                       ("[end]", "收尾标记 [end] 丢了：判读端不知道这一局跑完没")):
+        if token not in text:
+            problems.append(why)
+    if "启用地图" not in text or "地图工坊室内" not in text:
+        problems.append("没自带房间设置（死亡竞赛 + 地图工坊室内）：导入后还得手动建房，不是全自动探针")
+    if "游戏模式开始: 即时" not in text:
+        problems.append("没有「游戏模式开始: 即时」：点开始后还要等倒计时")
     for token in ("%INC%", "%LOG%", "%AUX%", "%AUXN%"):
         if token in text:
             problems.append("模板占位符 %s 没被替换掉（结构表写错了）" % token)
@@ -356,6 +379,32 @@ def lint_probe_text(text):
             if text.count("全局.%s = 全局.%s + 1" % (key, key)) != 1:
                 problems.append("%s 的计数器没有唯一的 +1 语句（一格一计数器）" % key)
     return problems
+
+
+def build_readme(plan, seconds, ow_name, expect_name, name="探针"):
+    """-> 探针目录的 README.md（给用户看的三步，别手写：手写容易漏「不用复制日志」）。"""
+    wait_hint = seconds + GUARD_WAIT + 5
+    rows = ["# 探针跑法（自动生成，别手改）", "",
+            "这一包就一份文件：`%s`（%d 格，跑 %d 秒）。**导入进去就不用管了。**" % (ow_name, len(plan), seconds),
+            "", "## 你只需要两步", "",
+            "1. 游戏 → 工坊 → 导入代码 → 粘贴 `%s` 的内容 → 确定" % ow_name,
+            "2. 点「开始」，等约 %d 秒（开局 %d 秒 + 读数 %d 秒 + 收尾）" % (wait_hint, GUARD_WAIT, seconds),
+            "", "不用点别的、不用看屏幕、不用复制日志、不用退游戏。",
+            "探针会自己停：时钟走满 %d 秒后打一行 `[end]`，之后不再产新记录。" % seconds,
+            "", "## 读数怎么到我手里", "",
+            "- 日志游戏自己落盘：`%USERPROFILE%\\Documents\\Overwatch\\Workshop\\Log-<时间>.txt`",
+            "- 跑完跟我说一句「跑完了」，我用这条命令自己读、自己判，不用你贴东西：",
+            "", "```", "python tools/ws.py probe-run %s" % ow_name, "```", "",
+            "- 只有「日志目录里没有新文件」时才需要你：查看器底部「将当前记录复制到剪贴板」",
+            "  → 存成 `records.txt` → 告诉我路径（这时是开关被关了，先查",
+            "  `设置 → 游戏 → 综合 → 自定游戏-地图工坊 → 启用地图工坊查看器日志文件`）",
+            "", "## 期望表", "",
+            "`%s`：期望/容差按结构和秒数推算好了，「依据」列现在写的是「未验证」，"
+            "读数回来再回填证据编号。" % expect_name, "",
+            "## 出问题时", "",
+            "- 导入被拒：**照抄报错原文**（不改字、不截图转述），这本身就是读数。",
+            "- 一条日志都没有：先看上面那个开关，再看游戏是不是正常退到大厅再退的。", ""]
+    return "\n".join(rows)
 
 
 def main_with_args(args):
@@ -397,16 +446,25 @@ def main_with_args(args):
     with open(exp_path, "w", encoding="utf-8", newline="") as f:
         f.write(build_expect(plan, seconds, os.path.basename(out)))
 
+    readme_path = ""
+    if not getattr(args, "no_readme", False):
+        readme_path = os.path.splitext(out)[0] + ".README.md"
+        with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(build_readme(plan, seconds, os.path.basename(out),
+                                 os.path.basename(exp_path), name))
+
     print("已生成 %s：%d 格 / 跑 %d 秒 / 每秒打点一次" % (out, len(plan), seconds))
     for i, struct in enumerate(plan, 1):
         st = STRUCTURES[struct]
         tag = "对照" if st.get("control_of") else "测试"
         print("  c%-2d %-2s %-10s %s" % (i, tag, struct, st["note"]))
     print("已生成 %s：期望/容差已按结构和秒数推算好，依据列留「未验证」待回填" % exp_path)
+    if readme_path:
+        print("已生成 %s：给用户的三步跑法（导入 → 等 → 完事）" % readme_path)
     print("\n下一步：")
     print("  1) python tools/ws.py check %s        必须 0 error" % out)
-    print("  2) 导入游戏跑一次（跑完退到大厅再退游戏，日志才会落盘）")
-    print("  3) python tools/ws.py readlog --expect-file %s" % exp_path)
+    print("  2) 交给用户：导入 → 点「开始」→ 等 %d 秒左右，别的都不用做" % (seconds + GUARD_WAIT + 5))
+    print("  3) 自己判读：python tools/ws.py probe-run %s   （盯日志目录，出 [end] 就判）" % out)
     return 0
 
 
@@ -418,6 +476,8 @@ def main():
     ap.add_argument("--name", default="探针", help="模式名称")
     ap.add_argument("--out", default="probe.ow", help="输出的 .ow")
     ap.add_argument("--expect-out", dest="expect_out", default="", help="输出的 expect.tsv（默认同名）")
+    ap.add_argument("--no-readme", dest="no_readme", action="store_true",
+                    help="不生成给用户看的 README.md（默认生成）")
     return main_with_args(ap.parse_args())
 
 

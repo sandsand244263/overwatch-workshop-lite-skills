@@ -85,7 +85,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 | 情况 | 说 / 跑 |
 |---|---|
 | 不确定环境有没有问题 | `python tools/ws.py doctor` |
-| 觉得它报错了（误报） | `python tools/ws.py report 你的.ow` → 生成脱敏片段，贴到 issue |
+| 觉得它报错了（误报） | `python tools/ws.py report 你的.ow` → 生成脱敏片段，贴到 issue（引号里的内容一律换成 `…`，模式名/描述/规则名不会带出去） |
 | 文件导不进去、也说不出为什么 | 直接把游戏报错原文贴给 AI |
 
 ---
@@ -212,7 +212,9 @@ python tools/ws.py check 模式.ow --json           # 结构化输出，给编�
 python tools/ws.py deliver 模式.ow                # 交付：固定三行（文件/怎么跑/看哪里），有必改不打印
 python tools/ws.py devcheck                       # 一条命令跑完全部回归（发版前必跑）
 python tools/ws.py fix 导出的.txt                  # 修成可导入版本，并复校
-python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现
+python tools/ws.py report 模式.ow                 # 误报反馈：生成脱敏的最小复现（不含模式名/内容）
+python tools/ws.py probe-template --cells 8        # 生成探针：自带房间设置 + 自停 + 收尾标记 + README
+python tools/ws.py probe-run 探针.ow               # 探针一条龙：盯着日志，跑完自动出差异表（不用用户复制）
 python tools/ws.py check-all                      # 回归全部样本（85 正 + 86 反例）
 python tools/ws.py count 模式.ow                  # 元素数估算
 python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默认死斗）

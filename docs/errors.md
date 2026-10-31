@@ -647,7 +647,7 @@ B 层 12 条是界面提示，不是解析器文案。
 python tools/ws.py check 我的模式.ow          # 必改 / 提示 分级
 python tools/ws.py check 我的模式.ow --strict  # 更严（多出语义检查）
 python tools/ws.py explain "无效的地图设置"    # 反查报错文案
-python tools/ws.py report 我的模式.ow         # 生成可上报的脱敏片段
+python tools/ws.py report 我的模式.ow         # 生成可上报的脱敏片段（不含模式名/内容，可直接贴 issue）
 ```
 
 游戏报错原文可以直接贴给 AI：先跑 `check`，再对照本页第 1~8 节。

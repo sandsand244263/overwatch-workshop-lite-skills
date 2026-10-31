@@ -1,28 +1,53 @@
 # 探针模板与判读规范（probe-spec）
 
 > 阶段 0-4：把「跑探针 → 抄读数 → 人工比对」改成「生成模板 → 跑一次 → 一条命令出差异表」。
-> 工具：`tools/gen_probe.py`（`ws.py probe-template`）生成，`tools/logread.py`（`ws.py readlog --expect-file`）判读。
+> 工具：`tools/gen_probe.py`（`ws.py probe-template`）生成，`ws.py probe-run` 一条命令跑完判读
+> （底层是 `tools/logread.py` 的 `--expect-file` 与 `--watch`）。
 > 本文只讲约定；运行时行为本身仍然只写在 [pitfalls-runtime.md](./pitfalls-runtime.md)。
+
+## 默认全自动（v3.31.0 起，别退回手动流程）
+
+生成出来的探针就是「插上就能跑」的，用户只做两件事：**导入、点开始**。
+
+| 保证 | 怎么做的 | 少了会怎样 |
+|---|---|---|
+| 不用手动建房 | 设置块自带 `模式 > 死斗 > 启用地图 { 地图工坊室内 }` + `综合 > 游戏模式开始: 即时` | 自动化点「开始」后无图可进；手动跑也得先建房 |
+| 不用叫停 | 时钟 `While(全局.t < N)` 走满就退出，所有格子读同一个时钟 | 只能人肉盯着等，读数窗口各不相同 |
+| 知道跑起来没有 | 时钟规则第一句 `记入查看器("[base] probe up")` | 日志是空的时分不清「探针没跑」和「日志没落盘」 |
+| 知道跑完没有 | 收尾规则打 `[end] t=N` + 每格 `[end cN] cN=<终值>` | 判读端只能靠「文件不再变大」猜，短局容易判成没跑 |
+| 知道该干什么 | 生成时顺手写 `<名字>.README.md`：导入 → 等 N 秒 → 完事 | 交付说明靠手写，最容易漏掉「不用复制日志」 |
+
+判读一条命令，agent 自己做，不问用户要文本：
+
+```bash
+python tools/ws.py probe-run 探针.ow
+```
+
+它会先做前置检查（自带房间设置？有 `[end]`？期望表在？`check` 有几个必改？），
+不满足就**不动手**并说清楚缺什么（老探针/被拒探针加 `--force`）；
+然后盯日志目录，看到 `[end]` 后 3 秒稳定即判读，出差异表并落 `<名字>.readings.md`。
+用户只管导入和点开始，中间不需要复制、不需要退出游戏（想退也随意，日志已经写完了）。
 
 ## 一条命令的闭环
 
 ```bash
-# 1) 生成探针骨架 + 配套期望表
+# 1) 生成探针骨架 + 配套期望表 + 给用户看的 README
 python tools/ws.py probe-template --cells 8 --out 探针.ow
-#    -> 探针.ow（8 格，每秒打点，12 秒自停）
+#    -> 探针.ow（8 格，每秒打点，12 秒自停，自带房间设置）
 #    -> 探针.expect.tsv（期望/容差已按结构和秒数算好，依据列留「未验证」）
+#    -> 探针.README.md（导入 → 等 → 完事）
 
 # 2) 校验（必须 0 error 再进游戏）
 python tools/ws.py check 探针.ow
 
-# 3) 进游戏跑一次，然后**退到大厅再退游戏**（别在比赛里直接结束进程）
-#    前提：设置里「启用地图工坊查看器日志文件」必须开着，否则不落盘
+# 3) 交给用户：导入 → 点「开始」→ 等 20 秒左右，别的都不用做
 
-# 4) 判读：出「预期 | 实际 | 结论」差异表
-python tools/ws.py readlog --expect-file 探针.expect.tsv
+# 4) 判读（agent 自己跑，不用用户贴日志）
+python tools/ws.py probe-run 探针.ow
 
-# 想边跑边等（用户一导入就盯目录，写完自动判读，不碰键鼠）：
-python tools/ws.py readlog --watch --expect-file 探针.expect.tsv
+# 想边跑边等、或补判某份旧日志：
+python tools/ws.py probe-run 探针.ow --timeout 600
+python tools/ws.py probe-run 探针.ow --file records.txt
 ```
 
 读取的日志是游戏自己落盘的 `%USERPROFILE%\Documents\Overwatch\Workshop\Log-<时间>.txt`，
@@ -65,6 +90,9 @@ python tools/ws.py readlog --watch --expect-file 探针.expect.tsv
    全局规则里对这些动作用 `本地玩家` 实测无效（E 编号见 pitfalls-runtime）。
 8. **一个时钟管所有格子**：单独一条 `持续 - 全局` 规则每秒 `全局.t + 1`，
    所有格子的循环条件都读 `全局.t`，这样 8 个格子的窗口是同一个，读数可直接横向比较。
+9. **两个标记必须有**：开头 `[base]`（日志在记）、收尾 `[end]`（跑完了）。
+   生成器会自查，手写探针也得照写——没有 `[end]` 时判读端只能猜「文件不再变大」，
+   短局（十几秒）很容易被判成「没跑」。
 
 ## 内置结构表
 

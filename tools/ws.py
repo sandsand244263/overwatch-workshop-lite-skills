@@ -782,17 +782,176 @@ def cmd_probe_template(args):
     return gen_probe.main_with_args(args)
 
 
+def cmd_probe_run(args):
+    """探针一条龙：验「是不是全自动探针」→ 盯日志目录 → 出差异表 → 落 readings.md。
 
-def _mask_strings(line):
-    """脱敏：把长字符串内容换成 …，保留键名和结构。"""
+    用户只做两件事：导入、点开始。剩下的都在这里做，不问用户复制日志。
+    """
+    import contextlib
+    import io
+    import time as _time
+    import logread
+
+    probe = args.probe
+    if not os.path.isfile(probe):
+        print("[错误] 找不到探针文件：%s" % probe)
+        return 2
+    text, _enc = core.read_text(probe)
+    problems = core.full_lint(probe, DATA, strict=getattr(args, "strict", False))
+    errs = [p for p in problems if p[1] == "error"]
+
+    auto_room = ("启用地图" in text) or ("游戏模式开始: 即时" in text)
+    has_end = "[end]" in text
+    has_base = "[base]" in text
+    table = getattr(args, "expect_file", None) or (os.path.splitext(probe)[0] + ".expect.tsv")
+    has_table = os.path.isfile(table)
+
+    def mark(ok, yes, no):
+        return ("✔ " + yes) if ok else ("✗ " + no)
+
+    print("探针：%s" % os.path.basename(probe))
+    print("  " + mark(auto_room, "自带房间设置（导入就能跑）", "没自带房间设置：导入后还得手动建房"))
+    print("  " + mark(has_end, "收尾标记 [end]（跑完能被认出来）", "没有收尾标记：只能等文件不再变大"))
+    print("  " + mark(has_base, "开场哨兵 [base]", "没有开场哨兵：日志为空时分不清没跑还是没落盘"))
+    print("  " + mark(has_table, "期望表 %s" % (os.path.basename(table) if has_table else ""),
+                    "没有期望表 %s：只打日志、不判读" % (os.path.basename(table) if has_table else "")))
+    print("  " + mark(not errs, "check：0 个必改", "check：%d 个必改" % len(errs)))
+
+    if not auto_room and not getattr(args, "force", False):
+        print("\n不动手：这份探针没有自带房间设置，导入后还得手动建房/等倒计时，"
+              "「只用等」不成立。")
+        print("  要全自动：用 `ws.py probe-template` 重新生成（自带死斗 + 地图工坊室内 + 即时开始）。")
+        print("  已经自己建好房、就要跑这份：加 --force。")
+        return 2
+    if errs and not getattr(args, "force", False):
+        print("\n不动手：check 报 %d 个必改，导进去会被拒。" % len(errs))
+        for p in errs[:5]:
+            print("  第 %s 行：%s" % (p[0], p[2]))
+        print("  被拒探针是故意写坏的话，加 --force（被拒不丢人，报错原文也是读数）。")
+        return 2
+
+    if getattr(args, "file", None):
+        path = args.file
+        if not os.path.isfile(path):
+            print("[错误] 找不到日志文件：%s" % path)
+            return 2
+        print("\n直接判读已有日志：%s" % os.path.basename(path))
+    else:
+        print("\n现在你只做两件事：")
+        print("  1. 游戏 → 工坊 → 导入代码 → 粘贴 %s → 确定" % os.path.basename(probe))
+        print("  2. 点「开始」，然后什么都不用做（探针自己会停）")
+        print("\n我在盯日志目录，最多等 %d 秒…\n" % (getattr(args, "timeout", 900) or 900))
+        folder = getattr(args, "dir", None) or logread.default_dir()
+        if not os.path.isdir(folder):
+            print("[错误] 找不到日志目录：%s" % folder)
+            print("先确认游戏装在这台机器、并且用过一次「记入查看器」。可用 --dir 指定。")
+            return 2
+        path = logread.wait_new_log(folder,
+                                    timeout=getattr(args, "timeout", 900) or 900,
+                                    settle=getattr(args, "settle", 8) or 8,
+                                    end_marker="[end]" if has_end else None)
+        if not path:
+            print("✗ 等了 %d 秒没有新日志文件：%s" % (getattr(args, "timeout", 900) or 900, folder))
+            print("  先查开关：设置 → 游戏 → 综合 → 自定游戏-地图工坊 →"
+                  "「启用地图工坊查看器日志文件」（同页另一个也开）")
+            print("  开关是关的就一局也不会生成文件，不是探针的问题。")
+            return 2
+
+    entries = logread.parse(logread.read_text(path))
+    if not entries:
+        print("文件是空的或格式不认识：%s（可能还没写完，等几秒再看）" % path)
+        return 2
+
+    tags = {e["tag"] for e in entries}
+    span = entries[-1]["sec"] - entries[0]["sec"]
+    print("\n日志：%s" % os.path.basename(path))
+    print("时间：%s → %s（%d 行，跨度 %d 秒）"
+          % (entries[0]["ts"], entries[-1]["ts"], len(entries), span))
+    if "base" in tags:
+        print("开场哨兵：在（[base] 出现过 → 这份日志确实记了东西）")
+    if "end" in tags:
+        print("收尾标记：在（[end] 出现过 → 这一局完整跑完了）")
+    elif has_end:
+        print("收尾标记：没出现 → 局可能被提前结束了，读数按不完整处理")
+
+    rc = 0
+    verdict = ""
+    if not has_table:
+        print("\n没有期望表，只按标签汇总：")
+        for tag in sorted(tags):
+            hits = [e for e in entries if e["tag"] == tag]
+            print("  [%s] %d 条，最后 %s  %s" % (tag, len(hits), hits[-1]["ts"],
+                                                 hits[-1]["rest"][:60]))
+        return 0
+
+    rows, errors = logread.parse_expect_file(table)
+    if errors:
+        print("\n[错误] 期望表有问题（没有判读）：")
+        for e in errors:
+            print("  - %s" % e)
+        return 2
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = logread.report_expect_file(entries, rows, table,
+                                        verbose=getattr(args, "verbose", False))
+    verdict = buf.getvalue()
+    print(verdict)
+
+    keys = [r["key"] for r in rows]
+    if not any(logread.series(entries, k) for k in keys):
+        print("注意：期望表里的格号在这份日志里一个都没出现——"
+              "多半不是这份探针产生的日志（导入的是别的模式），别拿它下结论。")
+
+    if not getattr(args, "no_save", False):
+        out = os.path.splitext(probe)[0] + ".readings.md"
+        stamp = _time.strftime("%Y-%m-%d %H:%M")
+        body = ["# 探针读数：%s" % os.path.basename(probe),
+                "",
+                "- 判读时间：%s" % stamp,
+                "- 日志文件：`%s`（%d 行，跨度 %d 秒）" % (os.path.basename(path), len(entries), span),
+                "- 收尾标记：%s" % ("在" if "end" in tags else "没出现"),
+                "",
+                "## 差异表", "", "```", verdict.strip(), "```", "",
+                "## 原始记录（游戏查看器原文，未改）", "", "```",
+                "\n".join("[%s] %s" % (e["ts"], e["body"]) for e in entries), "```", ""]
+        with open(out, "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(body))
+        print("读数已落盘：%s" % out)
+    return rc
+
+
+
+def _mask_strings(text):
+    """脱敏：所有字符串内容都换成 …，只留结构。
+
+    模式名、描述、规则名、自定义字符串正文全在引号里——一律不留，长短都不留。
+    跨行字符串按原换行数铺 `…`，保证脱敏后行数不变（行号还能对上）。
+    """
     def rep(m):
-        body = m.group(1)
-        return '"%s"' % ("…" if len(body) > 8 else body)
-    return re.sub(r'"([^"\\]*(?:\\.[^"\\]*)*)"', rep, line)
+        inner = m.group(0)[1:-1]
+        lines = inner.count("\n") + 1
+        return '"' + "\n".join("…" for _ in range(lines)) + '"'
+    return re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', rep, text)
+
+
+def _redact_paths(value):
+    """把 C:\\Users\\<用户名> 之类换成 <user>，别把本机账号带进 issue。"""
+    value = re.sub(r'(?i)([A-Z]:[\\/]+Users[\\/]+)[^\\/\s"\']+', r'\1<user>', value)
+    value = re.sub(r'(?i)(?:/home/|/Users/)[^/\s"\']+', '/<user>', value)
+    return value
+
+
+def _private_tokens(text):
+    """挑出「绝不能出现在 issue 里」的串：模式名称 / 描述。"""
+    tokens = set()
+    for m in re.finditer(r'(?:模式名称|描述)\s*:\s*"([^"]*)"', text):
+        if len(m.group(1).strip()) >= 2:
+            tokens.add(m.group(1).strip())
+    return tokens
 
 
 def cmd_report(args):
-    """生成误报/漏报的最小复现片段，方便贴到 issue。"""
+    """生成误报/漏报的最小复现片段（默认脱敏到底），方便贴到 issue。"""
     if not os.path.isfile(args.src):
         print("[错误] 找不到 %s" % args.src)
         return 1
@@ -825,7 +984,12 @@ def cmd_report(args):
     else:
         lo = max(0, ln - 1 - 12)
         hi = min(total - 1, ln - 1 + 8)
-    snippet = "\n".join(_mask_strings(x) for x in all_lines[lo:hi + 1])
+    # 整段一次性脱敏：字符串可能跨行（导出/手写都可能），逐行脱敏会漏掉跨行那两半
+    block = all_lines[lo:hi + 1]
+    masked_lines = _mask_strings("\n".join(block)).split("\n")
+    if len(masked_lines) != len(block):          # 理论上不会发生；发生了就别写文件
+        print("[错误] 脱敏后行数变了，放弃生成报告。")
+        return 3
 
     import platform
     meta = {}
@@ -866,12 +1030,31 @@ def cmd_report(args):
     out.append("```ow")
     for i in range(lo, hi + 1):
         mark = "⚠ " if i == ln - 1 else "  "
-        out.append(mark + _mask_strings(all_lines[i]))
+        out.append(mark + masked_lines[i - lo])
     out.append("```")
     out.append("")
     out.append("## 我的判断")
     out.append(args.note or "（导入时报什么错 / 为什么觉得这是误报）")
+    out.append("")
+    out.append("## 提交前自查（贴之前扫一眼）")
+    out.append("- [ ] 片段里没有模式名 / 模式内容 / 规则名（字符串一律换成了 `…`）")
+    out.append("- [ ] 没有本机路径、账号名、群名、玩家名")
+    out.append("- [ ] 「我的判断」里没写自己的私事（那一栏是你手写的，脚本管不到）")
+    out.append("- [ ] 报错原文是照抄的（不改字、不转述、不用截图）")
+    out.append("")
+    out.append("> 只贴片段就够：能复现校验器行为的几行结构，不需要整份模式。")
     body = "\n".join(out)
+
+    # 防呆最后一道：把模式名/描述再抹一遍，抹不掉就不写文件
+    body = _redact_paths(body)
+    leaked = [t for t in _private_tokens(text) if t in body]
+    if leaked:
+        for t in leaked:
+            body = body.replace(t, "…")
+        print("[脱敏] 又抹掉 %d 处疑似私密内容（模式名/描述原文）" % len(leaked))
+    if any(t in body for t in leaked):
+        print("[错误] 脱敏没干净，没有写文件：请把模式名/描述手动删掉再跑一次。")
+        return 3
 
     path = args.out or (os.path.splitext(args.src)[0] + ".report.txt")
     open(path, "w", encoding="utf-8", newline="\n").write(body)
@@ -947,6 +1130,16 @@ def cmd_fix(args):
         text, fix_bools=not no_bools, drop_empty=not args.keep_empty)
 
     out = args.out or (os.path.splitext(args.src)[0] + ".fixed.ow")
+    same = os.path.abspath(out) == os.path.abspath(args.src)
+    if same:
+        if not getattr(args, "in_place", False):
+            print("[拒绝] 输出路径就是原文件：fix 默认不改原文件，免得把用户的模式改坏。")
+            print("  换个 -o 输出名；确实要原地改就加 --in-place（会先留一份 .bak）。")
+            return 3
+        import shutil
+        bak = args.src + ".bak"
+        shutil.copyfile(args.src, bak)
+        print("已备份原文件：%s" % bak)
     open(out, "w", encoding="utf-8", newline="\n").write(new_text)
 
     after = core.full_lint(out, DATA)
@@ -1428,6 +1621,8 @@ def main():
                    help="不修布尔词（默认修：导出把 开启/关闭 写成 启用/禁用，导入会整块被拒）")
     p.add_argument("--fix-bools", action="store_true", help=argparse.SUPPRESS)  # 兼容旧命令，默认已开
     p.add_argument("--keep-empty", action="store_true", help="保留「键:」后面没值的行（默认删掉）")
+    p.add_argument("--in-place", dest="in_place", action="store_true",
+                   help="允许覆盖原文件（默认只写 .fixed.ow；原地改会先留 .bak）")
     p.set_defaults(func=cmd_fix)
 
     p = sub.add_parser("normalize", help="修复导出失真：合并折行、把「无」改成「全部禁用」")
@@ -1510,7 +1705,23 @@ def main():
     p.add_argument("--name", default="探针", help="模式名称")
     p.add_argument("--out", default="probe.ow", help="输出的 .ow")
     p.add_argument("--expect-out", dest="expect_out", default="", help="输出的 expect.tsv（默认同名）")
+    p.add_argument("--no-readme", dest="no_readme", action="store_true",
+                   help="不生成给用户看的 README.md（默认生成）")
     p.set_defaults(func=cmd_probe_template)
+
+    p = sub.add_parser("probe-run", help="探针一条龙：验全自动 → 盯日志 → 出差异表（用户只管导入和点开始）")
+    p.add_argument("probe", help="探针 .ow 文件")
+    p.add_argument("--expect-file", dest="expect_file", help="期望表（默认同名 .expect.tsv）")
+    p.add_argument("--dir", help="日志目录，默认 %%USERPROFILE%%\\Documents\\Overwatch\\Workshop")
+    p.add_argument("--file", help="不盯目录，直接判读这份日志（补判/救火用）")
+    p.add_argument("--timeout", type=int, default=900, help="最多等多久（秒，默认 900）")
+    p.add_argument("--settle", type=int, default=8, help="没有 [end] 标记时，文件多久没变化算写完（秒，默认 8）")
+    p.add_argument("--force", action="store_true",
+                   help="探针没有自带房间设置 / check 有必改也照跑（被拒探针、手写探针用）")
+    p.add_argument("--no-save", dest="no_save", action="store_true", help="不写 readings.md")
+    p.add_argument("-v", "--verbose", action="store_true", help="差异表连通过的格子也列")
+    p.add_argument("--strict", action="store_true", help="check 走严格档（会有误报）")
+    p.set_defaults(func=cmd_probe_run)
 
     p = sub.add_parser("rule", help="查判定表：实测结论怎么用（docs/rules.tsv）")
     p.add_argument("query", nargs="*", help="关键词，空格分隔多个词")
