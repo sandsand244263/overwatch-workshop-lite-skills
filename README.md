@@ -273,7 +273,7 @@ python tools/ws.py check 你的文件.ow
 python tools/ws.py check-all
 ```
 
-85 正样本 + 89 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑（Ubuntu + Windows 双平台）。
+87 正样本 + 92 反向用例。反向用例是**故意写错的文件**，用来测校验器本身：它一报错，说明检查还在；它不报错，说明检查坏了。CI 在每次 push 与 PR 时自动跑（Ubuntu + Windows 双平台）。
 
 ```bash
 python tools/ws.py calib            # 43 个元素标定样本，偏差必须为 0
