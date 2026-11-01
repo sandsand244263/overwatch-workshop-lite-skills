@@ -101,11 +101,16 @@ def _block_span(lines, header):
     return None
 
 
+def _decl_line(line):
+    """剥掉行尾 `//` 注释后的声明行（issue #8 同样的坑：注释不能挡住解析）。"""
+    return line.split("//")[0]
+
+
 def _decl_names(lines):
     """取出 `N: 名字` 形式的声明名，按出现顺序。"""
     names = []
     for line in lines:
-        m = re.match(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", line)
+        m = re.match(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", _decl_line(line))
         if m:
             names.append(m.group(1))
     return names
@@ -120,7 +125,7 @@ def _split_by_group(body):
             cur = (s[:-1], [])
             groups.append(cur)
             continue
-        m = re.match(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", line)
+        m = re.match(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$", _decl_line(line))
         if m and cur is not None:
             cur[1].append(m.group(1))
     return groups
@@ -151,6 +156,8 @@ def rebuild_tables(text, seed=20261031):
         head, tail, body = span
         groups = dict(_split_by_group(body))
         real = {g: names for g, names in groups.items()}
+        if any(len(v) > 128 for v in real.values()):
+            return text, {"全局": 0, "玩家": 0, "子程序": 0}   # 真有超过 128 个变量，别硬塞
         taken = set()
         for names in real.values():
             taken.update(names)
@@ -170,7 +177,9 @@ def rebuild_tables(text, seed=20261031):
     span = _block_span(lines, "子程序")
     if span:
         head, tail, body = span
-        real = _decl_names(body)[:128]
+        real = _decl_names(body)
+        if len(real) > 128:
+            return text, {"全局": 0, "玩家": 0, "子程序": 0}
         need = 128 - len(real)
         names = list(real)
         if need > 0:
@@ -211,7 +220,8 @@ def _tamper_rule(rng):
 def fill_rules(text, budget, seed=20261031):
     """按元素预算填假规则：1 条查看器警告 + 最多 5 条篡改保护 + 1 元素空规则铺满。
 
-    budget 是「原生代码的总元素数量」（游戏里看诊断结果），没给就用估算值。
+    budget 是「还能填多少元素」。铁律：原本的规则一条都不能丢，
+    空规则只夹在中间；预算不够就少填，绝不截断原文。
     """
     rng = random.Random(seed)
     parts = re.split(r"(?m)^(?=规则\()", text)
@@ -232,24 +242,21 @@ def fill_rules(text, budget, seed=20261031):
         rules.insert(rng.randint(0, len(rules)), _tamper_rule(rng) + "\n\n")
         added["篡改"] += 1
 
-    per_rule = budget // max(len(rules), 1)
+    filler = '规则("")\n{\n\t事件\n\t{\n\t\t持续 - 全局;\n\t}\n}\n\n'
+    spare_rules = max(MAX_RULES - len(rules), 0)
+    per_rule = min(budget // max(len(rules), 1), spare_rules // max(len(rules), 1))
     if per_rule > 0:
         out = []
         for rule in rules:
             out.append(rule)
             for _ in range(per_rule):
-                if len(out) + len(rules) >= MAX_RULES:
-                    break
-                out.append('规则("")\n{\n\t事件\n\t{\n\t\t持续 - 全局;\n\t}\n}\n\n')
+                out.append(filler)
                 budget -= 1
                 added["空规则"] += 1
-            if len(out) + len(rules) >= MAX_RULES:
-                break
         rules = out
 
     added["剩余预算"] = budget
     return head + "".join(rules), added
-
 
 # ---------- 字符串混淆 ----------
 

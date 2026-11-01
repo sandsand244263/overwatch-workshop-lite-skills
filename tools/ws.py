@@ -719,7 +719,7 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 报错定位回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
-    # 混淆回归（issue #8/#9）：改名、删注释、清规则名、前缀引用，注释与字符串不能被改坏
+    # 混淆回归（issue #8/#9）：改名、删注释、清规则名、查查看器、字符串、原规则不能丢
     try:
         import subprocess as _sp
         import tempfile as _tf
@@ -728,12 +728,15 @@ def cmd_selftest(args):
             "变量\n{\n\t全局:\n\t\t0: AlphaVar\n"
             "\t\t1: BetaVar//【带注释】这一行有 // 注释\n"
             "\t玩家:\n\t\t0: PlayerFlag\n\t\t1: Holder\n}\n\n"
+            "子程序\n{\n\t0: SubA\n}\n\n"
             "规则(\"用一下\")\n{\n\t事件\n\t{\n\t\t持续 - 每名玩家;\n\t\t双方;\n\t\t全部;\n\t}\n\n\t动作\n\t{\n"
             "\t\t// 行注释\n"
+            "\t\t记入查看器(自定义字符串(\"调试\"));\n"
             "\t\t全局.AlphaVar = 1;\n"
             "\t\t全局.BetaVar = 全局.AlphaVar + 1;\n"
             "\t\t事件玩家.PlayerFlag = Holder.PlayerFlag + 1;\n"
-            "\t\t小字体信息(所有玩家(所有队伍), 自定义字符串(\"AlphaVar 在字符串里，不该被改\"));\n"
+            "\t\t调用子程序(SubA);\n"
+            "\t\t小字体信息(自定义字符串(\"AlphaVar 在字符串里，不该被改\"), 3);\n"
             "\t}\n}\n"
         )
         with _tf.TemporaryDirectory() as td:
@@ -764,6 +767,14 @@ def cmd_selftest(args):
                    and "【带注释】" not in b2 and "// 行注释" not in b2
                    and "AlphaVar 在字符串里，不该被改" in b2)
 
+            rc3, b3 = _publish("all", "a")
+            ok3 = (rc3 == 0
+                   and "记入查看器" not in b3          # 查看器条目被删
+                   and "小字体信息" in b3              # 原动作不能丢
+                   and "调用子程序" in b3
+                   and "AlphaVar 在字符串里，不该被改" not in b3   # 字符串已混淆
+                   and b3.count('规则("') > 5)          # 填充生效
+
             if ok1:
                 print("· 混淆改名回归：通过（带注释的声明能改名、前缀引用同步、注释与字符串保持原样）")
             else:
@@ -773,6 +784,11 @@ def cmd_selftest(args):
                 print("· 混淆对齐回归：通过（删注释、清规则名，字符串内容不动）")
             else:
                 print("✗ 混淆对齐回归失败（issue #9）：注释没删干净或规则名没清空，检查 strip_comments / blank_rule_names")
+                bad += 1
+            if ok3:
+                print("· 全项混淆回归：通过（查看器条目删掉、字符串混淆、原规则与子程序调用都还在、填充生效）")
+            else:
+                print("✗ 全项混淆回归失败：--obf all 之后原文被动坏，检查 obf_parts 各步骤")
                 bad += 1
     except Exception as e:
         print("✗ 混淆回归跑不起来：%s: %s" % (type(e).__name__, e))

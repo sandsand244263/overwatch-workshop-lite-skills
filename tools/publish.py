@@ -6,19 +6,22 @@
   python publish.py 模式.ow --outdir ./publish                    # 只出源码版
   python publish.py 模式.ow --outdir ./publish --obf vars,numbers # 出源码版 + 混淆版
 
---obf 可选项（颗粒度对齐 VS Code 插件的五类，另加数值）：
+--obf 可选项（对齐 VS Code 插件 obfuscate.ts，另加数值混淆）：
 
-  numbers        数值字面量改写成等价表达式（本项目自有，插件没有）
-  vars           变量/子程序改名不可读（对应插件「混淆变量」）
-  rules          追加永不触发的假规则（对应插件「混淆规则」的「填充虚假规则」）
-  rulenames      规则名清空：`规则("名字")` → `规则("")`（对应插件「移除规则名」）
-  comments       删注释：`//…`、`/* … */`、独占一行的 `"…"` 字符串注释（对应插件「移除注释」）
-  indexes        数组下标改写成 乘(...) 表达式（对应插件「混淆索引」）
-  local-indexes  本地索引同样改写（对应插件「混淆本地索引」）
-  strings        字符串隐藏（**未实现**：会改变字符串比较语义，交给插件做）
+  numbers        数值字面量改写成等价表达式 (n * F / F)（本项目自有，插件没有）
+  vars           变量/子程序改名不可读，声明和引用同步（对应插件「混淆变量」的改名部分）
+  fakevars       变量表/子程序表整表重建，假名填满 128 位（对应插件「混淆变量」的填充部分）
+  rules          追加 3 条永不触发的假规则（轻量版）
+  fill           按元素预算铺满假规则：查看器警告 + 5 条篡改保护 + 1 元素空规则（对应插件「混淆规则」）
+  rulenames      规则名清空：`规则("名字")` → `规则("")`（插件混淆时无条件做）
+  comments       删注释：`//…`、`/* … */`、独占一行的 `"…"`（插件混淆时无条件做）
+  viewer         删「记入查看器 / 启用查看器录制 / 禁用查看器录制」动作（插件混淆时也会删）
+  indexes        服务端索引：`[21]` → `[(21 * 9 / 9)]`（恒等，不赌浮点；对应插件「混淆索引」）
+  local-indexes  客户端计算函数的索引：`[3]` → `[3.27]` 这类小数抖动（对应插件「混淆本地索引」）
+  strings        字符串混淆：字符位移到私用区码位，`/* @SKIP_OBFUSCATE_STRING */` 之间不动
 
-`--obf all` = numbers,vars,rules,rulenames,comments,indexes,local-indexes。
-插件在混淆这一步顺手做掉的「删注释 + 清空规则名」，本脚本要显式勾选，不勾就原样保留。
+`--obf all` = 上面全部（含 strings；字符串比较会被影响，介意就单独勾）。
+`--budget N` 配合 fill：混淆后允许达到的元素总数，默认 32000（上限 32768 留 768 余量）。
 
 不做混淆时不读任何混淆配置、不生成第二份文件。
 """
@@ -32,10 +35,12 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import core  # noqa: E402
+import obf_parts  # noqa: E402
 import obfuscate_values  # noqa: E402
 
 NO_SLOTS = core.VERIFIED_NO_SLOTS
-CHOICES = {"numbers", "vars", "rules", "rulenames", "comments", "indexes", "local-indexes", "strings", "all"}
+CHOICES = {"numbers", "vars", "fakevars", "rules", "fill", "rulenames", "comments", "viewer",
+           "indexes", "local-indexes", "strings", "all"}
 
 
 def fix_no_to_disabled(text):
@@ -222,6 +227,15 @@ def add_fake_rules(text, count=3, seed=20261020):
     return text.rstrip("\n") + "\n\n" + "\n".join(block)
 
 
+def estimate_path(path):
+    """估元素数；没有 element_count2 就返回 None。"""
+    try:
+        from element_count2 import estimate2
+        return estimate2(path)
+    except Exception:
+        return None
+
+
 def lint_errors(path, sigs=None, labels=None, settings=None):
     """走完整校验（与 ws.py check 同一套数据表），只返回 error。"""
     data = os.path.normpath(os.path.join(HERE, "..", "data"))
@@ -232,7 +246,8 @@ def main():
     ap = argparse.ArgumentParser(description="出发布文件（默认只出源码版）")
     ap.add_argument("src")
     ap.add_argument("--outdir", default=".")
-    ap.add_argument("--obf", default="", help="逗号分隔：numbers,vars,rules,rulenames,comments,indexes,local-indexes,all")
+    ap.add_argument("--obf", default="", help="逗号分隔：numbers,vars,fakevars,rules,fill,rulenames,comments,viewer,indexes,local-indexes,strings,all")
+    ap.add_argument("--budget", type=int, default=None, help="混淆后允许达到的元素总数（fill 用，默认 32000，留 768 余量）")
     ap.add_argument("--fix", action="store_true", help="自动把会被拒绝的「无」改成「全部禁用」")
     args = ap.parse_args()
 
@@ -241,11 +256,9 @@ def main():
     if unknown:
         sys.exit("不认识的混淆项：%s（可选：%s）" % (", ".join(sorted(unknown)), ", ".join(sorted(CHOICES))))
     if "all" in picked:
-        picked |= {"numbers", "vars", "rules", "rulenames", "comments", "indexes", "local-indexes"}
+        picked |= {"numbers", "vars", "fakevars", "rules", "rulenames", "comments", "viewer",
+                   "indexes", "local-indexes", "strings", "fill"}
         picked.discard("all")
-
-    if "strings" in picked:
-        sys.exit("字符串混淆会改变比较语义，请用 VS Code 插件执行；本脚本不提供。")
 
     import time
     _T0 = time.time()
@@ -305,14 +318,9 @@ def main():
             out.append(line)
         obf = "\n".join(out)
 
-    if "indexes" in picked or "local-indexes" in picked:
-        obf = obfuscate_indexes(obf)
-    if "comments" in picked:
-        obf = strip_comments(obf)
-        print("已删注释（// 、/* */ 、独占一行的字符串注释）")
-    if "rulenames" in picked:
-        obf, _blanked = blank_rule_names(obf)
-        print("已清空规则名 %d 个（规则(\"名字\") → 规则(\"\")）" % _blanked)
+    if "viewer" in picked:
+        obf, _v = obf_parts.strip_viewer_actions(obf)
+        print("已删查看器动作 %d 条（记入查看器 / 启用/禁用查看器录制）" % _v)
     if "vars" in picked:
         obf, renamed = rename_vars(obf)
         decls = count_var_decls(obf)
@@ -324,10 +332,50 @@ def main():
             print("⚠ 发现 %d 个变量声明，但一个都没改名——检查声明格式（每行应是 `索引: 名字`）" % decls)
         else:
             print("⚠ 这个文件里没有 `索引: 名字` 形式的变量声明，没有可改名的东西")
-    if "rules" in picked:
+    if "fakevars" in picked:
+        obf, _tbl = obf_parts.rebuild_tables(obf)
+        print("已重建变量表/子程序表：全局 %d 条、玩家 %d 条、子程序 %d 条（填满 128 位）"
+              % (_tbl["全局"], _tbl["玩家"], _tbl["子程序"]))
+    if "strings" in picked:
+        obf, _sh = obf_parts.obfuscate_strings(obf)
+        print("已混淆字符串 %d 处（字符位移到私用区；和玩家名比较的字符串要包 @SKIP_OBFUSCATE_STRING）" % _sh)
+    if "comments" in picked:
+        obf = strip_comments(obf)
+        print("已删注释（// 、/* */ 、独占一行的字符串注释）")
+    if "rulenames" in picked:
+        obf, _blanked = blank_rule_names(obf)
+        print("已清空规则名 %d 个（规则(\"名字\") → 规则(\"\")）" % _blanked)
+    if "indexes" in picked or "local-indexes" in picked:
+        obf, (_si, _li) = obf_parts.split_indices(obf,
+                                                  do_server="indexes" in picked,
+                                                  do_local="local-indexes" in picked)
+        if "indexes" in picked:
+            print("已混淆服务端索引 %d 处（恒等写法 n*m/m）" % _si)
+        if "local-indexes" in picked:
+            print("已混淆本地索引 %d 处（小数抖动，只往正方向偏，取回还是原下标）" % _li)
+    if "fill" in picked:
+        if args.budget is None:
+            budget = 32000
+            print("目标元素总数 %d（32768 上限留 768 余量；要改加 --budget）" % budget)
+        # 只填差额：混淆本身已经吃掉一部分额度，填到用户给的总数为止
+        _tmp = os.path.join(args.outdir, base + ".est.tmp.ow")
+        with open(_tmp, "w", encoding="utf-8", newline="") as f:
+            f.write(obf.replace("\n", "\r\n"))
+        _cur = estimate_path(_tmp)
+        try:
+            os.remove(_tmp)
+        except OSError:
+            pass
+        remaining = budget - (_cur or 0)
+        if remaining <= 0:
+            print("⚠ 混淆后元素数已到 %d，没有余额再填假规则（跳过 fill）" % (_cur or 0))
+        else:
+            obf, _fill = obf_parts.fill_rules(obf, remaining)
+            print("已填充假规则：查看器警告 %d、篡改保护 %d、1 元素空规则 %d（总预算 %d，已用 %d，余 %d）"
+                  % (_fill["警告"], _fill["篡改"], _fill["空规则"], budget, _cur or 0, _fill["剩余预算"]))
+    elif "rules" in picked:
         obf = add_fake_rules(obf)
-        print("已追加 3 条假规则（永不触发的空规则；要清空现有规则名请加 rulenames）")
-
+        print("已追加 3 条假规则（永不触发的空规则；要按元素预算铺满用 fill）")
     obf_path = os.path.join(args.outdir, base + ".obf.ow")
     open(obf_path, "w", encoding="utf-8", newline="").write(obf.replace("\n", "\r\n"))
 
@@ -347,7 +395,7 @@ def main():
             print("  注：numbers 混淆会把一个字面量拆成表达式，元素数会上升；模型对复杂表达式偏低 3% 左右")
             if _est_obf > 30000:
                 print("  ⚠ 接近 32768 上限，建议减少混淆项（尤其 numbers / rules）")
-            elif delta > 15:
+            elif delta > 15 and _est_obf >= 10000:
                 print("  ⚠ 混淆让元素数涨了 %.0f%%，若离上限不远请改用 vars / indexes" % delta)
     except Exception:
         pass
