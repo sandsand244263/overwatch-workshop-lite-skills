@@ -5140,6 +5140,8 @@ SUGGESTIONS = [
      "少写/多写一个 }：补齐成对的 } 再导入；游戏原话是「第N行的…之后应有\"}\"」"),
     (r"没有和 真/假 比较",
      "把整条表达式包起来再和一个值比较：((A) || (B)) == 真"),
+    (r"成了孤儿分支",
+     "删掉上一行多出来的 End;；只有缩进比 Else 深的 End; 才是在关内层 If"),
 ]
 
 
@@ -5277,6 +5279,40 @@ def check_braces_raw(raw, problems):
                      "游戏会报「第N行的“…”之后应有“}”」并拒绝导入"
                      % (opens, closes, "少" if opens > closes else "多", abs(opens - closes))))
 
+
+def check_orphan_else(text, problems):
+    """`Else` 紧跟在同缩进的 `End;` 后面 → 孤儿分支，里面的动作永远不会执行。
+
+    实测（issue #7，2026-10-31）：多写一个 `End;` 会把外层 `If` 提前关掉，
+    后面的 `Else` 变成不属于任何人的孤儿分支；游戏能导入、能跑、零提示，
+    只是那个分支永远不执行——比「少 End;」隐蔽得多。
+
+    判据只用缩进：
+      - `End;` 的缩进 **比 Else 深** → 正常（关的是内层 If），不报；
+      - `End;` 的缩进 **等于或比 Else 浅** → 前面那个 If 已经关掉了，报必改。
+
+    9 份真实语料按这个判据扫，0 命中（不误报）。
+    """
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if not (s.startswith("Else") and s.rstrip().endswith(";")):
+            continue
+        ind_else = len(line) - len(line.lstrip())
+        j = i - 1
+        while j >= 0 and not lines[j].strip():
+            j -= 1
+        if j < 0:
+            continue
+        prev = lines[j]
+        if prev.strip() != "End;":
+            continue
+        ind_end = len(prev) - len(prev.lstrip())
+        if ind_end <= ind_else:
+            problems.append((j + 1, "error",
+                             "上一行的 End; 把前面的 If 关掉了，这个 Else 成了孤儿分支："
+                             "里面的动作永远不会执行（游戏不报错，只是不跑）——"
+                             "删掉多出来的 End;，或把它缩进到内层 If 里"))
 
 def check_condition_bare_logic(raw, problems):
     """条件块里整条表达式必须和一个值比较；括号外直接出现 || / && 会被游戏拒。
@@ -5562,6 +5598,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     # 条件的逻辑行必须看合并后的文本：真实模式里 `(A || B)` 常写成好几行，
     # 按物理行看会把续行断成「裸 ||」的假象（9 份语料里 3 份因此误报）。
     check_condition_bare_logic(text, problems)
+    check_orphan_else(text, problems)
     lines = text.split("\n")
 
     def orig_line(line_no, col=None):
