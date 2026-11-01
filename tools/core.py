@@ -35,7 +35,9 @@
 退出码：0 无问题，1 有错误。
 """
 import argparse
+import bisect
 import csv
+import difflib
 import os
 import re
 import sys
@@ -4185,6 +4187,232 @@ def check_bare_value_names(text, problems, zero=None):
                              % (name, "、".join(sorted(n for n in zero if n.startswith(name[:2]))[:5]) or "（同前缀的也没有）")))
 
 
+# ── 值名存在性（issue #10） ────────────────────────────────────────────────
+# 实测（2026-11-01 用户实机）：`全局.a = 场上人数;` / `全局.a = 主人玩家;` 两个名字在值表里
+# 根本不存在，`check` 与 `check --strict` 全绿，游戏却拒——报的是「第26行的"1}","之后应有一个值」：
+# 报错卡在 `{1}` 后面，真错是 `场上人数` 这个值名。照报错去查逗号只会白查一轮。
+#
+# 判据：动作/条件里「整段就是一个裸标识符」的位置（等号右边、参数槽、条件一侧），只能是
+#   ① 本文件声明的变量 / 子程序名（data 里没法预知）
+#   ② 值表里的词（data/bare-ok.tsv + 0 参数值函数）
+# 都不是 → 这个值名不存在。只查「整段就是一个词」的位置：多段选项（`可见，位置和字符串`）、
+# 带引号的选项（`如条件为“真”则循环`）、成员访问（`全局.a`）都不在这个形状里，天然不误报。
+NAME_SLOT_TYPES = frozenset({
+    "Variable", "SubroutineThing", "SubroutineEvent", "String", "CustomString",
+    "CustomString2", "Dropdown", "Hero", "HeroConstant", "ButtonConstant",
+    "MapConstant", "TeamConstant", "GamemodeConstant", "WaitBehaviour",
+    "WorkshopSettingParam",
+})
+_VALUE_TOKEN = re.compile(r"[A-Za-z_\u4e00-\u9fa5][\w\u4e00-\u9fa5]*")
+# 全角标点：多段选项被这些切开的碎片不是值名，别拿去查表
+_OPTION_JOIN = "，、；“”‘’"
+
+
+def line_sections(text):
+    """每行属于哪个块（设置/变量/事件/条件/动作/值/子程序/规则），一层列表。
+
+    给「只在动作和条件里查」的检查用：设置块是键值、变量/子程序块是声明、事件块是事件名，
+    这三种地方的裸词都不该按值名判。
+    """
+    out, stack, pending = [], [], None
+    for ln in text.split("\n"):
+        s = ln.strip()
+        m = (re.match(r"^(设置|变量|事件|条件|动作|值)\s*$", s)
+             or re.match(r"^(?:禁用\s*)?(规则|子程序)\s*\(", s))
+        if m:
+            pending = m.group(1)
+        if s == "{":
+            stack.append(pending or "?")
+            pending = None
+            out.append(stack[-1])
+            continue
+        if s.startswith("}"):
+            if stack:
+                stack.pop()
+            out.append(stack[-1] if stack else None)
+            continue
+        out.append(stack[-1] if stack else None)
+    return out
+
+
+def _paren_close(text, open_pos):
+    """open_pos 是 `(` 的位置，返回配对 `)` 的位置（没配对就返回文本末尾）。"""
+    depth, j, n = 1, open_pos + 1, len(text)
+    while j < n and depth:
+        c = text[j]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        j += 1
+    return j - 1
+
+
+def _split_args_flat(text, start, end):
+    """按深度 0 的逗号切 [start, end)，返回 [(起, 止, 序号)]。"""
+    out, depth, cur, idx, i = [], 0, start, 0, start
+    while i < end:
+        c = text[i]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "," and depth == 0:
+            out.append((cur, i, idx))
+            idx += 1
+            cur = i + 1
+        i += 1
+    out.append((cur, end, idx))
+    return out
+
+
+def unknown_value_names(masked, sigs=None, allowed=None, param_types=None):
+    """动作/条件里不像值名的裸标识符。→ [(行下标 0 基, 列, 名字, 位置说明)]。
+
+    输入必须是**遮过字符串/注释**的文本（`mask_text`），这样引号里的文案不会被当成名字。
+    只扫 `动作` / `条件` 两类块，且只认「整段就是一个词」的位置。
+    """
+    if allowed is None:
+        allowed = set(load_bare_ok(os.path.join(DATA_DIR, "bare-ok.tsv"))) | load_zero_arg_funcs()
+    if param_types is None:
+        param_types = load_param_types()
+    multiword = _multiword_names(sigs or {})
+    secs = line_sections(masked)
+    line_starts = [0]
+    for i, ch in enumerate(masked):
+        if ch == "\n":
+            line_starts.append(i + 1)
+    hits = []
+
+    def line_of(pos):
+        return bisect.bisect_right(line_starts, pos) - 1
+
+    def add(pos, name, where):
+        ln = line_of(pos)
+        hits.append((ln, pos - line_starts[ln], name, where))
+
+    def scan(start, end, name_slot, guard=0):
+        if guard > 60:                      # 表达式不会这么深；防手抖写出病态嵌套
+            return
+        i = start
+        while i < end:
+            ch = masked[i]
+            if not (ch.isalnum() or ch == "_" or "\u4e00" <= ch <= "\u9fff"):
+                i += 1
+                continue
+            m = _VALUE_TOKEN.match(masked, i)
+            if not m:
+                i += 1
+                continue
+            name = m.group(0)
+            tok_start = m.start()
+            i = m.end()
+            if name[0].isdigit():
+                continue
+            ln = line_of(tok_start)
+            if ln >= len(secs) or secs[ln] not in ("动作", "条件"):
+                continue
+            # 多词元素名（For 全局变量 / 正在使用技能 1 / Else If）
+            elem, call_pos = name, i
+            for cand in multiword:
+                if not masked.startswith(cand, tok_start):
+                    continue
+                k = tok_start + len(cand)
+                while k < end and masked[k] in " \t":
+                    k += 1
+                if k < end and masked[k] == "(":
+                    elem, call_pos = cand, k
+                break
+            k = call_pos
+            while k < end and masked[k] in " \t":
+                k += 1
+            if k < end and masked[k] == "(":
+                close = _paren_close(masked, k)
+                for (a, b, idx) in _split_args_flat(masked, k + 1, close):
+                    seg = masked[a:b]
+                    token = seg.strip()
+                    slot_name = param_types.get(elem, {}).get(idx) in NAME_SLOT_TYPES
+                    if (token and not token[0].isdigit() and _VALUE_TOKEN.fullmatch(token)
+                            and not slot_name and token not in allowed):
+                        add(a + len(seg) - len(seg.lstrip()), token,
+                            "%s 第 %d 个参数" % (elem, idx + 1))
+                        continue        # 整段就是这个词，别再往里扫一遍（同一行会报两遍）
+                    scan(a, b, slot_name, guard + 1)
+                i = close + 1
+                continue
+            if name_slot or name in allowed:
+                continue
+            before = masked[max(0, tok_start - 2):tok_start]
+            after = masked[i:i + 2]
+            if any(c in _OPTION_JOIN for c in before) or any(c in _OPTION_JOIN for c in after):
+                continue                    # 多段选项的碎片（可见，位置和字符串 / 则循环）
+            if before.endswith(".") or after.startswith((".", ":", "(")):
+                continue                    # 成员访问 / 设置键 / 调用名
+            add(tok_start, name, "")
+
+    scan(0, len(masked), False)
+    return hits
+
+
+def _suggest_names(name, pool, n=4):
+    """相近的值名，做提示用。先按首字收窄，找不到再放宽。"""
+    pool = [x for x in pool if x]
+    cand = [x for x in pool if x[:1] == name[:1]]
+    close = difflib.get_close_matches(name, cand or pool, n=n, cutoff=0.45)
+    if not close:
+        close = sorted(x for x in pool if x.startswith(name[:2]))[:n]
+    if not close:
+        close = sorted(x for x in pool if x.startswith(name[:1]))[:n]
+    return "、".join(close) or "（没找到相近的，多半是名字写错或自己造的）"
+
+
+def check_unknown_value_names(masked, problems, sigs=None, bare_ok=None, names=None,
+                              param_types=None):
+    """动作/条件里的裸标识符必须是「已知值名」或本文件声明的变量/子程序名。
+
+    依据：issue #10 实机（2026-11-01，用户模式报「第26行的"1}","之后应有一个值」并被拒）。
+    误报面：9 份真实语料（约 2.8 万个裸参数位）0 命中；`tools/probes/` 全部探针 0 命中。
+    """
+    allowed = set(bare_ok or ()) | load_zero_arg_funcs() | set(names or ())
+    if bare_ok is None:
+        allowed |= set(load_bare_ok(os.path.join(DATA_DIR, "bare-ok.tsv")))
+    hits = unknown_value_names(masked, sigs, allowed, param_types)
+    if not hits:
+        return
+    pool = None
+    for line, col, name, where in hits:
+        if BARE_VALUE_HINT.match(name):
+            continue        # 「上一个…」这一族由 check_bare_value_names 负责，别同一行报两遍
+        tail = "（%s）" % where if where else ""
+        if sigs and name in sigs:
+            problems.append((line + 1, "error",
+                             "「%s」是函数，必须写成 %s(...)%s；只写名字游戏会报「之后应有 (」"
+                             % (name, name, tail), col))
+            continue
+        if pool is None:
+            pool = sorted(allowed)
+        problems.append((line + 1, "error",
+                         "值名「%s」不存在%s（值表、本文件声明的变量/子程序里都没有）；"
+                         "游戏会拒这份文件，报「之后应有一个值」但指在别处。相近的有：%s"
+                         % (name, tail, _suggest_names(name, pool)), col))
+
+
+def value_name_allowed(text, bare_ok=None):
+    """这份文件里「合法的裸词」：值表 + 0 参数值函数 + 本文件声明的变量/子程序名。
+
+    给 `locate` 用——报错行里挑出不像值名的裸词，提示「先怀疑值名，别先数逗号」（issue #10）。
+    """
+    allowed = set(bare_ok if bare_ok is not None
+                  else load_bare_ok(os.path.join(DATA_DIR, "bare-ok.tsv")))
+    allowed |= load_zero_arg_funcs()
+    secs = line_sections(text)
+    for i, ln in enumerate(text.split("\n")):
+        m = re.match(r"^\d+\s*:\s*([A-Za-z_]\w*)\s*$", ln.strip())
+        if m and i < len(secs) and secs[i] in ("变量", "子程序"):
+            allowed.add(m.group(1))
+    return allowed
+
+
 END_ACTIONS_ALL = ("宣告玩家胜利", "宣告队伍胜利", "宣布比赛为平局",
                    "宣告回合胜利", "宣布回合为平局")
 # 死斗里无效的四个（E-93 实测：宣告回合胜利 也无效）；宣告玩家胜利 只在死斗有效
@@ -5876,6 +6104,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_rule_hints(text, problems)
     check_arg_counts(text, problems)
     check_bare_value_names(text, problems)
+    check_unknown_value_names(masked, problems, sigs=sigs, bare_ok=bare_ok,
+                              names=all_vars | set(subroutines))
     check_game_end_actions(text, problems)
     if strict:                            # 语义类噪声大（原版 165 条规则命中 94 条），默认关
         check_rule_semantics(text, problems)

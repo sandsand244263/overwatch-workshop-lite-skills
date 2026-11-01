@@ -14,6 +14,25 @@
 
 ---
 
+## [3.36.0] - 2026-11-01
+
+### 新检查：值名不存在（issue #10）
+
+`全局.a = 场上人数;` 这种**值表里根本没有的名字**，`check` 和 `check --strict` 都判「可以导入」，
+游戏却拒，而且报错指在别处（「第26行的"1}","之后应有一个值」）——照报错去查逗号会白查一轮。
+
+- `core.check_unknown_value_names`：动作/条件里「整段就是一个裸标识符」的位置（等号右边、参数槽、
+  条件一侧），只能是**本文件声明的变量/子程序名**或**值表里的词**（`data/bare-ok.tsv` + 0 参数值函数），
+  都不是就报必改，并给相近名字（`场上人数` → 队伍人数、`主人玩家` → 主机玩家）。
+- 参数槽按 `data/param-options.tsv` 的输入类型判：`Variable` / `SubroutineThing` / `Dropdown` /
+  `Hero` / `ButtonConstant` / `MapConstant` / `TeamConstant` / `WaitBehaviour` / 字符串类等
+  是名字槽，里面的词不按值名查；多段选项（`可见，位置和字符串`）、带引号的选项
+  （`如条件为“真”则循环`）、成员访问（`全局.a`）都不在「整段一个词」的形状里，天然不误报。
+- `locate` 补一条提示：报错行里有值表里没有的裸词时，先怀疑值名，别先数逗号。
+  `data/errors-full.tsv` 模板 51156 的「真因 / 改法」同步补上这一种成因（生成源 `tools/gen_errors.py`）。
+- 回归：反例 `tools/probes/negative/unknown-value-name.ow` + 正例 `tools/probes/samples/value-name-ok.ow`
+  进 `check-all`；9 份真实语料（约 2.8 万个裸参数位）0 命中，被拒样本 8 条全部照常抓到。
+
 ## [3.35.1] - 2026-10-31
 
 ### 文档同步到混淆全项实现（无代码改动）
@@ -32,7 +51,7 @@
 
 ## [3.35.0] - 2026-10-31
 
-### 混淆全项对齐插件（issue #10）
+### 混淆全项对齐插件（issue #9）
 
 核对 `obfuscate.ts` 把剩下几项补齐，`--obf all` 现在跟插件的混淆跑完效果基本一致：
 

@@ -176,6 +176,27 @@ def local_problems(path, data_dir, strict=False):
         return [(-1, "error", "本地校验器跑失败：%s" % e)]
 
 
+def value_name_hint(path, line_no, data_dir):
+    """报错行里有没有「不像值名」的裸标识符（issue #10）。
+
+    游戏对「值名不存在」报的是「之后应有一个值」，位置还卡在下一个记号上——
+    照报错去数逗号会白查一轮。这里只给提示，不改定位。
+    """
+    sys_path = os.path.dirname(os.path.abspath(__file__))
+    import sys
+    if sys_path not in sys.path:
+        sys.path.insert(0, sys_path)
+    import core
+    try:
+        raw, _enc = core.read_text(path)
+        masked = core.mask_text(chr(10).join(raw.splitlines()))
+        allowed = core.value_name_allowed(masked)
+        hits = core.unknown_value_names(masked, allowed=allowed)
+    except Exception:           # 提示是附加信息，算不出来就当作没有
+        return []
+    return [h[2] for h in hits if h[0] + 1 == line_no]
+
+
 def _ctx(lines, center, radius=2):
     lo = max(1, center - radius)
     hi = min(len(lines), center + radius)
@@ -342,6 +363,10 @@ def _locate_in_file(path, data_dir, error_text, hits, radius):
     near = [p for p in probs if p[0] and abs(p[0] - anchor) <= 3]
     res["local"] = [{"line": p[0], "level": p[1], "message": p[2]} for p in near]
     res["local_total"] = len(probs)
+    # 「之后应有一个值」这类报错：真错常常是这一行有个值名根本不存在（issue #10）
+    hint = value_name_hint(path, anchor, data_dir)
+    if hint and not any("值名" in p["message"] for p in res["local"]):
+        res["value_hint"] = hint
     return res
 
 
@@ -445,6 +470,9 @@ def _print_file(loc, radius):
         print("  ↓ 报错停在块头上：真错在块里第一个不被接受的键，就在下面几行里挑：")
         for i, text in loc["block_candidates"]:
             print("      %4d | %s" % (i, (text or "").strip()[:160]))
+    if loc.get("value_hint"):
+        print("  ⚠ 这一行有值表里没有的裸词：%s —— 「之后应有一个值」多半就是它，"
+              "别先去数逗号（issue #10）" % "、".join("「%s」" % x for x in loc["value_hint"]))
     if loc["local"]:
         print("  本地校验器也报了同一处：")
         for p in loc["local"]:
