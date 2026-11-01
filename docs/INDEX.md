@@ -11,6 +11,7 @@
 | [rules.tsv](./rules.tsv) | **断言表**：一条实测结论一行（禁止 / 正确 / 依据 / 证据等级 L0~L3 / 怎么验 / 检查开关） | 写码前查 `ws.py rule <关键词>`；不知道能不能做查 `ws.py verify` |
 | [pitfalls-map.md](./pitfalls-map.md) | 地图池、时段编号、模式名写法 | 动地图设置 |
 | [pitfalls-syntax.md](./pitfalls-syntax.md) | 字符串/队伍参数/变量/子程序/数组 | 写动作和表达式 |
+| [persistence.md](./persistence.md) | **跨重连持久化**：键用名字不用栏位、二维数组存整条、什么时候该写 | 做存档码/余额/进度/战绩这类「退出再回来还要有」的功能 |
 | [pitfalls-runtime.md](./pitfalls-runtime.md) | 规则何时跑、循环、计分、胜负、HUD | 行为不对 |
 | [pitfalls-export.md](./pitfalls-export.md) | 导出失真修法 + 校验器维护纪律 | 导入失败怀疑失真 / 改校验器 |
 | [format-spec.md](./format-spec.md) | `.ow` 语法格式全表 | 要确认某个语法能不能写 |
