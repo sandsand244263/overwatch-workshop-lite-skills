@@ -132,6 +132,7 @@ python tools/ws.py report 我的模式.txt --note "导入是成功的，为什�
 - 想从零写一个模式 → 说「写一个抢点模式，站圈里每秒 +1 分，30 分赢」
 - 想省元素 → 说「这个模式多少个元素，能不能压一压」
 - 想查某个动作怎么用 → 说「创建HUD文本 有哪些参数」
-- 想出发布版 → 说「帮我出一份混淆版」
+- 想出发布版 → 说「出一份混淆版」（= `publish 模式.ow --outdir out --obf all`）；想留可读版就只出源码版
+  字符串要和玩家名比较的话，把那几行用 `/* @SKIP_OBFUSCATE_STRING */ … /* @SKIP_OBFUSCATE_STRING_END */` 包住再混淆
 
 更多见 [README](../README.md)。

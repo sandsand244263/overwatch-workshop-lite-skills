@@ -228,10 +228,36 @@ python tools/ws.py settings --mode 死斗            # 生成该模式的设置�
 python tools/ws.py explain 应有一个关系运算子        # 报错文案反查
 python tools/ws.py fix 导出.txt                                # 修成可导入版本并复校
 python tools/ws.py publish 模式.ow --outdir out                # 源码版
-python tools/ws.py publish 模式.ow --outdir out --obf all      # 加混淆版
+python tools/ws.py publish 模式.ow --outdir out --obf all      # 加混淆版（全部选项）
+python tools/ws.py publish 模式.ow --outdir out --obf all --budget 24000   # 指定混淆后元素总数
 python tools/ws.py baseline                       # 数据基线 vs 游戏版本
 python tools/ws.py update-check                   # 查是否有新版
 ```
+
+
+## 混淆（发布前）
+
+`--obf` 的每一项都对应 VS Code 插件里的一个混淆动作（对照表见 [docs/ecosystem.md](./docs/ecosystem.md)）：
+
+| 选项 | 做什么 |
+|---|---|
+| `vars` | 变量/子程序改名，声明和引用同步（`攻击方.xxx` 这种前缀引用也认） |
+| `fakevars` | 变量表、子程序表整表重建成 128 条，假名填满，真名混在里面 |
+| `rules` | 追加 3 条永不触发的假规则（轻量版） |
+| `fill` | 按元素预算铺假规则：查看器警告 + 5 条篡改保护 + 1 元素空规则 |
+| `rulenames` | 规则名清空：`规则("名字")` → `规则("")` |
+| `comments` | 删注释：`//`、`/* */`、独占一行的 `"…"` |
+| `viewer` | 删「记入查看器 / 启用查看器录制 / 禁用查看器录制」动作 |
+| `indexes` | 服务端索引 `[21]` → `[(21 * 9 / 9)]`（恒等写法，不赌浮点） |
+| `local-indexes` | 客户端计算函数的索引改小数（`[3]` → `[3.27]`） |
+| `strings` | 字符串位移到私用区码位，`/* @SKIP_OBFUSCATE_STRING */` 之间不动 |
+| `numbers` | 数值改写成 `(n * F / F)`（本项目自有，插件没有） |
+
+几条注意：
+
+- 混淆本身会让元素数上涨；`fill` 会按 `--budget`（默认 32000，上限 32768）把总额度铺满，规则条数上限 11500。
+- `strings` 会改变字符串比较（比如比玩家名），这类字符串用 `/* @SKIP_OBFUSCATE_STRING */ … /* @SKIP_OBFUSCATE_STRING_END */` 包起来。
+- 混淆产物写完会**再跑一遍完整校验**，不通过就只剩源码版，不会把坏文件递给玩家。
 
 
 ## 如何更新

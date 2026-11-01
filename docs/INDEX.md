@@ -31,7 +31,8 @@
 | [probe-spec.md](./probe-spec.md) | 探针模板与判读规范（一条命令出差异表） | 要写探针 / 判读数 |
 | [samples.md](./samples.md) | 可运行样例清单 | 想找现成例子 |
 | [ui-notes.md](./ui-notes.md) | 编辑器 UI 观察 | 对照界面 |
-| [ecosystem.md](./ecosystem.md) | 社区工具与资源 | 找外部资料 |
+| [ecosystem.md](./ecosystem.md) | 社区工具与资源 + **混淆选项与 VS Code 插件的逐项对照** | 找外部资料 / 要出混淆版 |
+| [../README.md](../README.md) | 命令清单与混淆选项表（`--obf` 每个选项做什么） | 想知道 `publish` 怎么用 |
 | [sources.md](./sources.md) | 数据来源与权威性排序 | 怀疑数据过期 |
 
 ---
