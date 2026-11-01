@@ -719,7 +719,7 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 报错定位回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
-    # 混淆改名回归（issue #8）：带 // 注释的声明必须能改名；前缀引用、注释、字符串都不能被动坏
+    # 混淆回归（issue #8/#9）：改名、删注释、清规则名、前缀引用，注释与字符串不能被改坏
     try:
         import subprocess as _sp
         import tempfile as _tf
@@ -729,6 +729,7 @@ def cmd_selftest(args):
             "\t\t1: BetaVar//【带注释】这一行有 // 注释\n"
             "\t玩家:\n\t\t0: PlayerFlag\n\t\t1: Holder\n}\n\n"
             "规则(\"用一下\")\n{\n\t事件\n\t{\n\t\t持续 - 每名玩家;\n\t\t双方;\n\t\t全部;\n\t}\n\n\t动作\n\t{\n"
+            "\t\t// 行注释\n"
             "\t\t全局.AlphaVar = 1;\n"
             "\t\t全局.BetaVar = 全局.AlphaVar + 1;\n"
             "\t\t事件玩家.PlayerFlag = Holder.PlayerFlag + 1;\n"
@@ -739,23 +740,42 @@ def cmd_selftest(args):
             src = os.path.join(td, "obf-repro.ow")
             with open(src, "w", encoding="utf-8", newline="\n") as f:
                 f.write(fixture)
-            rc = _sp.run([sys.executable, os.path.join(here, "publish.py"), src,
-                          "--outdir", td, "--obf", "vars"],
-                         capture_output=True, text=True, encoding="utf-8", errors="replace")
-            out = os.path.join(td, "obf-repro.obf.ow")
-            body = open(out, encoding="utf-8-sig").read() if os.path.isfile(out) else ""
-            ok = (rc.returncode == 0
-                  and "全局.AlphaVar" not in body and "全局.BetaVar" not in body
-                  and "Holder.PlayerFlag" not in body and "事件玩家.PlayerFlag" not in body
-                  and "//【带注释】这一行有 // 注释" in body
-                  and "AlphaVar 在字符串里，不该被改" in body)
-            if ok:
+
+            def _publish(flags, sub):
+                outdir = os.path.join(td, sub)
+                os.makedirs(outdir, exist_ok=True)
+                rc = _sp.run([sys.executable, os.path.join(here, "publish.py"), src,
+                              "--outdir", outdir, "--obf", flags],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+                path = os.path.join(outdir, "obf-repro.obf.ow")
+                body = open(path, encoding="utf-8-sig").read() if os.path.isfile(path) else ""
+                return rc.returncode, body
+
+            rc1, b1 = _publish("vars", "v")
+            ok1 = (rc1 == 0
+                   and "全局.AlphaVar" not in b1 and "全局.BetaVar" not in b1
+                   and "Holder.PlayerFlag" not in b1 and "事件玩家.PlayerFlag" not in b1
+                   and "//【带注释】这一行有 // 注释" in b1
+                   and "AlphaVar 在字符串里，不该被改" in b1)
+
+            rc2, b2 = _publish("comments,rulenames", "c")
+            ok2 = (rc2 == 0
+                   and "用一下" not in b2 and '规则("")' in b2
+                   and "【带注释】" not in b2 and "// 行注释" not in b2
+                   and "AlphaVar 在字符串里，不该被改" in b2)
+
+            if ok1:
                 print("· 混淆改名回归：通过（带注释的声明能改名、前缀引用同步、注释与字符串保持原样）")
             else:
                 print("✗ 混淆改名回归失败（issue #8）：改名结果不对，检查 publish.py 的 rename_vars")
                 bad += 1
+            if ok2:
+                print("· 混淆对齐回归：通过（删注释、清规则名，字符串内容不动）")
+            else:
+                print("✗ 混淆对齐回归失败（issue #9）：注释没删干净或规则名没清空，检查 strip_comments / blank_rule_names")
+                bad += 1
     except Exception as e:
-        print("✗ 混淆改名回归跑不起来：%s: %s" % (type(e).__name__, e))
+        print("✗ 混淆回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
     # 版本号三处一致性
     ver_file = ""

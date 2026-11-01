@@ -10,10 +10,15 @@
 
   numbers        数值字面量改写成等价表达式（本项目自有，插件没有）
   vars           变量/子程序改名不可读（对应插件「混淆变量」）
-  rules          追加永不触发的假规则（对应插件「混淆规则」；现有规则名**不改**，规则名混淆交插件）
+  rules          追加永不触发的假规则（对应插件「混淆规则」的「填充虚假规则」）
+  rulenames      规则名清空：`规则("名字")` → `规则("")`（对应插件「移除规则名」）
+  comments       删注释：`//…`、`/* … */`、独占一行的 `"…"` 字符串注释（对应插件「移除注释」）
   indexes        数组下标改写成 乘(...) 表达式（对应插件「混淆索引」）
   local-indexes  本地索引同样改写（对应插件「混淆本地索引」）
   strings        字符串隐藏（**未实现**：会改变字符串比较语义，交给插件做）
+
+`--obf all` = numbers,vars,rules,rulenames,comments,indexes,local-indexes。
+插件在混淆这一步顺手做掉的「删注释 + 清空规则名」，本脚本要显式勾选，不勾就原样保留。
 
 不做混淆时不读任何混淆配置、不生成第二份文件。
 """
@@ -30,7 +35,7 @@ import core  # noqa: E402
 import obfuscate_values  # noqa: E402
 
 NO_SLOTS = core.VERIFIED_NO_SLOTS
-CHOICES = {"numbers", "vars", "rules", "indexes", "local-indexes", "strings", "all"}
+CHOICES = {"numbers", "vars", "rules", "rulenames", "comments", "indexes", "local-indexes", "strings", "all"}
 
 
 def fix_no_to_disabled(text):
@@ -139,6 +144,62 @@ def obfuscate_indexes(text):
     return re.sub(r"\[(\d+)\]", repl, text)
 
 
+def strip_comments(text):
+    """删掉注释：`//…`、`/* … */`、以及独占一行的 `"…"` 字符串注释。
+
+    对齐 VS Code 插件混淆时的「移除注释」：插件在混淆这一步把规则区的
+    `//`、`/* */` 和字符串注释统统抹掉（issue #9 核对源码确认）。
+    字符串里的 `//` 不动——`自定义字符串("http://…")` 里的两个斜杠是内容，不是注释。
+    """
+    out, i, n = [], 0, len(text)
+    in_str = False
+    while i < n:
+        ch = text[i]
+        if in_str:
+            out.append(ch)
+            if ch == "\\" and i + 1 < n:
+                out.append(text[i + 1])
+                i += 2
+                continue
+            if ch == '"':
+                in_str = False
+            i += 1
+            continue
+        if ch == '"':
+            in_str = True
+            out.append(ch)
+            i += 1
+            continue
+        if ch == "/" and i + 1 < n and text[i + 1] == "/":
+            j = text.find("\n", i)
+            i = n if j == -1 else j            # 换行留着，行号不会串
+            continue
+        if ch == "/" and i + 1 < n and text[i + 1] == "*":
+            j = text.find("*/", i + 2)
+            i = n if j == -1 else j + 2
+            continue
+        out.append(ch)
+        i += 1
+    cleaned = "".join(out)
+    keep = []
+    for line in cleaned.split("\n"):
+        if re.fullmatch(r'\s*"(?:[^"\\]|\\.)*"\s*', line):
+            continue                            # 独占一行的字符串注释
+        keep.append(line)
+    return "\n".join(keep)
+
+
+def blank_rule_names(text):
+    """规则名清空：`规则("名字")` → `规则("")`（对齐插件混淆时「移除规则名」）。"""
+    hits = [0]
+
+    def _repl(m):
+        hits[0] += 1
+        return m.group(1) + '("")'
+
+    out = re.sub(r'((?:禁用)?规则)\s*\(\s*"(?:[^"\\]|\\.)*"\s*\)', _repl, text)
+    return out, hits[0]
+
 def add_fake_rules(text, count=3, seed=20261020):
     """追加永不触发的假规则（对齐插件「混淆规则」）。"""
     rng = random.Random(seed)
@@ -161,7 +222,7 @@ def main():
     ap = argparse.ArgumentParser(description="出发布文件（默认只出源码版）")
     ap.add_argument("src")
     ap.add_argument("--outdir", default=".")
-    ap.add_argument("--obf", default="", help="逗号分隔：numbers,vars,rules,indexes,local-indexes")
+    ap.add_argument("--obf", default="", help="逗号分隔：numbers,vars,rules,rulenames,comments,indexes,local-indexes,all")
     ap.add_argument("--fix", action="store_true", help="自动把会被拒绝的「无」改成「全部禁用」")
     args = ap.parse_args()
 
@@ -170,7 +231,7 @@ def main():
     if unknown:
         sys.exit("不认识的混淆项：%s（可选：%s）" % (", ".join(sorted(unknown)), ", ".join(sorted(CHOICES))))
     if "all" in picked:
-        picked |= {"numbers", "vars", "rules", "indexes", "local-indexes"}
+        picked |= {"numbers", "vars", "rules", "rulenames", "comments", "indexes", "local-indexes"}
         picked.discard("all")
 
     if "strings" in picked:
@@ -236,11 +297,17 @@ def main():
 
     if "indexes" in picked or "local-indexes" in picked:
         obf = obfuscate_indexes(obf)
+    if "comments" in picked:
+        obf = strip_comments(obf)
+        print("已删注释（// 、/* */ 、独占一行的字符串注释）")
+    if "rulenames" in picked:
+        obf, _blanked = blank_rule_names(obf)
+        print("已清空规则名 %d 个（规则(\"名字\") → 规则(\"\")）" % _blanked)
     if "vars" in picked:
         obf, renamed = rename_vars(obf)
         decls = count_var_decls(obf)
         if renamed:
-            print("已改名变量 %d 个（声明和引用同步改，行尾 // 注释保留）" % renamed)
+            print("已改名变量 %d 个（声明和引用同步改）" % renamed)
         elif decls:
             # issue #8：以前这里打「已改名变量/子程序 0 个」，看着像「没什么可改的」，
             # 其实是声明格式没被认出来。这种情况必须吵一句。
@@ -249,7 +316,7 @@ def main():
             print("⚠ 这个文件里没有 `索引: 名字` 形式的变量声明，没有可改名的东西")
     if "rules" in picked:
         obf = add_fake_rules(obf)
-        print("已追加 3 条假规则（现有规则名不改：规则名混淆靠 VS Code 插件的「混淆规则」）")
+        print("已追加 3 条假规则（永不触发的空规则；要清空现有规则名请加 rulenames）")
 
     obf_path = os.path.join(args.outdir, base + ".obf.ow")
     open(obf_path, "w", encoding="utf-8", newline="").write(obf.replace("\n", "\r\n"))
