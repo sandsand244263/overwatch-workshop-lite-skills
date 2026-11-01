@@ -3550,7 +3550,7 @@ def check_empty_setting_values(text, problems):
 
 
 def check_balance(text, problems, strict=False, raw_masked=None):
-    """全局括号配对（只查括号；`If/While/For` 与 `End;` 的配对检查已撤回）。
+    """全局括号配对（圆括号 + 大括号；`If/While/For` 与 `End;` 的配对检查已撤回）。
 
     实测：删掉一个右括号，绝大多数校验器抓不到，但游戏直接报错。
     依据（E-95，2026-10-26 实机 P16）：左 4 右 3 的文件，游戏报
@@ -5136,6 +5136,10 @@ SUGGESTIONS = [
     (r"超过单条规则 98KB", "拆成多条规则：每条负责一件事，状态用全局变量传递"),
     (r"找不到对应的子程序声明", "在 子程序 块里定义它：子程序 { 名字 { 动作 { … } } }"),
     (r"循环里宣告胜负后没有", "在宣告动作的下一行加 中断;"),
+    (r"大括号不配对",
+     "少写/多写一个 }：补齐成对的 } 再导入；游戏原话是「第N行的…之后应有\"}\"」"),
+    (r"没有和 真/假 比较",
+     "把整条表达式包起来再和一个值比较：((A) || (B)) == 真"),
 ]
 
 
@@ -5248,6 +5252,93 @@ def blank_line_comments(text):
         out.append(ch)
         i += 1
     return "".join(out)
+
+
+def check_braces_raw(raw, problems):
+    """大括号 { } 必须配平。
+
+    实测（issue #6，2026-10-31 用户实机）：整份文件少一个 `}`，游戏报
+    「第65行的“全局.c1));}”之后应有“}”」并拒绝导入。以前只查圆括号 ()，这类完全漏，
+    check 照样说「可以导入」。
+    """
+    text = raw.replace("\r\n", "\n")
+    masked = _mask(text)
+    opens, closes = masked.count("{"), masked.count("}")
+    if opens == closes:
+        return
+    line = 0
+    if opens > closes:
+        # 和游戏一致：少 } 时指最后一个 } 所在行
+        for i, ln in enumerate(masked.split("\n"), 1):
+            if "}" in ln:
+                line = i
+    problems.append((line, "error",
+                     "大括号不配对：左 { %d 个、右 } %d 个（%s %d 个）——"
+                     "游戏会报「第N行的“…”之后应有“}”」并拒绝导入"
+                     % (opens, closes, "少" if opens > closes else "多", abs(opens - closes))))
+
+
+def check_condition_bare_logic(raw, problems):
+    """条件块里整条表达式必须和一个值比较；括号外直接出现 || / && 会被游戏拒。
+
+    实测（issue #5，2026-10-31 用户实机）：`(A == 真 || B == 真);` 这种写法
+    导入报「第N行的“真)”之后应有一个关系运算符」；
+    改成 `((A) || (B)) == 真;` 就能导。
+    判据只看括号外有没有 `||`：`(A || B) == 真` 不算错。
+    `&&` 链不判：9 份真实语料里有模式就写 `(A == 1 && B == 0 && …)`（不带 == 真）且能正常导入，
+    加进来会误报，先按「不能当结论」处理。
+    """
+    text = _mask(raw.replace("\r\n", "\n"))
+    state = 0                     # 0 = 不在条件块；1 = 已见「条件」等 {；2 = 在条件块内
+    for i, line in enumerate(text.split("\n"), 1):
+        s = line.strip()
+        if state == 0:
+            if s == "条件":
+                state = 1
+            continue
+        if state == 1:
+            if s.startswith("{"):
+                state = 2
+            continue
+        if s.startswith("}"):
+            state = 0
+            continue
+        if not s or s.startswith("//"):
+            continue
+        expr = s.rstrip(";").strip()
+        # 外面那层括号要剥掉：`(A == 真 || B == 真)` 的逻辑运算符在括号里，
+        # 但整条表达式本身没有和 真/假 比较——游戏拒的就是这种。
+        while expr.startswith("(") and expr.endswith(")"):
+            d = 0
+            ok = True
+            for idx, ch in enumerate(expr):
+                if ch == "(":
+                    d += 1
+                elif ch == ")":
+                    d -= 1
+                    if d == 0 and idx != len(expr) - 1:
+                        ok = False
+                        break
+            if not ok or d != 0:
+                break
+            expr = expr[1:-1].strip()
+        depth, top = 0, False
+        k = 0
+        while k < len(expr):
+            ch = expr[k]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            elif depth == 0 and expr[k:k + 2] == "||":
+                top = True
+                break
+            k += 1
+        if top:
+            problems.append((i, "error",
+                             "条件里这条没有和 真/假 比较（括号外直接是 ||）——"
+                             "游戏会报「…之后应有一个关系运算符」；整条包起来再比一次："
+                             "((A) || (B)) == 真"))
 
 
 def check_rule_missing_event_raw(raw, problems):
@@ -5459,6 +5550,7 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     # 因为后面会把跨行字符串和跨行语句合并，行号会移位；它们的行号不参与 orig_line 换算。
     raw_probs = []
     check_odd_quotes_raw(text, raw_probs)
+    check_braces_raw(text, raw_probs)
     check_rule_missing_event_raw(text, raw_probs)
     check_name_too_long_raw(text, raw_probs)
     check_bool_literal_raw(text, raw_probs, DATA_DIR)
@@ -5467,6 +5559,9 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     # 跨行字符串 + 跨行语句都会把内容挪到前一行；两张 SegMap 用来把报错换算回原文行号
     text, s_str = join_multiline_strings_mapped(text)
     text, s_merge = merge_continuations_mapped(text)
+    # 条件的逻辑行必须看合并后的文本：真实模式里 `(A || B)` 常写成好几行，
+    # 按物理行看会把续行断成「裸 ||」的假象（9 份语料里 3 份因此误报）。
+    check_condition_bare_logic(text, problems)
     lines = text.split("\n")
 
     def orig_line(line_no, col=None):

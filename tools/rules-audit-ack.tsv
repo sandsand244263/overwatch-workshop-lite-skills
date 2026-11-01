@@ -3,3 +3,5 @@
 定时刷新 / 轮询	check_rule_semantics	部分覆盖	check_rule_semantics 只在 --strict 下跑、默认关（语义类噪声大），默认链路不管这条	2026-10-25
 探针屏幕隐蔽	check_probe_invisible	部分覆盖	只查 lab 探针里有没有 开始镜头、以及它是否写在 等待直到 之后；把隐蔽三行写在全局规则里抓不到	2026-10-25
 读数回传	check_probe_output	部分覆盖	只查 lab 探针必须用 记入查看器；「让用户手工复制查看器内容」这条路静态判不了	2026-10-25
+条件满足时做一次	check_condition_bare_logic	假阳性	只判「条件里括号外是 || 就要整体和 真/假 比较」，不判条件块的上升沿语义	2026-10-31
+块尾省 End	check_balance	假阳性	check_balance 只数圆括号/大括号，不判 If/While 与 End; 的配对（那条 2026-10-24 已按 E-61 撤回）	2026-10-31
