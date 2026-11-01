@@ -719,6 +719,44 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 报错定位回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
+    # 混淆改名回归（issue #8）：带 // 注释的声明必须能改名；前缀引用、注释、字符串都不能被动坏
+    try:
+        import subprocess as _sp
+        import tempfile as _tf
+        fixture = (
+            "设置\n{\n\t主程序\n\t{\n\t\t描述: \"改名回归\"\n\t}\n}\n\n"
+            "变量\n{\n\t全局:\n\t\t0: AlphaVar\n"
+            "\t\t1: BetaVar//【带注释】这一行有 // 注释\n"
+            "\t玩家:\n\t\t0: PlayerFlag\n\t\t1: Holder\n}\n\n"
+            "规则(\"用一下\")\n{\n\t事件\n\t{\n\t\t持续 - 每名玩家;\n\t\t双方;\n\t\t全部;\n\t}\n\n\t动作\n\t{\n"
+            "\t\t全局.AlphaVar = 1;\n"
+            "\t\t全局.BetaVar = 全局.AlphaVar + 1;\n"
+            "\t\t事件玩家.PlayerFlag = Holder.PlayerFlag + 1;\n"
+            "\t\t小字体信息(所有玩家(所有队伍), 自定义字符串(\"AlphaVar 在字符串里，不该被改\"));\n"
+            "\t}\n}\n"
+        )
+        with _tf.TemporaryDirectory() as td:
+            src = os.path.join(td, "obf-repro.ow")
+            with open(src, "w", encoding="utf-8", newline="\n") as f:
+                f.write(fixture)
+            rc = _sp.run([sys.executable, os.path.join(here, "publish.py"), src,
+                          "--outdir", td, "--obf", "vars"],
+                         capture_output=True, text=True, encoding="utf-8", errors="replace")
+            out = os.path.join(td, "obf-repro.obf.ow")
+            body = open(out, encoding="utf-8-sig").read() if os.path.isfile(out) else ""
+            ok = (rc.returncode == 0
+                  and "全局.AlphaVar" not in body and "全局.BetaVar" not in body
+                  and "Holder.PlayerFlag" not in body and "事件玩家.PlayerFlag" not in body
+                  and "//【带注释】这一行有 // 注释" in body
+                  and "AlphaVar 在字符串里，不该被改" in body)
+            if ok:
+                print("· 混淆改名回归：通过（带注释的声明能改名、前缀引用同步、注释与字符串保持原样）")
+            else:
+                print("✗ 混淆改名回归失败（issue #8）：改名结果不对，检查 publish.py 的 rename_vars")
+                bad += 1
+    except Exception as e:
+        print("✗ 混淆改名回归跑不起来：%s: %s" % (type(e).__name__, e))
+        bad += 1
     # 版本号三处一致性
     ver_file = ""
     vp = os.path.join(ROOT, "VERSION")
