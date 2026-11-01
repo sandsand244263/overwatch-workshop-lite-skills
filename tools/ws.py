@@ -777,6 +777,32 @@ def cmd_selftest(args):
     except Exception as e:
         print("✗ 混淆回归跑不起来：%s: %s" % (type(e).__name__, e))
         bad += 1
+    # 索引混淆恒等回归（issue #9）：任何下标改写后必须算回原值
+    try:
+        import random as _rnd
+        sys.path.insert(0, here)
+        import publish as _pub
+        _r = _rnd.Random(1)
+        badidx = []
+        for n in list(range(0, 3001)) + [65535, 200000]:
+            expr = _pub._index_expr(n, _r)
+            if expr is None:
+                badidx.append((n, "没改写"))
+                continue
+            mm = re.search(r"\((\d+) \* (\d+) / (\d+)\)", expr)
+            if not mm:
+                badidx.append((n, expr)); continue
+            a, b, c = int(mm.group(1)), int(mm.group(2)), int(mm.group(3))
+            if (a * b) / c != n:
+                badidx.append((n, (a * b) / c))
+        if badidx:
+            print("✗ 索引混淆恒等回归失败（issue #9）：%d 个下标算不回原值，例 %s" % (len(badidx), badidx[:3]))
+            bad += 1
+        else:
+            print("· 索引混淆恒等回归：通过（0..3000 + 边界值，全部算回原值）")
+    except Exception as e:
+        print("✗ 索引混淆恒等回归跑不起来：%s: %s" % (type(e).__name__, e))
+        bad += 1
     # 版本号三处一致性
     ver_file = ""
     vp = os.path.join(ROOT, "VERSION")

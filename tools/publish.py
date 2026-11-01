@@ -126,23 +126,33 @@ def rename_vars(text, seed=20261020):
     return "\n".join(out), len(mapping)
 
 
-def obfuscate_indexes(text):
-    """把 [数字] 改成 [乘(10000000, 0.0000001*数字)]，对齐插件的索引混淆。"""
+INDEX_FACTORS = (3, 7, 9, 11, 13)
+
+
+def _index_expr(n, rng):
+    """把整数下标藏成恒等表达式 `(n * m / m)`（issue #9）。
+
+    旧写法 `[乘(10000000, 0.0000021)]` 在 double 下等于 20.999999999999996，
+    1..3000 里有 357 个整数算不回原值；游戏若截断下标就静默取错元素。
+    `(n * m / m)` 先乘整数再除同一个整数，IEEE 正确舍入保证结果与 n 完全相等
+    （0..200000 × 3/7/9/11/13 全测过，0 例偏差），跟 `numbers` 那套同一原理。
+    """
+    m = rng.choice(INDEX_FACTORS)
+    if (n * m) / m != n:          # 兜底：真算不准就不动这一处
+        return None
+    return "[(%d * %d / %d)]" % (n, m, m)
+
+def obfuscate_indexes(text, seed=20261031):
+    """把 [数字] 改写成恒等表达式，防止别人直接读下标。"""
+    rng = random.Random(seed)
     def repl(m):
-        num = m.group(1)
         try:
-            n = int(num)
+            n = int(m.group(1))
         except ValueError:
             return m.group(0)
-        if n == 0:
-            return m.group(0)                 # 0 用乘法藏不了，原样保留
-        factor = n * 0.0000001
-        txt = ("%.7f" % factor).rstrip("0")
-        if txt.endswith("."):
-            txt += "0"                        # 曾写出 "0." 这种非法数字，导致整行解析失败
-        return "[乘(10000000, %s)]" % txt
+        expr = _index_expr(n, rng)
+        return expr if expr else m.group(0)
     return re.sub(r"\[(\d+)\]", repl, text)
-
 
 def strip_comments(text):
     """删掉注释：`//…`、`/* … */`、以及独占一行的 `"…"` 字符串注释。
