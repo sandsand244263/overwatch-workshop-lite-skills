@@ -297,10 +297,9 @@ def cmd_count(args):
         合计 −9.2% → −5.3%，3/5 进 ±5%，两个离群文件归因不到具体构造）
     所以区间只向上给（×1.00 ~ ×1.23，下界＝实测最低倍率、上界＝实测最高 + 1% 余量），判上限按上界判。
     """
-    from element_count2 import estimate2
+    from element_count2 import estimate2, interval, CAP
     from element_count import estimate, describe
-    CAP, SMALL = 32768, 2000
-    RATIO_LO, RATIO_HI = 1.00, 1.23
+    SMALL = 2000
     for path in args.files:
         name = os.path.basename(path)
         if getattr(args, "legacy", False):
@@ -312,7 +311,7 @@ def cmd_count(args):
             print("%s：约 %d 个元素（探针级规模，实测偏差 ≤6 个）" % (name, est))
             print("  离 32768 还很远，估算误差不影响。")
             continue
-        lo, hi = int(est * RATIO_LO), int(est * RATIO_HI) + 1
+        lo, hi = interval(est)
         print("%s：模型估 %d，真实值多半在 %d ~ %d" % (name, est, lo, hi))
         print("  （真实模式模型一律偏低，上界按最坏情况算；最终数字以游戏「显示诊断结果 → 总计元素数量」为准）")
         if lo > CAP:
@@ -971,7 +970,10 @@ def cmd_probe_run(args):
 
     tags = {e["tag"] for e in entries}
     span = entries[-1]["sec"] - entries[0]["sec"]
-    print("\n日志：%s" % os.path.basename(path))
+    _abs, _human = logread.describe_age(path)
+    print("\n日志：%s（%s，%s）" % (os.path.basename(path), _abs or "时间未知", _human or "?"))
+    for _line in logread.stale_note(path):
+        print(_line)
     print("时间：%s → %s（%d 行，跨度 %d 秒）"
           % (entries[0]["ts"], entries[-1]["ts"], len(entries), span))
     if "base" in tags:
@@ -1843,6 +1845,7 @@ def main():
                    help="盯着日志目录：出现新文件且写完（--settle 秒没变化）就自动判读；纯文件轮询，不碰键鼠")
     p.add_argument("--settle", type=int, default=8, help="--watch 时文件多久没变化算写完（秒，默认 8）")
     p.add_argument("--timeout", type=int, default=900, help="--watch 最多等多久（秒，默认 900）")
+    p.add_argument("--since", help="只接受 N 分钟内生成的日志（如 5m / 30s / 2h）；拿不到就报本次没有新日志")
     p.set_defaults(func=cmd_readlog)
 
     p = sub.add_parser("probe-template", help="生成探针骨架 .ow + 配套 expect.tsv（一格一计数器 + 对照组）")

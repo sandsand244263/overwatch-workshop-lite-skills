@@ -387,15 +387,23 @@ def main():
         return 1
     print("✓ 混淆版：%s（用了：%s）" % (obf_path, ", ".join(sorted(picked))))
     try:
-        from element_count2 import estimate2 as estimate
+        from element_count2 import estimate2 as estimate, interval, CAP
         _est_obf = estimate(obf_path)
         if _est_clean:
             delta = (_est_obf - _est_clean) / max(_est_clean, 1) * 100
             print("元素数：源码版 %d → 混淆版 %d（%+.1f%%）" % (_est_clean, _est_obf, delta))
-            print("  注：numbers 混淆会把一个字面量拆成表达式，元素数会上升；模型对复杂表达式偏低 3% 左右")
-            if _est_obf > 30000:
-                print("  ⚠ 接近 32768 上限，建议减少混淆项（尤其 numbers / rules）")
-            elif delta > 15 and _est_obf >= 10000:
+            _lo, _hi = interval(_est_obf)
+            print("  混淆版模型估 %d，最坏 %d（真实模式模型一律偏低，上界按最坏情况算；口径同 ws.py count）"
+                  % (_est_obf, _hi))
+            if _lo > CAP:
+                print("  ✗ 必定超上限：按最低增幅也算到 %d，已过 %d，先压元素（见 docs/cost-patterns.md）"
+                      % (_lo, CAP))
+            elif _hi > CAP:
+                print("  ⚠ 可能超上限：最坏情况 %d（超 %d），真实值落在 %d 以上就导不进去，别赌"
+                      % (_hi, _hi - CAP, CAP))
+            else:
+                print("  上限 %d，按最坏情况还余 %d 个。" % (CAP, CAP - _hi))
+            if delta > 15 and _est_obf >= 10000:
                 print("  ⚠ 混淆让元素数涨了 %.0f%%，若离上限不远请改用 vars / indexes" % delta)
     except Exception:
         pass

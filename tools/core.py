@@ -4884,6 +4884,77 @@ def check_var_index_dup(text, problems):
                 seen.setdefault(section, {})[idx] = ln
 
 
+def check_subroutine_index_dup(text, problems):
+    """子程序块里两个子程序用了同一个索引 → 游戏报「之后出现重复的子程序索引」。
+
+    issue #12（2026-11-02 用户实机：7000 行模式往表尾追加新子程序，先看到最大索引是 49 就写 50，
+    实际 50 早被列表中间某条占用；check 与 --strict 全绿，只有游戏拒绝，而且报错不说是哪两个名字）。
+    变量索引重复早有 check_var_index_dup 管，这条把同一形态补到 `子程序` 段。
+    不报「索引有空洞」：9 份真实语料里 5 份有空洞（塔萨达 41 个、找蛋躲猫猫 82 个），
+    提示了只会制造噪声——撞号的真因是「没看全表」，不是「表有洞」。
+    """
+    in_block, depth, seen = False, 0, {}
+    for ln, line in enumerate(text.splitlines(), 1):
+        s = strip_noise(line).strip()
+        if not s:
+            continue
+        if not in_block:
+            if s == "子程序":
+                in_block, depth, seen = True, 0, {}
+            continue
+        if s.endswith("{"):
+            depth += 1
+            continue
+        if s == "}":
+            depth -= 1
+            if depth <= 0:
+                in_block = False
+            continue
+        if depth != 1:
+            continue                    # 子程序体里的东西不算声明的索引
+        m = re.match(r"^(\d+)\s*:\s*(\S*)$", s)
+        if not m:
+            continue
+        idx = int(m.group(1))
+        name = m.group(2)
+        if idx in seen:
+            prev_ln, prev_name = seen[idx]
+            problems.append((ln, "error",
+                             "子程序索引 %d 重复（第 %d 行「%s」已经用了，这里又给「%s」）；"
+                             "游戏会报「之后出现重复的子程序索引」并拒绝导入——改成一个没被占的号"
+                             % (idx, prev_ln, prev_name, name)))
+        else:
+            seen[idx] = (ln, name)
+
+
+
+
+def check_append_subarray(text, problems):
+    """`修改X变量(列表, 添加至数组, 空数组)` 什么都不会加进去——数量不变，接着按「数量-1」写就覆盖别人的条目。
+
+    issue #13（2026-11-02 用户实机）：追加子数组会被拆包（期望 24 条、实得 231 条 = 1 + 23×10），是同一个坑的
+    另一种表现。但那种形态静态看不出来：语料里 `…, 添加至数组, 数组(...)` 正是「一维列表一次追加几个值」的
+    正当写法（猪猪钩钩乐、找蛋躲猫猫都在用，实测 3 处），照 issue 的启发式报只会误报，所以这里只查「空数组」。
+    两种写法都查：`修改X变量(…, 添加至数组, 值)` 的操作槽之后那一位，和值函数形态 `添加至数组(列表, 值)`。
+    """
+    def _check(pos, val, where):
+        ln = text.count(chr(10), 0, pos) + 1
+        if val == "空数组":
+            problems.append((ln, "warning",
+                             "%s 追加的是 空数组：什么都不会加进去（数量不变），"
+                             "紧接着按「数量-1」写入会覆盖别人已有的那条（issue #13）" % where))
+
+    for el, _vi, oi, _scope in VAR_MODIFY_OPS:
+        for pos, n, args in _iter_calls(text, el):
+            if n <= oi + 1 or args[oi].strip() != "添加至数组":
+                continue
+            _check(pos, args[oi + 1].strip(), "「%s(…, 添加至数组, …)」" % el)
+    for pos, n, args in _iter_calls(text, "添加至数组"):
+        if n < 2:
+            continue
+        _check(pos, args[1].strip(), "「添加至数组(列表, …)」")
+
+
 def check_var_refs(text, problems):
     """全局.X / 事件玩家.X 引用的变量必须在变量块对应段落声明过（容忍空行、跳号）。
 
@@ -6116,6 +6187,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     check_missing_var_block(masked, problems)
     check_var_letter_index(text, problems)
     check_var_index_dup(text, problems)
+    check_subroutine_index_dup(text, problems)
+    check_append_subarray(masked, problems)
     check_var_refs(masked, problems)
     check_attacker_scope(text, problems)
     check_divide_by_zero(text, problems)

@@ -506,6 +506,17 @@ def stmt_cost(kind, payload):
     return 0
 
 
+# 元素数上限与「模型偏低」的实测倍率区间——唯一来源，count / publish 都从这里取，
+# 免得两边口径打架（issue #14：count 说最坏 +23%，publish 说偏低 3%，同一份文件两个结论）。
+CAP = 32768
+RATIO_LO, RATIO_HI = 1.00, 1.23
+
+
+def interval(est):
+    """模型估值 → (下界, 最坏上界)。上界＝实测最高倍率 + 1% 余量，判上限按上界判。"""
+    return int(est * RATIO_LO), int(est * RATIO_HI) + 1
+
+
 def estimate2(path, detail=False):
     """返回整份 .ow 的元素数（复刻游戏"总计元素数量"的算法）。"""
     prog = parse_file(path)

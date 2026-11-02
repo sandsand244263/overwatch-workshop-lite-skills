@@ -95,3 +95,5 @@ missing-brace.ow	大括号不配对	少一个 }：游戏报「之后应有"}"」
 bare-or-condition.ow	没有和 真/假 比较	条件里 (A==真 || B==真) 没整体比较：游戏报「之后应有一个关系运算符」（issue #5 实机）
 orphan-else.ow	孤儿分支	多写一个 End; 把 If 提前关掉，后面的 Else 永远不执行（issue #7 实机踩到）
 unknown-value-name.ow	值名「场上人数」不存在	值名不在值表里：游戏报「之后应有一个值」但指在别处（issue #10 实机）
+subroutine-index-dup.ow	子程序索引 0 重复	子程序块索引撞号：游戏报「之后出现重复的子程序索引」并拒收（issue #12 实机）
+append-subarray.ow	追加的是 空数组	追加子数组会被拆包逐个塞，静默改结构（issue #13 实测）

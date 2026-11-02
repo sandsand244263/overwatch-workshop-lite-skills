@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.36.1
+version: 3.37.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -30,6 +30,8 @@ metadata:
 
 文档按「你在做什么」查 `docs/INDEX.md`。**不要直接读 `data/` 里的表**——那是工具的数据源，用命令查。
 实测只走 `记入查看器` + `ws.py readlog`：记录会自动落盘，跑完直接读最新那个文件；`--watch` 可以边跑边等。
+打印时会带日志的生成时间与「多久以前」；加 `--since 10m` 只认新鲜文件，旧文件直接报「本次没有新日志」——
+别把上一局的读数当成这一局的（issue #15）。
 **探针默认全自动**：`ws.py probe-template` 生成的文件自带房间设置（死斗 + 地图工坊室内 + 即时开始）、
 到点自停、开头 `[base]`、收尾 `[end]` + 每格终值，还顺手写一份给人看的 README。
 用户只做两件事：导入、点开始。判读由 agent 跑 `ws.py probe-run 探针.ow`——它盯日志目录、看到 `[end]` 就出差异表、

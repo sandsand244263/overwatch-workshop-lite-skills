@@ -432,6 +432,59 @@ def wait_new_log(folder, timeout=900, settle=8, poll=1.0, show=None, end_marker=
         time.sleep(poll)
     return None
 
+def _since_seconds(spec):
+    """`5m` / `30s` / `2h` / `10`（纯数字按分钟）→ 秒；写错返回 None。"""
+    if not spec:
+        return None
+    spec = str(spec).strip().lower()
+    m = re.match(r"^([0-9.]+)[ ]*([smhd]?)$", spec)
+    if not m:
+        return None
+    n = float(m.group(1))
+    unit = m.group(2) or "m"
+    return n * {"s": 1, "m": 60, "h": 3600, "d": 86400}[unit]
+
+
+def describe_age(path):
+    """→ (绝对时间 'YYYY-MM-DD HH:MM', '多久以前' 的短句)。读不到 mtime 就返回 (None, None)。"""
+    import time as _t
+    try:
+        mt = os.path.getmtime(path)
+    except OSError:
+        return None, None
+    abs_str = _t.strftime("%Y-%m-%d %H:%M", _t.localtime(mt))
+    age = (_t.time() - mt) / 60.0
+    if age < 1:
+        human = "刚生成"
+    elif age < 60:
+        human = "%.0f 分钟前" % age
+    elif age < 60 * 24:
+        human = "%.1f 小时前" % (age / 60.0)
+    else:
+        human = "%.1f 天前" % (age / 1440.0)
+    return abs_str, human
+
+
+STALE_MINUTES = 10
+
+
+def stale_note(path):
+    """日志不是刚生成的 → 提示块（issue #15：拿昨天的日志当这次的读数）。"""
+    abs_str, human = describe_age(path)
+    if not abs_str:
+        return []
+    out = []
+    age = _age_minutes(path)
+    if age is not None and age > STALE_MINUTES:
+        out.append("")
+        out.append("⚠ 这份日志不是刚才生成的（%s，%s）" % (abs_str, human))
+        out.append("   本次运行可能压根没落盘：脚本一开就崩 / 服务器关房 / 查看器日志开关被关。")
+        out.append("   先查开关：设置 → 游戏 → 综合 → 自定游戏-地图工坊 →「启用地图工坊查看器日志文件」"
+                   "（同页「启用地图工坊查看器」也要开）")
+        out.append("   要用指定文件：readlog --file <路径>；只想认新鲜日志：readlog --since 10m")
+    return out
+
+
 def run(args):
     folder = getattr(args, "dir", None) or default_dir()
     if not os.path.isdir(folder):
@@ -480,6 +533,16 @@ def run(args):
             return 2
         path = files[-1]
 
+    since = _since_seconds(getattr(args, "since", None))
+    if since is not None:
+        age_s = _age_minutes(path)
+        if age_s is not None and age_s * 60 > since:
+            abs_str, human = describe_age(path)
+            print("✗ 这次没有新日志：最新一份是 %s（%s），早于 --since %s。"
+                  % (abs_str, human, getattr(args, "since")))
+            print("  本次运行多半没落盘（脚本崩了 / 关房 / 查看器日志开关被关），别拿旧日志判读。")
+            return 2
+
     entries = parse(read_text(path))
     if not entries:
         print("文件是空的或格式不认识：%s" % path)
@@ -487,13 +550,12 @@ def run(args):
         return 2
 
     span = entries[-1]["sec"] - entries[0]["sec"]
-    print("日志：%s" % os.path.basename(path))
+    _abs, _human = describe_age(path)
+    print("日志：%s（%s，%s）" % (os.path.basename(path), _abs or "时间未知", _human or "?"))
     print("时间：%s → %s（%d 行，跨度 %d 秒）" % (entries[0]["ts"], entries[-1]["ts"],
                                               len(entries), span))
-    age = _age_minutes(path)
-    if age is not None and age > 30:
-        print("注意：这个文件是 %.0f 分钟前写的。如果不是你刚才那次，用 --file 指定，"
-              "或确认游戏是正常退出（退出到大厅再退）。" % age)
+    for _line in stale_note(path):
+        print(_line)
 
     groups = {}
     for e in entries:
