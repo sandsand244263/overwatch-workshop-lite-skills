@@ -90,7 +90,22 @@ def main():
         for ln, _l, msg in errs[:5]:
             print("   第 %s 行：%s" % (ln, msg))
         return 1
-    print("\n✓ 冒烟通过：混淆版可解析、可校验")
+    # 第二条：带 --budget 的 fill（2026-11-02 抓到过 bug：给了 --budget 反而 UnboundLocalError）
+    r2 = subprocess.run([sys.executable, os.path.join(HERE, "ws.py"), "publish", src,
+                         "--obf", "fill", "--budget", "200", "--outdir", tmp],
+                        capture_output=True, text=True, encoding="utf-8", errors="replace")
+    out2 = r2.stdout + r2.stderr
+    print(out2.strip())
+    if r2.returncode != 0 or "已填充假规则" not in out2:
+        print("\n✗ 冒烟失败：--obf fill --budget 没跑通")
+        return 1
+    errs2 = [q for q in core.full_lint(obf, os.path.join(SK, "data")) if q[1] == "error"]
+    if errs2:
+        print("\n✗ 冒烟失败：铺满假规则后混淆版有 %d 个 error" % len(errs2))
+        for ln, _l, msg in errs2[:5]:
+            print("   第 %s 行：%s" % (ln, msg))
+        return 1
+    print("\n✓ 冒烟通过：fill --budget 也跑通，产物可校验")
     return 0
 
 

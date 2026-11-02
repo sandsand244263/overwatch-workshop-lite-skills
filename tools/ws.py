@@ -1820,6 +1820,8 @@ def main():
     p.add_argument("--outdir", default=".")
     p.add_argument("--obf", default="", help="numbers,vars,rules,indexes,local-indexes")
     p.add_argument("--fix", action="store_true")
+    p.add_argument("--budget", type=int, default=None,
+                   help="fill 用：混淆后允许达到的元素总数（默认 32000，上限 32768）")
     p.set_defaults(func=lambda a: __import__("publish").main_with_args(a))
 
     p = sub.add_parser("gen", help="从导出重新生成 data/")

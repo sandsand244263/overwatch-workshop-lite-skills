@@ -354,8 +354,8 @@ def main():
         if "local-indexes" in picked:
             print("已混淆本地索引 %d 处（小数抖动，只往正方向偏，取回还是原下标）" % _li)
     if "fill" in picked:
+        budget = args.budget if args.budget is not None else 32000
         if args.budget is None:
-            budget = 32000
             print("目标元素总数 %d（32768 上限留 768 余量；要改加 --budget）" % budget)
         # 只填差额：混淆本身已经吃掉一部分额度，填到用户给的总数为止
         _tmp = os.path.join(args.outdir, base + ".est.tmp.ow")

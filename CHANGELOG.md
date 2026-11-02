@@ -14,6 +14,21 @@
 
 ---
 
+## [3.37.1] - 2026-11-02
+
+### 修：`publish --obf fill` 一带 `--budget` 就崩
+
+用户问「混淆工具有没有加空规则的功能」时顺手实测了一遍，两处断的：
+
+- `tools/publish.py`：`budget` 只在 `args.budget is None` 分支里赋值，**给了 `--budget` 反而 `UnboundLocalError`**
+  （`remaining = budget - …`）。3.35.0 加 `fill` 时写漏，README 里那条 `--obf all --budget 24000` 一直是坏的。
+- `tools/ws.py publish`：子命令解析器里根本没有 `--budget`，`ws.py publish … --budget 24000` 直接报
+  `unrecognized arguments`（只有 `tools/publish.py` 直跑才认）。
+- `selfcheck_publish` 原来只跑 `--obf all`（不带 `--budget`），所以两条都没被发现；现在补一条
+  `--obf fill --budget 200` 的冒烟，跑通且产物必须过完整校验。
+
+实测（小探针，budget 300）：`已填充假规则：查看器警告 1、篡改保护 5、1 元素空规则 252（总预算 300，已用 16，余 5）`。
+
 ## [3.37.0] - 2026-11-02
 
 ### 四条 issue：子程序索引撞号 / 追加子数组被拆包 / 元素数口径 / 旧日志不提示
