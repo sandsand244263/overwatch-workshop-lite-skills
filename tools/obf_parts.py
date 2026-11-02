@@ -72,15 +72,43 @@ def split_indices(text, do_server=True, do_local=True, seed=20261031):
 # ---------- 查看器条目 ----------
 
 def strip_viewer_actions(text):
-    """删掉查看器类动作，别人就不能靠查看器读你的逻辑（插件混淆时也会删）。"""
-    out, removed = [], 0
-    for line in text.split("\n"):
-        s = line.strip()
-        if any(s.startswith(name) for name in VIEWER_ACTIONS):
+    """删掉查看器类动作，别人就不能靠查看器读你的逻辑（插件混淆时也会删）。
+
+    issue #17 的同族问题：按行删会把「参数里带跨行字符串」的语句删一半——续行留下来，
+    引号就断在半空，产物直接导不进去。所以先按「整条语句」定位（遮罩文本里数括号深度，
+    找到深度 0 的收尾分号），再连它跨的行一起删。
+    """
+    import core                      # 遮罩等长，跨行字符串/注释都变空格，结构判断不会被打断
+    masked = core.mask_text(text)
+    n = len(text)
+    out, removed, pos = [], 0, 0
+    while pos < n:
+        nl = text.find(chr(10), pos)
+        end = n if nl < 0 else nl
+        s = masked[pos:end].strip()
+        if s and any(s.startswith(name) for name in VIEWER_ACTIONS):
             removed += 1
+            j, depth = pos, 0
+            while j < n:
+                ch = masked[j]
+                if ch in "([":
+                    depth += 1
+                elif ch in ")]":
+                    depth -= 1
+                elif ch == ";" and depth <= 0:
+                    j += 1
+                    break
+                j += 1
+            k = j
+            while k < n and text[k] in " 	":
+                k += 1
+            if k < n and text[k] == chr(10):
+                k += 1
+            pos = k
             continue
-        out.append(line)
-    return "\n".join(out), removed
+        out.append(text[pos:end + 1] if end < n else text[pos:end])
+        pos = end + 1
+    return "".join(out), removed
 
 
 # ---------- 变量表 / 子程序表 ----------

@@ -60,6 +60,8 @@ SAMPLE = """设置
 		设置全局变量(arr[1], 7);
 		全局.arr[0] = 9;
 		等待(0.5, 无视条件);
+		记入查看器(自定义字符串("{0}
+		", 全局.arr));
 	}
 }
 """
@@ -96,7 +98,7 @@ def main():
                         capture_output=True, text=True, encoding="utf-8", errors="replace")
     out2 = r2.stdout + r2.stderr
     print(out2.strip())
-    if r2.returncode != 0 or "已填充假规则" not in out2:
+    if r2.returncode != 0 or "已填充假规则" not in out2 or "总预算 200" not in out2:
         print("\n✗ 冒烟失败：--obf fill --budget 没跑通")
         return 1
     errs2 = [q for q in core.full_lint(obf, os.path.join(SK, "data")) if q[1] == "error"]

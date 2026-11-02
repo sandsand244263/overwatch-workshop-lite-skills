@@ -116,19 +116,21 @@ def rename_vars(text, seed=20261020):
     # 前缀不一定是 全局/事件玩家：玩家变量自己也能当持有者（`攻击方.HookedCount`），
     # 所以「点号后面」一律认，别再列死前缀表（issue #8 修完改名数后暴露的第二处）。
     pat = re.compile(r"(?:\.(?P<dot>%s)|(?<![\w.])(?P<bare>%s))(?![\w])" % (alt, alt))
-    out = []
-    for line in text.split("\n"):
-        code, comment = _split_line_comment(line)
-        masked = core._mask(code)          # 字符串内容被抹成空格，用来避开字符串里的同名文本
-        def _repl(m):
-            name = m.group("dot") or m.group("bare")
-            pos = m.start("dot") if m.group("dot") else m.start("bare")
-            if pos < len(masked) and masked[pos] != code[pos]:
-                return m.group(0)          # 落在字符串里，别动
-            new_name = mapping[name]
-            return ("." + new_name) if m.group("dot") else new_name
-        out.append(pat.sub(_repl, code) + comment)
-    return "\n".join(out), len(mapping)
+    # issue #17：不能按物理行各自遮罩——跨行字符串的续行开头就是那个收尾引号，
+    # 整行会被当成字符串内容，续行里的引用一个都改不到（7 千行模式 13 处，产物直接导不进去）。
+    # 改成全文遮罩（core.mask_text 的字符串状态跨行延续，长度与原文一致），再在原文上逐处替换。
+    masked = core.mask_text(text)
+    out, last, renamed = [], 0, 0
+    for m in pat.finditer(text):
+        if m.start() < len(masked) and masked[m.start()] != text[m.start()]:
+            continue                    # 落在字符串 / 注释里，别动
+        name = m.group("dot") or m.group("bare")
+        out.append(text[last:m.start()])
+        out.append(("." + mapping[name]) if m.group("dot") else mapping[name])
+        last = m.end()
+        renamed += 1
+    out.append(text[last:])
+    return "".join(out), len(mapping)
 
 
 INDEX_FACTORS = (3, 7, 9, 11, 13)
@@ -325,7 +327,7 @@ def main():
         obf, renamed = rename_vars(obf)
         decls = count_var_decls(obf)
         if renamed:
-            print("已改名变量 %d 个（声明和引用同步改）" % renamed)
+            print("已改名变量 %d 个（声明和引用同步改；产物接着过一遍完整校验）" % renamed)
         elif decls:
             # issue #8：以前这里打「已改名变量/子程序 0 个」，看着像「没什么可改的」，
             # 其实是声明格式没被认出来。这种情况必须吵一句。
@@ -357,6 +359,15 @@ def main():
         budget = args.budget if args.budget is not None else 32000
         if args.budget is None:
             print("目标元素总数 %d（32768 上限留 768 余量；要改加 --budget）" % budget)
+        # issue #16：预算是「模型口径」，模型对真实元素数偏低（实测倍率到 1.21），
+        # 按 32000 填进去真实值会到 3.5 万，直接导不进去。超最坏上限就自动压下来。
+        from element_count2 import interval as _interval, CAP as _CAP, RATIO_HI as _HI
+        _worst = _interval(budget)[1]
+        if _worst > _CAP:
+            _safe = int(_CAP / _HI)
+            print("⚠ 预算 %d 是模型口径，按最坏倍率 %.2f 会到 %d（超上限 %d）：自动下调到 %d（最坏 %d）"
+                  % (budget, _HI, _worst, _CAP, _safe, _interval(_safe)[1]))
+            budget = _safe
         # 只填差额：混淆本身已经吃掉一部分额度，填到用户给的总数为止
         _tmp = os.path.join(args.outdir, base + ".est.tmp.ow")
         with open(_tmp, "w", encoding="utf-8", newline="") as f:
@@ -426,6 +437,9 @@ def main_with_args(args):
     argv = [args.src, "--outdir", args.outdir, "--obf", args.obf]
     if getattr(args, "fix", False):
         argv.append("--fix")
+    # issue #16：这里原来只搬 src/outdir/obf/fix，--budget 被吞掉，fill 永远按 32000 填
+    if getattr(args, "budget", None) is not None:
+        argv += ["--budget", str(args.budget)]
     old = sys.argv
     sys.argv = ["publish.py"] + argv
     try:
