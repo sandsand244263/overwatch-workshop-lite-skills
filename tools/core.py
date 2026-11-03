@@ -2360,7 +2360,7 @@ def _line_continues(line):
     s = strip_noise(line).strip()
     if not s:
         return False
-    return bool(re.search(r"(==|!=|&&|\|\||=|\?|\+|-|\*|/|,|!)$", s))
+    return bool(re.search(r"(==|!=|&&|\|\||=|\?|\+|-|\*|/|,|!|:|\(|\[)$", s))
 
 
 def _prev_continues(lines, i):
@@ -2371,6 +2371,9 @@ def _prev_continues(lines, i):
             return _line_continues(lines[j])
         j -= 1
     return False
+
+
+_CONT_START_RE = re.compile(r"^(&&|\|\||==|!=|>=|<=|=|>|<|\+|-|\*|/|\?|,|\.|\)|\]|;|:)")
 
 
 def _next_continues(lines, i):
@@ -2385,7 +2388,7 @@ def _next_continues(lines, i):
     while j < len(lines):
         s = strip_noise(lines[j]).strip()
         if s:
-            return bool(re.match(r"^(&&|\|\||==|!=|>=|<=|=|>|<|\+|-|\*|/|\?|,|\.|\)|:)", s))
+            return bool(_CONT_START_RE.match(s))
         j += 1
     return False
 
@@ -6249,9 +6252,10 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
     for ln, line in enumerate(lines, 1):
         code = strip_noise(line)
         stripped = code.strip()
-        if stripped in ('""', ''):
-            continue                      # 字符串注释行 / 空行
 
+        # 块注释必须在「空行 / 字符串注释」之前判：`/*` 那一行 strip_noise 之后是空的，
+        # 先 continue 就永远进不了注释态，整段注释体被当成代码，报一堆「语句缺少分号」
+        # （手写模式的 `/* 参数: … */` 说明块实测 19 处假错）。
         if in_comment:
             if "*/" in line:
                 in_comment = False
@@ -6259,6 +6263,8 @@ def lint(path, sigs, labels, settings=None, options=None, required=None, event_p
         if "/*" in line and "*/" not in line:
             in_comment = True
             continue
+        if stripped in ('""', ''):
+            continue                      # 字符串注释行 / 空行
 
         opens = code.count("(") - code.count(")")
         if paren_depth > 0:                      # 续行：只跟括号，不判语句结束
