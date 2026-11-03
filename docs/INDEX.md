@@ -48,7 +48,7 @@
 | `schema-keys.tsv` | schema → 键名（475 条），设置项归属的权威来源 |
 | `mode-schemas.tsv` | 模式 → schema 列表（137 条，覆盖 56 个模式） |
 | `hero-schemas.tsv` | 英雄 → schema 列表（135 条，覆盖 108 个英雄） |
-| `maps.tsv` | 306 行 / 216 个地名 + GUID + 变体标记 |
+| `maps.tsv` | 306 行 / 217 个地名 + GUID + 变体标记 |
 | `events.tsv` | 14 个事件 + 参数位 |
 | `strings.md` | 615 条文本选项（`字符串(...)` 只能用这里面的） |
 | `defaults.tsv` | 参数省略时的默认值 |

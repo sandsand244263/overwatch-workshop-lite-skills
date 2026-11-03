@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.39.2**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.40.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -119,7 +119,7 @@ npx skills add sandsand244263/overwatch-workshop-lite-skills
 
 | 对象 | 数据源 |
 |---|---|
-| 地图 | 306 行 / 216 个地名（含时段与节日变体） |
+| 地图 | 306 行 / 217 个地名（含时段与节日变体） |
 | 英雄 | 54 个 |
 | 技能 | 196 个 |
 | 按钮 | 10 个 |
@@ -162,7 +162,7 @@ workshop-lite/
 │   ├── lobby-keys.tsv             大厅 12 键（数据侧无出处，来自实测样本）
 │   ├── mode-schemas.tsv           137 个模式 → 各自的 schema 列表
 │   ├── hero-schemas.tsv           135 个英雄 → 各自的 schema 列表
-│   ├── maps.tsv                   306 行 / 216 个地名 + GUID + 变体标记
+│   ├── maps.tsv                   306 行 / 217 个地名 + GUID + 变体标记
 │   ├── events.tsv                 14 个事件 + 参数位
 │   ├── strings.md                 615 条内置 `字符串(...)` 词条
 │   ├── defaults.tsv               每个参数省略时的默认值
@@ -393,7 +393,7 @@ DataTool "<游戏目录>" list-workshop --language zhCN --rcn --json --out=works
 
 - `--language zhCN` 简体中文；`--rcn` 国服客户端
 - 导出含 `Actions` / `Values` / `Dropdowns` / `TextOptions` / `Extensions` 五类
-- 数据基线：**国服 2.25.0.1.154504**
+- 数据基线：**国服 2.25.1.0.154905**
 - 设置项结构另由 `list-game-ruleset-schemas`、`list-gamemodes`、`list-heroes-rulesets` 导出
 
 中文名词同时参考 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT），一个工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL)。两者不一致时以游戏数据为准。

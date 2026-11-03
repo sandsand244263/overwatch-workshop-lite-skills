@@ -159,14 +159,24 @@ def build_maps(src, out):
     data = load_json(os.path.join(src, "maps.json"))
     vals = list(data.values()) if isinstance(data, dict) else data
     rows, seen = [], set()
-    for m in vals:
-        name, guid = (m.get("Name") or "").strip(), m.get("GUID")
-        if not name or not guid or guid in seen:
-            continue
-        seen.add(guid)
-        variant = 1 if (m.get("VariantName") or "").strip() else 0
+
+    def add(name, guid, variant):
+        name = (name or "").strip()
+        if not name or not guid or (guid, name) in seen:
+            return
+        seen.add((guid, name))
         # 可用性：数据里无权威标志位，统一标 unknown，不猜
         rows.append([name, guid, variant, "unknown"])
+
+    for m in vals:
+        guid = m.get("GUID")
+        variant_name = (m.get("VariantName") or "").strip()
+        add(m.get("Name"), guid, 1 if variant_name else 0)
+        # 节日/活动版地图：同一个 GUID 在工坊里以 VariantName 出现（例：好莱坞 / 万圣节好莱坞）。
+        # 两个名字都要留在表里（core.py 只取第一列做名字校验），否则《地图(万圣节好莱坞)》
+        # 会被误报成「不在当前版本地图表里」。以前是手工补行，重生成必被冲掉，这里改成生成。
+        if variant_name:
+            add(variant_name, guid, 1)
     rows.sort()
     write_tsv(out, ["name", "guid", "variant", "usable"], rows)
 
@@ -202,14 +212,20 @@ def main():
     return 0
 
 
+def run_all(args):
+    """依次生成 events / action-tags / maps，直接写回本仓 data/。
+
+    注意：这不只是「按顺序调 main()」——各子命令的 --out 是必填项，
+    重放 argv 时漏传会直接报缺参数，所以这里按固定产物路径直接调 build_*。
+    """
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data = os.path.join(base, "data")
+    build_events(args.src, os.path.join(data, "events.tsv"))
+    build_action_tags(os.path.join(data, "signatures.md"), os.path.join(data, "action-tags.tsv"))
+    build_maps(args.src, os.path.join(data, "maps.tsv"))
+    return 0
+
+
 if __name__ == "__main__":
     sys.exit(main())
-
-def run_all(args):
-    """依次生成 events / action-tags / maps。"""
-    import sys as _sys
-    for name in ("events", "action-tags", "maps"):
-        _sys.argv = [_sys.argv[0], name] + (["--src", args.src] if getattr(args, "src", None) else [])
-        main()
-    return 0
 
