@@ -1597,6 +1597,9 @@ def cmd_devcheck(a):
     for name, script in (("setting-values", "gen_setting_values.py"),
                          ("errors", "gen_errors.py"),
                          ("word-lists", "gen_word_lists.py"),
+                         # 裸词表：源是游戏导出（WS_EXPORT 或 local_paths.json 的 export），
+                         # 没有源时按「找不到输入」跳过（暂存于公开仓 / CI 就是这种情况）
+                         ("裸词表", "gen_bare_ok.py"),
                          ("meta 计数", "gen_meta.py")):
         rc, out, _ = _devcheck_run([py, os.path.join(tools, script), "--check"], 300)
         if verbose:

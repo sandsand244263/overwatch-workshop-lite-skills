@@ -54,6 +54,7 @@
 | `defaults.tsv` | 参数省略时的默认值 |
 | `enums.md` | 英雄 / 地图 / 下拉选项全集 |
 | `action-tags.tsv` | 484 动作的功能分类 |
+| `bare-ok.tsv` | 707 条裸词白名单（不加括号直接写在代码里的词）：由 `python tools/gen_bare_ok.py --src <导出>` 从游戏导出重生成，人工补的词在 `tools/bare-ok-src.tsv`；`--check` 已接进 `devcheck` 第 1 步 |
 | `meta.json` | 数据基线的 build / 导出日期 + 五项计数（actions / values / dropdowns / heroes / maps）；计数由 `python tools/gen_meta.py` 从各表重算，`--check` 已接进 `devcheck` 第 1 行 |
 
 ### 阶段 1 新增（S1a / S1b 表 + 两个生成脚本）
