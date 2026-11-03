@@ -7,6 +7,9 @@
 - publish 自身的 lint 只传了 event_params，比 `ws.py check` 弱，
   上述两个 bug 都没被它拦住，是把检查换成 full_lint 后才暴露的。
 
+M2（v3.38.0）起加第三条：四条 --obf 改写的回归——改名 / 删动作 / 删注释 / 清规则名
+只动该动的地方，字符串一字不变。
+
 用法：python tools/selfcheck_publish.py
 """
 import os
@@ -67,6 +70,163 @@ SAMPLE = """设置
 """
 
 
+# ---------- M2 回归：四条改写只动该动的地方 ----------
+
+REWRITE_SAMPLE = os.path.join(HERE, "probes", "samples", "comment-tricky-ok.ow")
+
+
+def _strings(text):
+    """全文的字符串字面量内容（不含引号；注释里的不算），按出现顺序。"""
+    NL, BS, QT = chr(10), chr(92), '"'
+    out, i, n = [], 0, len(text)
+    while i < n:
+        ch = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if ch == "/" and nxt == "/":
+            j = text.find(NL, i)
+            i = n if j < 0 else j
+            continue
+        if ch == "/" and nxt == "*":
+            j = text.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+            continue
+        if ch == QT:
+            j, buf = i + 1, []
+            while j < n:
+                if text[j] == BS and j + 1 < n:
+                    buf.append(text[j:j + 2])
+                    j += 2
+                    continue
+                if text[j] == QT:
+                    break
+                buf.append(text[j])
+                j += 1
+            out.append("".join(buf))
+            i = j + 1
+            continue
+        i += 1
+    return out
+
+
+def _standalone_string_lines(text):
+    """独占一行的字符串注释的内容（删注释时整行带走的那类）。"""
+    out = []
+    for line in text.split(chr(10)):
+        s = line.strip()
+        if len(s) >= 2 and s[0] == '"' and s[-1] == '"' and s.count('"') == 2:
+            out.append(s[1:-1])
+    return out
+
+
+def _code_has_comment(text):
+    """代码区还剩没剩下 `//` / `/*`（字符串里的两个斜杠不算）。"""
+    import core
+    for u in core.split_statements(text):
+        if u["kind"] == "comment":
+            return True
+        for a, b in u["code"]:
+            seg = text[a:b]
+            if "//" in seg or "/*" in seg:
+                return True
+    return False
+
+
+def _code_has_viewer(text):
+    """代码区还有没有查看器动作（按语句单元开头判断，跨行也不会漏）。"""
+    import core
+    for u in core.split_statements(text):
+        if u["kind"] != "statement":
+            continue
+        code = "".join(text[a:b] for a, b in u["code"]).strip()
+        if code.startswith(("记入查看器", "启用查看器录制", "禁用查看器录制")):
+            return True
+    return False
+
+
+def _is_subseq(needles, haystack):
+    """needles 是不是 haystack 的子序列（顺序不变，允许被删，不许被改）。"""
+    it = iter(haystack)
+    return all(any(x == y for y in it) for x in needles)
+
+
+def _rewrite_cases():
+    """回归输入：自带探针 + 本机配了真实语料就一起上。"""
+    files = [REWRITE_SAMPLE]
+    try:
+        import local_paths
+        d = local_paths.corpus_dir()
+    except Exception:
+        d = os.environ.get("WS_CORPUS", "")
+    if d and os.path.isdir(d):
+        files += [os.path.join(d, n) for n in sorted(os.listdir(d)) if n.endswith(".ow")]
+    return [p for p in files if os.path.isfile(p)]
+
+
+def check_rewrites():
+    """M2 回归（Task 2.1~2.4）：四种 --obf 改写只动该动的东西。
+
+    vars        字符串字面量一字不变（#8 带注释的声明、#17 跨行字符串后的引用）
+    comments    剩下的字符串 == 源字符串去掉「独占一行的字符串注释」，注释字符不残留
+    viewer      查看器动作清零，字符串按顺序保留（被删语句里的除外）
+    rulenames   字符串个数不变、规则名清空、别的字符串一个不动
+    """
+    sys.path.insert(0, HERE)
+    from collections import Counter
+    import publish
+    import obf_parts
+    bad, files = 0, _rewrite_cases()
+    for path in files:
+        text = open(path, encoding="utf-8").read().replace(chr(13) + chr(10), chr(10))
+        src, name = _strings(text), os.path.basename(path)
+
+        out, _n = publish.rename_vars(text)
+        got = _strings(out)
+        if got != src:
+            print("  ✗ vars 改了字符串：%s（%d → %d 个）" % (name, len(src), len(got)))
+            bad += 1
+
+        out = publish.strip_comments(text)
+        keep = list(src)
+        for s in _standalone_string_lines(text):
+            if s in keep:
+                keep.remove(s)
+        got = _strings(out)
+        # 同名字符串可能出现在多处，删掉的是哪一处就说不准了 —— 比多重集合，不比顺序
+        if Counter(got) != Counter(keep):
+            print("  ✗ comments 之后字符串对不上：%s（应 %d 个，实 %d 个）"
+                  % (name, len(keep), len(got)))
+            bad += 1
+        if _code_has_comment(out):
+            print("  ✗ comments 之后代码区还有注释：%s" % name)
+            bad += 1
+
+        out, _v = obf_parts.strip_viewer_actions(text)
+        if not _is_subseq(_strings(out), src):
+            print("  ✗ viewer 把字符串改坏了：%s" % name)
+            bad += 1
+        if _code_has_viewer(out):
+            print("  ✗ viewer 之后还有查看器动作：%s" % name)
+            bad += 1
+
+        out, _r = publish.blank_rule_names(text)
+        got = _strings(out)
+        if len(got) != len(src):
+            print("  ✗ rulenames 改了字符串个数：%s（%d → %d）" % (name, len(src), len(got)))
+            bad += 1
+        else:
+            moved = [i for i, (a, b) in enumerate(zip(src, got)) if a != b and b != ""]
+            if moved:
+                print("  ✗ rulenames 动了不是规则名的字符串：%s（第 %s 个）"
+                      % (name, moved[:3]))
+                bad += 1
+    if bad:
+        print("✗ 改写回归失败：%d 处" % bad)
+        return False
+    print("✓ 改写回归：%d 个文件，vars / comments / viewer / rulenames 四条都只动该动的地方"
+          % len(files))
+    return True
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="pubb")
     src = os.path.join(tmp, "sample.ow")
@@ -108,6 +268,9 @@ def main():
             print("   第 %s 行：%s" % (ln, msg))
         return 1
     print("\n✓ 冒烟通过：fill --budget 也跑通，产物可校验")
+    # 第三条：四条改写的回归（M2：变量改名 / 删查看器动作 / 删注释 / 清规则名）
+    if not check_rewrites():
+        return 1
     return 0
 
 

@@ -92,21 +92,51 @@ def count_var_decls(text):
     return n
 
 
-def rename_vars(text, seed=20261020):
-    """变量/子程序改随机名，声明与引用同步替换；行尾 `//` 注释原样保留。
+DECL_RE = re.compile(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$")
 
-    issue #8：旧实现要求「变量名后面直接到行尾」，带 `//` 注释的声明
-    （工具自己推荐的写法、真实模式里 129 个变量全带注释）一个都匹配不到，
-    于是改名 0 个还只用正常语气打印一句「已改名变量/子程序 0 个」。
+
+def _code_slices(text, unit, lo=None, hi=None):
+    """单元里 [lo, hi) 这段内属于代码的碎片（字符串 / 注释已由切句器剔掉）。"""
+    lo = unit["start"] if lo is None else lo
+    hi = unit["end"] if hi is None else hi
+    out = []
+    for a, b in unit["code"]:
+        a, b = max(a, lo), min(b, hi)
+        if a < b:
+            out.append((a, b))
+    return out
+
+
+def _unit_lines(text, unit):
+    """单元覆盖的每个物理行：[(行首, 行尾不含换行)]。"""
+    spans, pos = [], unit["start"]
+    while pos < unit["end"]:
+        nl = text.find("\n", pos, unit["end"])
+        stop = unit["end"] if nl < 0 else nl
+        spans.append((pos, stop))
+        pos = stop + 1
+    return spans
+
+
+def rename_vars(text, seed=20261020):
+    """变量/子程序改随机名，声明与引用同步替换；字符串与注释一个字节都不动。
+
+    M2 Task 2.1：从「全文遮罩 + 原文扫 token」搬到语句单元（core.split_statements）。
+    只在单元的 code 区间里认名字——字符串、行注释、块注释根本不在区间里，
+    于是 #8（声明带 `//` 注释）、#17（跨行字符串后面的引用）、跨行数组里的注释
+    都由切句器一处负责，不再各有各的补丁。
     """
     rng = random.Random(seed)
-    decl = re.compile(r"^\s*\d+\s*:\s*([A-Za-z_]\w*)\s*$")
+    units = core.split_statements(text)
     names = set()
-    for line in text.split("\n"):
-        code, _cm = _split_line_comment(line)
-        m = decl.match(code)
-        if m:
-            names.add(m.group(1))
+    for u in units:
+        if u["kind"] not in ("block_line", "statement"):
+            continue
+        for ls, le in _unit_lines(text, u):
+            code = "".join(text[a:b] for a, b in _code_slices(text, u, ls, le))
+            m = DECL_RE.match(code)          # 按行取 code 碎片：注释里带 `;` 也挡不住识别
+            if m:
+                names.add(m.group(1))
     mapping = {n: random_name(rng) for n in names}
     if not mapping:
         return text, 0
@@ -116,19 +146,17 @@ def rename_vars(text, seed=20261020):
     # 前缀不一定是 全局/事件玩家：玩家变量自己也能当持有者（`攻击方.HookedCount`），
     # 所以「点号后面」一律认，别再列死前缀表（issue #8 修完改名数后暴露的第二处）。
     pat = re.compile(r"(?:\.(?P<dot>%s)|(?<![\w.])(?P<bare>%s))(?![\w])" % (alt, alt))
-    # issue #17：不能按物理行各自遮罩——跨行字符串的续行开头就是那个收尾引号，
-    # 整行会被当成字符串内容，续行里的引用一个都改不到（7 千行模式 13 处，产物直接导不进去）。
-    # 改成全文遮罩（core.mask_text 的字符串状态跨行延续，长度与原文一致），再在原文上逐处替换。
-    masked = core.mask_text(text)
-    out, last, renamed = [], 0, 0
-    for m in pat.finditer(text):
-        if m.start() < len(masked) and masked[m.start()] != text[m.start()]:
-            continue                    # 落在字符串 / 注释里，别动
-        name = m.group("dot") or m.group("bare")
-        out.append(text[last:m.start()])
-        out.append(("." + mapping[name]) if m.group("dot") else mapping[name])
-        last = m.end()
-        renamed += 1
+    hits = []
+    for u in units:
+        for a, b in u["code"]:
+            for m in pat.finditer(text[a:b]):
+                hits.append((a + m.start(), a + m.end(),
+                             m.group("dot") or m.group("bare"), bool(m.group("dot"))))
+    out, last = [], 0
+    for start, end, name, dotted in hits:
+        out.append(text[last:start])
+        out.append(("." + mapping[name]) if dotted else mapping[name])
+        last = end
     out.append(text[last:])
     return "".join(out), len(mapping)
 
@@ -161,61 +189,113 @@ def obfuscate_indexes(text, seed=20261031):
         return expr if expr else m.group(0)
     return re.sub(r"\[(\d+)\]", repl, text)
 
-def strip_comments(text):
-    """删掉注释：`//…`、`/* … */`、以及独占一行的 `"…"` 字符串注释。
+def _strip_unit_comments(seg):
+    """单元内剔注释：行尾 `//`、`/* … */`（跨行块注释也认）。
 
-    对齐 VS Code 插件混淆时的「移除注释」：插件在混淆这一步把规则区的
-    `//`、`/* */` 和字符串注释统统抹掉（issue #9 核对源码确认）。
-    字符串里的 `//` 不动——`自定义字符串("http://…")` 里的两个斜杠是内容，不是注释。
+    返回 (新文本, 丢掉的「独占一行的字符串注释」行数)。字符串状态跨行延续，
+    所以 `自定义字符串("http://…")` 里的两个斜杠不会被当注释。
     """
-    out, i, n = [], 0, len(text)
-    in_str = False
-    while i < n:
-        ch = text[i]
-        if in_str:
-            out.append(ch)
-            if ch == "\\" and i + 1 < n:
-                out.append(text[i + 1])
-                i += 2
+    out, in_str, in_block, dropped = [], False, False, 0
+    for line in seg.split("\n"):
+        start_in_str = in_str
+        keep, i, n = [], 0, len(line)
+        while i < n:
+            ch = line[i]
+            nxt = line[i + 1] if i + 1 < n else ""
+            if in_block:
+                if ch == "*" and nxt == "/":
+                    in_block = False
+                    i += 2
+                    continue
+                i += 1
+                continue
+            if in_str:
+                keep.append(ch)
+                if ch == "\\" and nxt:
+                    keep.append(nxt)
+                    i += 2
+                    continue
+                if ch == '"':
+                    in_str = False
+                i += 1
                 continue
             if ch == '"':
-                in_str = False
+                in_str = True
+                keep.append(ch)
+                i += 1
+                continue
+            if ch == "/" and nxt == "/":
+                break                              # 行尾注释：本行剩下的都不要
+            if ch == "/" and nxt == "*":
+                in_block = True
+                i += 2
+                continue
+            keep.append(ch)
             i += 1
+        new = "".join(keep)
+        if not start_in_str and not in_str and re.fullmatch(r'\s*"(?:[^"\\]|\\.)*"\s*', new):
+            dropped += 1                           # 独占一行的字符串注释
             continue
-        if ch == '"':
-            in_str = True
-            out.append(ch)
-            i += 1
-            continue
-        if ch == "/" and i + 1 < n and text[i + 1] == "/":
-            j = text.find("\n", i)
-            i = n if j == -1 else j            # 换行留着，行号不会串
-            continue
-        if ch == "/" and i + 1 < n and text[i + 1] == "*":
-            j = text.find("*/", i + 2)
-            i = n if j == -1 else j + 2
-            continue
-        out.append(ch)
-        i += 1
-    cleaned = "".join(out)
-    keep = []
-    for line in cleaned.split("\n"):
-        if re.fullmatch(r'\s*"(?:[^"\\]|\\.)*"\s*', line):
-            continue                            # 独占一行的字符串注释
-        keep.append(line)
-    return "\n".join(keep)
+        out.append(new)
+    return "\n".join(out), dropped
+
+
+def strip_comments(text):
+    """删掉注释：整行 `//…`、`/* … */` 段、独占一行的 `"…"` 字符串注释，以及语句行尾的注释。
+
+    对齐 VS Code 插件混淆时的「移除注释」（issue #9 核对源码确认）。
+    M2 Task 2.3：改按语句单元处理——每个单元只看自己那一段，字符串状态从单元开头算起
+    （单元一定从行首开始、开头不在字符串里）。注释字符剔掉，缩进和换行留着，
+    所以产物行号与源码版对齐；字符串（含 `自定义字符串("http://…")` 里的两个斜杠）
+    一个字节都不动。旧版是全文逐字符扫，两者在 9 份真实语料上产物逐字节相同。
+    """
+    kept = []
+    for u in core.split_statements(text):
+        # 单元一定从行首开始、且开头不在字符串里（切句器保证），所以可以单元内自己扫。
+        piece, _n = _strip_unit_comments(text[u["start"]:u["end"]])
+        kept.append(piece)
+    return "".join(kept)
 
 
 def blank_rule_names(text):
-    """规则名清空：`规则("名字")` → `规则("")`（对齐插件混淆时「移除规则名」）。"""
-    hits = [0]
+    """规则名清空：`规则("名字")` → `规则("")`（对齐插件混淆时「移除规则名」）。
 
-    def _repl(m):
-        hits[0] += 1
-        return m.group(1) + '("")'
-
-    out = re.sub(r'((?:禁用)?规则)\s*\(\s*"(?:[^"\\]|\\.)*"\s*\)', _repl, text)
-    return out, hits[0]
+    M2 Task 2.4：只认块头单元（core.split_statements 的 block_header）——
+    清空的是规则头里那个名字字符串，别处的字符串（模式名、描述、提示文案）一律不动。
+    """
+    spans, hits = [], 0
+    for u in core.split_statements(text):
+        if u["kind"] != "block_header":
+            continue
+        seg = text[u["start"]:u["end"]]
+        m = re.match(r'\s*(?:禁用\s*)?规则\s*\(\s*"', seg)
+        if not m:
+            continue
+        i = m.end()                               # 名字字符串的内容起点
+        j = i
+        while j < len(seg):
+            if seg[j] == "\\":
+                j += 2
+                continue
+            if seg[j] == '"':
+                break
+            j += 1
+        if j >= len(seg):
+            continue                              # 没找到收尾引号
+        k = j + 1
+        while k < len(seg) and seg[k] in " \t":
+            k += 1
+        if k >= len(seg) or seg[k] != ")":
+            continue
+        if j > i:                                 # 名字本来就是 `""` 的也计数（口径与旧版一致）
+            spans.append((u["start"] + i, u["start"] + j))
+        hits += 1
+    out, last = [], 0
+    for start, end in spans:
+        out.append(text[last:start])
+        last = end
+    out.append(text[last:])
+    return "".join(out), hits
 
 def add_fake_rules(text, count=3, seed=20261020):
     """追加永不触发的假规则（对齐插件「混淆规则」）。"""

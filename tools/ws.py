@@ -98,10 +98,130 @@ def _fmt_line_list(lines, total):
     return "第 %s 行" % seg
 
 
-def cmd_check(args):
-    """校验。默认输出分两段：必改（会挡导入）/ 提示（多数可忽略）。
+def _checked_rule_count():
+    """「已验 N 条」的 N：本次实际跑的 check_* 数量。
 
-    --json 时只输出结构化结果，供编辑器与 CI 使用。
+    运行时数（dir(core)），不写死 —— 加一条检查，输出自己跟着变。
+    """
+    return len([n for n in dir(core) if n.startswith("check_")])
+
+
+def _load_coverage_gaps():
+    """读 data/coverage-gaps.tsv（手工表）：gap / trigger / text / evidence。
+
+    只写「本地确实验不了、要导入或实机才能定」的盲区；每行 evidence 必须指向
+    已发生的 issue 或实测记录（与 docs/validator-coverage.md「还不查」同源）。
+    """
+    global _GAPS_CACHE
+    try:
+        return _GAPS_CACHE
+    except NameError:
+        pass
+    _GAPS_CACHE = []
+    path = os.path.join(DATA, "coverage-gaps.tsv")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                if (row.get("gap") or "").strip() and (row.get("trigger") or "").strip():
+                    _GAPS_CACHE.append(row)
+    return _GAPS_CACHE
+
+
+def _corpus_seen():
+    """data/action-blocks.tsv 里「语料出现次数 > 0」的元素名 —— 本地真有样本的写法。
+
+    用出现次数，不用 format-spec-corpus.tsv 的 subject：那张表只收格式规范样本，
+    真实语料里常见的值函数（`地图工坊设置整数` 等）并不在 subject 列里，拿它判「没见过」会误报。
+    """
+    global _CORPUS_SEEN
+    try:
+        return _CORPUS_SEEN
+    except NameError:
+        pass
+    _CORPUS_SEEN = set()
+    path = os.path.join(DATA, "action-blocks.tsv")
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f, delimiter="	"):
+                try:
+                    n = int((row.get("语料出现次数") or "0").strip() or 0)
+                except ValueError:
+                    n = 0
+                nm = (row.get("元素名") or "").strip()
+                if nm and n > 0:
+                    _CORPUS_SEEN.add(nm)
+    return _CORPUS_SEEN
+
+
+def _has_multiline_string(text):
+    """文件里有没有跨行字符串：上一行行末还在引号里，下一行就是续行。"""
+    in_str = False
+    for line in text.split("\n"):
+        was = in_str
+        in_str = core._ends_in_string(line, in_str)
+        if was:
+            return True
+    return False
+
+
+def _unseen_calls(masked, limit=5):
+    """语料表里没出现过的调用名（行首的块头不算：规则(…) / 子程序(…)）。
+
+    名字在签名表里合法、只是语料没有样本 —— 这是「本地没样本」，不是错误。
+    """
+    known = _corpus_seen()
+    if not known:
+        return []
+    out = []
+    for m in re.finditer(r'([一-鿿A-Za-z_][\w一-鿿]*)\s*\(', masked):
+        name = m.group(1).strip()
+        if not name or name in known or name in out or name in ("规则", "子程序"):
+            continue
+        line_start = masked.rfind("\n", 0, m.start()) + 1
+        if not masked[line_start:m.start()].strip():
+            continue
+        out.append(name)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _coverage(path, text):
+    """这次「已验多少条 / 没验哪几类」，文本输出与 --json 共用一份。"""
+    masked = core.mask_text(text)
+    est = None
+    gaps = []
+    for row in _load_coverage_gaps():
+        trig = (row.get("trigger") or "").strip()
+        hits = []
+        if trig == "multiline-string":
+            if _has_multiline_string(text):
+                hits = ["跨行字符串"]
+        elif trig == "runtime-element":
+            hits = sorted(set(re.findall(r"(添加至数组|等待直到)\s*\(", masked)))
+        elif trig == "element-estimate>20000":
+            if est is None:
+                try:
+                    from element_count2 import estimate2
+                    est = estimate2(path)
+                except Exception:
+                    est = -1
+            if est > 20000:
+                hits = ["约 %d 个元素" % est]
+        elif trig == "corpus-unseen":
+            hits = _unseen_calls(masked)
+        if hits:
+            gaps.append({"gap": (row.get("gap") or "").strip(),
+                         "text": (row.get("text") or "").strip(),
+                         "evidence": (row.get("evidence") or "").strip(),
+                         "hits": hits})
+    return {"checked": _checked_rule_count(), "gaps": gaps}
+
+
+def cmd_check(args):
+    """校验。默认输出分三段：必改（会挡导入）/ 未验（本地看不见的盲区）/ 提示。
+
+    --json 时只输出结构化结果，供编辑器与 CI 使用；没有必改的文件带 coverage 字段。
     """
     global LAST_CHECK
     sigs, labels, settings = load()
@@ -123,16 +243,24 @@ def cmd_check(args):
         warns = [p for p in problems if p[1] != "error"]
         if errors:
             failed += 1
+        # 有必改时输出保持原样（先修）；三态只在没有必改时给。
+        cov = None
+        if not errors:
+            text, _enc = core.read_text(path)
+            cov = _coverage(path, text)
 
         if getattr(args, "json", False):
-            report.append({
+            entry = {
                 "file": path,
                 "ok": not errors,
                 "errors": [{"line": p[0], "level": p[1], "message": p[2],
                             "fix": core.suggest(p[2])} for p in errors],
                 "warnings": [{"line": p[0], "level": p[1], "message": p[2],
                               "fix": core.suggest(p[2])} for p in warns],
-            })
+            }
+            if cov is not None:
+                entry["coverage"] = cov
+            report.append(entry)
             continue
 
         if errors:
@@ -162,8 +290,14 @@ def cmd_check(args):
                 if len(warns) > args.max_warn:
                     print("  …还有 %d 条，用 --max-warn 调大或 --json 看全部" % (len(warns) - args.max_warn))
         else:
-            print("✓ %s：可以导入%s"
-                  % (name, "" if not warns else "（%d 条提示，不影响导入）" % len(warns)))
+            gap_names = [g["gap"] for g in cov["gaps"]]
+            print("✓ %s：没发现必改问题（已验 %d 条 / 未验 %d 类）"
+                  % (name, cov["checked"], len(gap_names)))
+            print("  未验：%s" % ("、".join(gap_names) if gap_names else "无（这次没命中已知盲区）"))
+            if warns:
+                print("  提示 %d 条（不影响导入）" % len(warns))
+            else:
+                print("  提示 0 条")
             for ln, level, msg in warns[:args.max_warn]:
                 print("  第 %s 行：%s" % (ln if ln else "?", msg))
                 tip = core.suggest(msg)

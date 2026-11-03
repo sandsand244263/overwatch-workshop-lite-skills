@@ -27,3 +27,9 @@ jobs:
 
       - name: 发版门禁（生成器漂移 / selftest / 标定 / 模式 / 语料）
         run: python tools/ws.py devcheck
+
+      - name: 发布冒烟（源码版 + 混淆版产物必须过完整校验）
+        run: python tools/selfcheck_publish.py
+
+      - name: 工具自身体检（重复定义 / 名单差集 / 检查接入 / 语句切分）
+        run: python tools/ws.py selftest

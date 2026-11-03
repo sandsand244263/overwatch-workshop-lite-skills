@@ -74,40 +74,32 @@ def split_indices(text, do_server=True, do_local=True, seed=20261031):
 def strip_viewer_actions(text):
     """删掉查看器类动作，别人就不能靠查看器读你的逻辑（插件混淆时也会删）。
 
-    issue #17 的同族问题：按行删会把「参数里带跨行字符串」的语句删一半——续行留下来，
-    引号就断在半空，产物直接导不进去。所以先按「整条语句」定位（遮罩文本里数括号深度，
-    找到深度 0 的收尾分号），再连它跨的行一起删。
+    M2 Task 2.2：改成直接删语句单元（core.split_statements）。跨行参数、嵌套括号、
+    参数里的跨行字符串都由切句器一处负责，这里不再自己数括号深度——
+    issue #17 那种「参数带跨行字符串、按行删会断引号」的同族问题，根上只剩一处实现。
     """
-    import core                      # 遮罩等长，跨行字符串/注释都变空格，结构判断不会被打断
-    masked = core.mask_text(text)
-    n = len(text)
-    out, removed, pos = [], 0, 0
-    while pos < n:
-        nl = text.find(chr(10), pos)
-        end = n if nl < 0 else nl
-        s = masked[pos:end].strip()
-        if s and any(s.startswith(name) for name in VIEWER_ACTIONS):
-            removed += 1
-            j, depth = pos, 0
-            while j < n:
-                ch = masked[j]
-                if ch in "([":
-                    depth += 1
-                elif ch in ")]":
-                    depth -= 1
-                elif ch == ";" and depth <= 0:
-                    j += 1
-                    break
-                j += 1
-            k = j
-            while k < n and text[k] in " 	":
-                k += 1
-            if k < n and text[k] == chr(10):
-                k += 1
-            pos = k
+    import core                      # code 区间由切句器算好，字符串/注释不在里面
+    out, removed, last = [], 0, 0
+    for u in core.split_statements(text):
+        if u["kind"] != "statement" or not u["code"]:
             continue
-        out.append(text[pos:end + 1] if end < n else text[pos:end])
-        pos = end + 1
+        code = "".join(text[a:b] for a, b in u["code"]).strip()
+        if not any(code.startswith(name) for name in VIEWER_ACTIONS):
+            continue
+        # 一般语句在单元首行；单元前面若挂着「独占一行的字符串」注释，只从动作那行删
+        first = None
+        for a, b in u["code"]:
+            piece = text[a:b]
+            if piece.strip():
+                first = a + len(piece) - len(piece.lstrip())
+                break
+        if first is None:
+            continue
+        head = text.rfind(chr(10), 0, first) + 1
+        out.append(text[last:head])                # 整条语句连它跨的行一起丢
+        last = u["end"]
+        removed += 1
+    out.append(text[last:])
     return "".join(out), removed
 
 
