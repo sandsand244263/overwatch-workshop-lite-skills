@@ -67,13 +67,14 @@ STRUCTURES = {
         "event": "全局", "cond": "1 == 1",
         "body": ["%INC%", "%LOG%"],
         "per_tick": 1,
-        "note": "条件写进「条件」块且恒真：只在上升沿跑一次，这一轮循环跑完即停",
+        "note": "条件写进「条件」块且恒真：条件每轮重估，恒真时每轮都跑（v17 实机 10 秒读数 9~10 次，不是「只跑一次」）",
     },
     "条件块假": {
         "event": "全局", "cond": "1 == 2",
         "body": ["%INC%", "%LOG%"],
-        "want": "未出现", "control_of": "条件块真",
-        "note": "对照组：结构与 条件块真 一样，条件恒假 → 整条规则不执行，日志里不该有它的键",
+        "want": "0", "never_runs": True, "control_of": "条件块真",
+        "note": "对照组：结构与 条件块真 一样，条件恒假 → 整条规则不执行；"
+                "读数 0/0/0（进入/首轮/末轮全 0），与 If假 的 0/1/1 区分开",
     },
     "While上限": {
         "event": "全局", "cond": None,
@@ -253,9 +254,11 @@ def build_rule(index, struct, key, aux, seconds, edges=("", "")):
               "\t\t\t等待(1, 无视条件);"]
     key_b, key_e = (edges if edges else ("", ""))
     # 首轮 / 末轮写在结构体外面：对照组也必须有数，0 才只剩一种解释
+    # 首轮用闩锁而不是 `t == 0`：格子规则要等完 6 秒才进循环，那时时钟早就涨上去了
+    # （v17 实机读数：6 格的首轮数全是 0，一条也没落）。
     if key_b and key_e:
-        lines += ["			If(全局.t == 0);",
-                  "				全局.%s = 全局.%s + 1;" % (key_b, key_b),
+        lines += ["			If(全局.%s == 0);" % key_b,
+                  "				全局.%s = 1;" % key_b,
                   "			End;",
                   "			If(全局.t >= %d);" % (seconds - 1),
                   "				全局.%s = 全局.%s + 1;" % (key_e, key_e),
@@ -356,11 +359,10 @@ def build_expect(plan, seconds, name="探针"):
         if st.get("control_of"):
             note = "对照组（配对 %s）" % st["control_of"]
         rows.append("\t".join((key, struct, want, tol, basis, note)))
-        # 首轮 / 末轮写在整个循环外面，所以对照组也有数；只有「整条规则不执行」的格子才该没有
-        if st.get("want") == "未出现":
-            edge_want, edge_tol = "未出现", ""
-        else:
-            edge_want, edge_tol = (">=1" if st.get("ge") else "1"), ""
+        # 首轮 / 末轮写在整个循环外面，所以对照组也有数；
+        # 只有「整条规则不执行」的格子（条件块假）三个数一起是 0 —— 收尾规则照样打 [end c4]=0，
+        # 所以这里不能写「未出现」（v17 实机读数验证：那样永远不成立）。
+        edge_want, edge_tol = ("0" if st.get("never_runs") else "1"), ""
         rows.append("\t".join((key + "b", struct + " · 首轮", edge_want, edge_tol, basis,
                                "循环第一轮就跑到了（开场没被吞）")))
         rows.append("\t".join((key + "e", struct + " · 末轮", edge_want, edge_tol, basis,
