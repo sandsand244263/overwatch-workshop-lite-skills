@@ -39,6 +39,10 @@ import obf_parts  # noqa: E402
 import obfuscate_values  # noqa: E402
 
 NO_SLOTS = core.VERIFIED_NO_SLOTS
+# 「无 → 全部禁用」要动哪些函数、动第几个参数：从 core 的实测槽位表派生，别手抄中文名字清单
+# （手抄清单漏一个名字，整族写法就整族放行，E-90 踩过两次）。-2 = 倒数第二个参数，-1 = 最后一个。
+TEXT_FUNCS = sorted(n for n, v in core.VERIFIED_NO_SLOTS.items() if -2 in v["slots"])
+TAIL_FUNCS = sorted(n for n, v in core.VERIFIED_NO_SLOTS.items() if -1 in v["slots"])
 CHOICES = {"numbers", "vars", "fakevars", "rules", "fill", "rulenames", "comments", "viewer",
            "indexes", "local-indexes", "strings", "all"}
 
@@ -137,7 +141,9 @@ def rename_vars(text, seed=20261020):
             m = DECL_RE.match(code)          # 按行取 code 碎片：注释里带 `;` 也挡不住识别
             if m:
                 names.add(m.group(1))
-    mapping = {n: random_name(rng) for n in names}
+    # 名字集合是 set：按 hash 顺序迭代会让同一份文件在不同进程里拿到不同的假名
+    # （PYTHONHASHSEED 一变就变），两次发布没法逐字对比。排序后按序号分配，算法与名字形状都不动。
+    mapping = {n: random_name(rng) for n in sorted(names)}
     if not mapping:
         return text, 0
 

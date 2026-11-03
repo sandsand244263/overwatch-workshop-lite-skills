@@ -4239,7 +4239,10 @@ _STMT_SECTIONS = ("设置", "变量", "事件", "条件", "动作", "值")
 _STMT_HEADER_RE = re.compile(r"^(?:禁用\s*)?(?:规则|子程序)\s*\(")
 # 设置块里的 `键: 值` / 变量块的 `0: 名字`。冒号必须出现在引号括号之前，
 # 否则 `全局.x = 自定义字符串("时间:` 这种续行会被误当成键值行。
-_STMT_KV_RE = re.compile(r'^[^"(){};]*:[ \t]|^[^"(){};]*:$')
+# 键值行：`键: 值` / `键：值` / `键:值` 都算——全角冒号、冒号后没空格是手写中文模式里的常态，
+# 认不出来就会掉进语句态，把后面几千行吞成一个单元。判据只看「第一个特殊字符是冒号」：
+# 语句行必定带 `;`，在调用处（`";" not in stripped`）已经排除了。
+_STMT_KV_RE = re.compile('^[^"(){};]*[:：]')
 
 
 def _stmt_code_runs(text, start, end):
@@ -4318,6 +4321,79 @@ def _stmt_line_at(text, pos):
     return text[pos:eol].strip()
 
 
+def _stmt_ends_in_string(text, start, end):
+    """扫 [start,end) 后是否仍停在字符串里（转义、// 与 /* 注释按语句态同一套规则）。"""
+    nl = chr(10)
+    bs = chr(92)
+    j = start
+    in_str = escaped = in_line = in_block = False
+    while j < end:
+        ch = text[j]
+        nxt = text[j + 1] if j + 1 < end else ""
+        if in_line:
+            if ch == nl:
+                in_line = False
+            j += 1
+            continue
+        if in_block:
+            if ch == "*" and nxt == "/":
+                in_block = False
+                j += 2
+                continue
+            j += 1
+            continue
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == bs:
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            j += 1
+            continue
+        if ch == '"':
+            in_str = True
+            j += 1
+            continue
+        if ch == "/" and nxt == "/":
+            in_line = True
+            j += 2
+            continue
+        if ch == "/" and nxt == "*":
+            in_block = True
+            j += 2
+            continue
+        j += 1
+    return in_str
+
+
+def _extend_over_string(text, start, end):
+    """行级单元若在字符串里收尾，就吞到闭合引号所在的行末——一个字符串只准落在一个单元里。
+
+    手写的设置块里 `描述: "第一行↵第二行↵第三行"` 很常见。按行切会把续行切成独立单元，
+    check_odd_quotes_raw 逐个单元判「结束时还在字符串里」，于是第 5 行开头的字符串被报成
+    「一直到文件结束都没闭合」的假错（文件里第 7 行就闭合了）。
+    """
+    if not _stmt_ends_in_string(text, start, end):
+        return end
+    n = len(text)
+    nl = chr(10)
+    bs = chr(92)
+    j = end
+    escaped = False
+    while j < n:
+        ch = text[j]
+        if escaped:
+            escaped = False
+        elif ch == bs:
+            escaped = True
+        elif ch == '"':
+            tail = text.find(nl, j)
+            return n if tail < 0 else min(tail + 1, n)
+        j += 1
+    return n
+
+
 def split_statements(text):
     """全文 → 语句单元（结构底座：所有「按行改写」都不该再自己数括号）。
 
@@ -4394,7 +4470,7 @@ def split_statements(text):
         if at_ls and ";" not in stripped and not stripped.startswith('"'):
             nxt_line = _stmt_line_at(text, eol + 1)
             if _STMT_KV_RE.match(stripped) or nxt_line.startswith("{"):
-                emit(start, min(eol + 1, n), "block_line")
+                emit(start, _extend_over_string(text, start, min(eol + 1, n)), "block_line")
                 i = units[-1]["end"]
                 continue
         # 语句态：吃到括号深度 0 的 `;`（字符串/注释里的 ; 不算）

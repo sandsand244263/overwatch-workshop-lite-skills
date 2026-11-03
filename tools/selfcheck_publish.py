@@ -70,8 +70,33 @@ SAMPLE = """设置
 """
 
 
-# ---------- M2 回归：四条改写只动该动的地方 ----------
+# --fix 冒烟用的样本：「无」分别落在倒数第二个参数（创建地图文本）和最后一个参数（设置不可见）上，
+# 两个槽的数据里都有「全部禁用」，是导出失真的典型形态。
+FIX_SAMPLE = """设置
+{
+	主程序
+{
+		模式名称: "自检"
+	}
+}
 
+规则("修复自检")
+{
+	事件
+	{
+		持续 - 全局;
+	}
+
+	动作
+	{
+		创建地图文本(所有玩家(所有队伍), 自定义字符串("标题"), 矢量(0, 0, 0), 1, 不要截取, 无, 白色, 默认可见度);
+		设置不可见(所有玩家(所有队伍), 无);
+	}
+}
+"""
+
+
+# ---------- M2 回归：四条改写只动该动的地方 ----------
 REWRITE_SAMPLE = os.path.join(HERE, "probes", "samples", "comment-tricky-ok.ow")
 
 
@@ -227,6 +252,46 @@ def check_rewrites():
     return True
 
 
+def check_fix(tmp):
+    """--fix 冒烟（v3.38.1）：`无` 落在数据里有「全部禁用」的槽上，改完产物必须过完整校验。
+
+    修前这条路一用就崩（`NameError: TEXT_FUNCS`）——只跑 `--obf` 的冒烟永远碰不到它。
+    两条入口都走一遍：`ws.py publish --fix`（子命令 + 转发层）与 `publish.py --fix`（直跑）。
+    """
+    import core
+    data = os.path.join(SK, "data")
+    src = os.path.join(tmp, "fixable.ow")
+    with open(src, "w", encoding="utf-8", newline="") as f:
+        f.write(FIX_SAMPLE.replace(chr(10), chr(13) + chr(10)))
+    before = [p for p in core.full_lint(src, data) if p[1] == "error"]
+    if not before:
+        print("\n✗ --fix 冒烟失败：样本本身没报错，验不出修复有没有发生")
+        return False
+    outdir = os.path.join(tmp, "fixout")
+    for cmd in ([os.path.join(HERE, "ws.py"), "publish"],
+                [os.path.join(HERE, "publish.py")]):
+        r = subprocess.run([sys.executable] + cmd + [src, "--fix", "--outdir", outdir],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+        out = r.stdout + r.stderr
+        if r.returncode != 0 or "已修复 %d 处" % len(before) not in out:
+            print("\n✗ --fix 冒烟失败：%s（exit %s）" % (" ".join(cmd[-2:]), r.returncode))
+            print(out.strip()[:800])
+            return False
+        dst = os.path.join(outdir, "fixable.ow")
+        probs = [p for p in core.full_lint(dst, data) if p[1] == "error"]
+        if probs:
+            print("\n✗ --fix 冒烟失败：修复后的产物还有 %d 个 error" % len(probs))
+            for ln, _l, msg in probs[:5]:
+                print("   第 %s 行：%s" % (ln, msg))
+            return False
+        text = open(dst, encoding="utf-8").read()
+        if ", 无," in text or ", 无)" in text:
+            print("\n✗ --fix 冒烟失败：产物里还剩「无」")
+            return False
+    print("✓ --fix 冒烟：两条入口都跑通，修复后的产物过完整校验")
+    return True
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="pubb")
     src = os.path.join(tmp, "sample.ow")
@@ -268,6 +333,8 @@ def main():
             print("   第 %s 行：%s" % (ln, msg))
         return 1
     print("\n✓ 冒烟通过：fill --budget 也跑通，产物可校验")
+    if not check_fix(tmp):
+        return 1
     # 第三条：四条改写的回归（M2：变量改名 / 删查看器动作 / 删注释 / 清规则名）
     if not check_rewrites():
         return 1

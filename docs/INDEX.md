@@ -9,6 +9,7 @@
 | [errors.md](./errors.md) | 报错原文 → 原因 → 改法（实测） | 手里有一句游戏报错 |
 | [pitfalls.md](./pitfalls.md) | 避坑总索引 + 必查清单 | 每次都该扫一眼 |
 | [rules.tsv](./rules.tsv) | **断言表**：一条实测结论一行（禁止 / 正确 / 依据 / 证据等级 L0~L3 / 怎么验 / 检查开关） | 写码前查 `ws.py rule <关键词>`；不知道能不能做查 `ws.py verify` |
+| [adr/](./adr/) | 决策记录：一条决策一个文件、只追加（只认「改对外语义 / 换一层实现」两条判据） | 想知道「为什么这么改」、接手时对不上 |
 | [pitfalls-map.md](./pitfalls-map.md) | 地图池、时段编号、模式名写法 | 动地图设置 |
 | [pitfalls-syntax.md](./pitfalls-syntax.md) | 字符串/队伍参数/变量/子程序/数组 | 写动作和表达式 |
 | [persistence.md](./persistence.md) | **跨重连持久化**：键用名字不用栏位、二维数组存整条、什么时候该写 | 做存档码/余额/进度/战绩这类「退出再回来还要有」的功能 |
