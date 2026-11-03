@@ -209,19 +209,30 @@ def validate(plan, seconds):
 
 
 def _cell_vars(plan):
-    """-> (变量名列表, {格序: 计数器}, {格序: 辅助变量})；辅助变量统一排在计数器后面。"""
-    counters, auxes = {}, {}
+    """-> (变量名列表, {格序: 计数器}, {格序: (首轮, 末轮)}, {格序: 辅助变量})。
+
+    一格三个计数器（M7 一格多验，一次导入多验两件事）：
+      cN   进入次数   —— 结构体真的跑到了几轮（原来只有这一个）
+      cNb  首轮次数   —— 循环第一轮就跑到了（开场没被吞）
+      cNe  末轮次数   —— 最后一轮跑到了（循环没被提前打断）
+    cNb / cNe 写在结构体外面，所以**对照组也有数**：对照的意义从「值恒为 0」变成
+    「循环跑了 N 轮、但条件一次都没成立」，0 不再有第二种解释。
+    """
+    counters, edges, auxes = {}, {}, {}
     for i, s in enumerate(plan, 1):
         counters[i] = "c%d" % i
+        edges[i] = ("c%db" % i, "c%de" % i)
         if STRUCTURES[s].get("aux"):
             auxes[i] = "i%d" % i
     names = ["t"] + [counters[i] for i in range(1, len(plan) + 1)]
+    for i in sorted(edges):
+        names += list(edges[i])
     names += [auxes[i] for i in sorted(auxes)]
-    return names, counters, auxes
+    return names, counters, edges, auxes
 
 
-def build_rule(index, struct, key, aux, seconds):
-    """"一条规则 = 一格。"""
+def build_rule(index, struct, key, aux, seconds, edges=("", "")):
+    """一条规则 = 一格（三个计数器：进入 / 首轮 / 末轮）。"""
     st = STRUCTURES[struct]
     player = st["event"] == "每名玩家"
     lines = ['规则("格%02d %s %s")' % (index, key, struct), "{", "\t事件", "\t{"]
@@ -240,6 +251,15 @@ def build_rule(index, struct, key, aux, seconds):
               "\t\t等待(%d, 无视条件);" % GUARD_WAIT,
               "\t\tWhile(全局.t < %d);          // 退出条件：时钟走完就停" % seconds,
               "\t\t\t等待(1, 无视条件);"]
+    key_b, key_e = (edges if edges else ("", ""))
+    # 首轮 / 末轮写在结构体外面：对照组也必须有数，0 才只剩一种解释
+    if key_b and key_e:
+        lines += ["			If(全局.t == 0);",
+                  "				全局.%s = 全局.%s + 1;" % (key_b, key_b),
+                  "			End;",
+                  "			If(全局.t >= %d);" % (seconds - 1),
+                  "				全局.%s = 全局.%s + 1;" % (key_e, key_e),
+                  "			End;"]
 
     # 结构里手写的缩进（\t 开头）要再降一级
     for line in st["body"]:
@@ -256,7 +276,7 @@ def build_rule(index, struct, key, aux, seconds):
 
 def build_probe(plan, seconds, name="探针"):
     """-> .ow 文本（CRLF）。"""
-    names, counters, auxes = _cell_vars(plan)
+    names, counters, edges, auxes = _cell_vars(plan)
     desc = "探针模板：%d 格（%s），每秒打点一次，%d 秒后自停" % (
         len(plan), "、".join(plan), seconds)
     out = [SETTINGS_BLOCK.format(desc=desc, name=name).replace("\r\n", "\n")]
@@ -300,22 +320,24 @@ def build_probe(plan, seconds, name="探针"):
             '\t\t等待直到(全局.t >= %d, 180);   // 等时钟走完（最多再等 3 分钟）\n' % seconds,
             '\t\t记入查看器(自定义字符串("[end] t={0}", 全局.t));\n']
     for i in sorted(counters):
-        key = counters[i]
-        tail.append('\t\t记入查看器(自定义字符串("[end %s] %s={0}", 全局.%s));\n'
-                    % (key, key, key))
+        for key in (counters[i],) + tuple(edges.get(i, ())):
+            tail.append('\t\t记入查看器(自定义字符串("[end %s] %s={0}", 全局.%s));\n'
+                        % (key, key, key))
     tail.append('\t}\n}\n')
     out.append("".join(tail))
 
     for i, struct in enumerate(plan, 1):
-        out.extend(build_rule(i, struct, counters[i], auxes.get(i), seconds))
+        out.extend(build_rule(i, struct, counters[i], auxes.get(i), seconds,
+                              edges.get(i, ("", ""))))
     return "\r\n".join("\n".join(out).split("\n")).rstrip("\r\n") + "\r\n"
 
 
 def build_expect(plan, seconds, name="探针"):
-    """-> expect.tsv 文本。期望/容差都按结构与秒数推算，依据留空待填。"""
-    rows = ["# 期望表：%s（%d 格 / 跑 %d 秒）——可由 ws.py readlog --expect-file 直接判读"
-            % (name, len(plan), seconds),
+    """-> expect.tsv 文本。一格三行（进入 / 首轮 / 末轮），期望/容差按结构与秒数推算。"""
+    rows = ["# 期望表：%s（%d 格 × 3 个计数器 = %d 项断言 / 跑 %d 秒）——可由 ws.py readlog --expect-file 直接判读"
+            % (name, len(plan), len(plan) * 3, seconds),
             "# 结论只有四档：通过 / 不符 / 未出现 / 超容差；容差三种写法 ±2、>=10、10..20",
+            "# 一格三键：cN 进入次数 / cNb 首轮 (期望 1) / cNe 末轮 (期望 1)——后两个抓「循环没跑完就断」",
             "\t".join(("格号", "结构说明", "期望", "容差", "依据", "备注"))]
     for i, struct in enumerate(plan, 1):
         st = STRUCTURES[struct]
@@ -334,8 +356,16 @@ def build_expect(plan, seconds, name="探针"):
         if st.get("control_of"):
             note = "对照组（配对 %s）" % st["control_of"]
         rows.append("\t".join((key, struct, want, tol, basis, note)))
+        # 首轮 / 末轮写在整个循环外面，所以对照组也有数；只有「整条规则不执行」的格子才该没有
+        if st.get("want") == "未出现":
+            edge_want, edge_tol = "未出现", ""
+        else:
+            edge_want, edge_tol = (">=1" if st.get("ge") else "1"), ""
+        rows.append("\t".join((key + "b", struct + " · 首轮", edge_want, edge_tol, basis,
+                               "循环第一轮就跑到了（开场没被吞）")))
+        rows.append("\t".join((key + "e", struct + " · 末轮", edge_want, edge_tol, basis,
+                               "最后一轮跑到了（循环没被提前打断）")))
     return "\r\n".join(rows) + "\r\n"
-
 
 def lint_probe_text(text):
     """生成后的自查：这一份必须满足的写作约定。返回问题列表。"""

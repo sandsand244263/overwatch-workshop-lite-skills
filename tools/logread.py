@@ -308,7 +308,7 @@ def report_expect_file(entries, rows, path, verbose=False):
         tally[verdict] += 1
         results.append((row, actual, len(hits), verdict, why))
 
-    print("\n期望表：%s（%d 格）" % (os.path.basename(path), len(rows)))
+    print("\n期望表：%s（%d 项断言）" % (os.path.basename(path), len(rows)))
     head = ("格号", "结构说明", "预期", "实际", "结论")
     widths = [8, 26, 10, 10, 8]
     print("  " + " ".join(_pad(h, w) for h, w in zip(head, widths)))
@@ -341,7 +341,7 @@ def report_expect_file(entries, rows, path, verbose=False):
     if over:
         print("\n超容差 %d 格：%s（值出来了，但不在容差里）"
               % (len(over), "、".join(r[0]["key"] for r in over)))
-    print("%d 格：通过 %d / 不符 %d / 未出现 %d"
+    print("%d 项断言：通过 %d / 不符 %d / 未出现 %d"
           % (len(rows), tally["通过"], tally["不符"], tally["未出现"]))
     return 0 if tally["通过"] == len(rows) else 1
 
