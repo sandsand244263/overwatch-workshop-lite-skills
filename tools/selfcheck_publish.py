@@ -134,10 +134,16 @@ def _strings(text):
 
 
 def _standalone_string_lines(text):
-    """独占一行的字符串注释的内容（删注释时整行带走的那类）。"""
+    """独占一行的字符串注释的内容（删注释时整行带走的那类）。
+
+    行尾还挂着 `//` 注释的行也算（`"200救胜利"//开关` 这种在手写模式里很常见）；
+    以前的判据要求整行以引号收尾，于是这类行没被减掉，矛头就指向了 strip_comments。
+    """
+    import publish
     out = []
     for line in text.split(chr(10)):
-        s = line.strip()
+        code, _cmt = publish._split_line_comment(line)
+        s = code.strip()
         if len(s) >= 2 and s[0] == '"' and s[-1] == '"' and s.count('"') == 2:
             out.append(s[1:-1])
     return out
