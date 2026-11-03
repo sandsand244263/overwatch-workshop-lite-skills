@@ -4235,6 +4235,244 @@ def line_sections(text):
     return out
 
 
+_STMT_SECTIONS = ("设置", "变量", "事件", "条件", "动作", "值")
+_STMT_HEADER_RE = re.compile(r"^(?:禁用\s*)?(?:规则|子程序)\s*\(")
+# 设置块里的 `键: 值` / 变量块的 `0: 名字`。冒号必须出现在引号括号之前，
+# 否则 `全局.x = 自定义字符串("时间:` 这种续行会被误当成键值行。
+_STMT_KV_RE = re.compile(r'^[^"(){};]*:[ \t]|^[^"(){};]*:$')
+
+
+def _stmt_code_runs(text, start, end):
+    """[start, end) 里属于代码的区间（字符串、行注释、块注释都剔掉）。"""
+    runs = []
+    j, run_start = start, start
+    in_code = True
+    in_str = escaped = in_line = in_block = False
+    nl = chr(10)
+    bs = chr(92)
+    while j < end:
+        ch = text[j]
+        nxt = text[j + 1] if j + 1 < end else ""
+        if in_line:
+            if ch == nl:
+                in_line = False
+            j += 1
+            continue
+        if in_block:
+            if ch == "*" and nxt == "/":
+                in_block = False
+                in_code = True
+                j += 2
+                run_start = j
+                continue
+            j += 1
+            continue
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == bs:
+                escaped = True
+            elif ch == '"':
+                in_str = False
+                in_code = True
+                j += 1
+                run_start = j
+                continue
+            j += 1
+            continue
+        if ch == '"':
+            if in_code and run_start < j:
+                runs.append((run_start, j))
+            in_code = False
+            in_str = True
+            j += 1
+            continue
+        if ch == "/" and nxt == "/":
+            if in_code and run_start < j:
+                runs.append((run_start, j))
+            in_code = False
+            in_line = True
+            j += 2
+            continue
+        if ch == "/" and nxt == "*":
+            if in_code and run_start < j:
+                runs.append((run_start, j))
+            in_code = False
+            in_block = True
+            j += 2
+            continue
+        j += 1
+    if in_code and run_start < end:
+        runs.append((run_start, end))
+    return runs
+
+
+def _stmt_line_at(text, pos):
+    """pos 所在行的 stripped 内容；pos 越界返回空串。"""
+    n = len(text)
+    if pos >= n:
+        return ""
+    eol = text.find(chr(10), pos)
+    if eol < 0:
+        eol = n
+    return text[pos:eol].strip()
+
+
+def split_statements(text):
+    """全文 → 语句单元（结构底座：所有「按行改写」都不该再自己数括号）。
+
+    单元字段（字典）：
+      start / end            字符偏移，end 不含；所有单元首尾相接 == 原文
+      line_start / line_end  1 基行号（单元跨行时两者不同）
+      kind                   "statement" | "block_header" | "brace" | "block_line"
+                             | "blank" | "comment"
+      code                   [(a, b)] **绝对偏移**（和 start/end 同一坐标系），
+                             本单元里属于代码的区间，字符串与注释已剔除；改名/删动作
+                             只准在这段区间内动
+
+    kind 的含义：
+      statement     以深度 0 的 `;` 收尾，允许跨行（含跨行字符串）
+      block_header  设置/变量/事件/条件/动作/值 这类块头，或 `规则(...)` / `子程序(...)`
+      brace         单独一行的 `{` 或 `}`
+      block_line    `键: 值`、`0: 名字`、设置块里的地名单行等非语句行
+      blank         空行（含换行符）
+      comment       独占一行的 `//`、`/* … */`
+
+    为什么要有它：`.ow` 允许字符串跨行，任何 `for line in text.split()` +
+    「数括号找收尾分号」的写法都会在续行上出错（#1 #4 #8 #17 同根）。
+    """
+    units = []
+    n = len(text)
+    nl = chr(10)
+    bs = chr(92)
+    i = 0
+    line = 1
+
+    def emit(start, end, kind):
+        nonlocal line
+        cnt = text.count(nl, start, end)
+        line_end = line + cnt - (1 if end > start and text[end - 1] == nl else 0)
+        if line_end < line:
+            line_end = line
+        units.append({"start": start, "end": end, "line_start": line,
+                      "line_end": line_end, "kind": kind,
+                      "code": _stmt_code_runs(text, start, end)})
+        line += cnt
+
+    while i < n:
+        start = i
+        at_ls = (i == 0 or text[i - 1] == nl)
+        eol = text.find(nl, i)
+        if eol < 0:
+            eol = n
+        stripped = text[i:eol].strip()
+        if at_ls and not stripped:
+            emit(start, min(eol + 1, n), "blank")
+            i = units[-1]["end"]
+            continue
+        if at_ls and (stripped.startswith("//") or stripped.startswith("/*")):
+            if stripped.startswith("/*"):
+                close = text.find("*/", i)
+                if close < 0:
+                    end = n
+                else:
+                    tail = text.find(nl, close)
+                    end = n if tail < 0 else min(tail + 1, n)
+            else:
+                end = min(eol + 1, n)
+            emit(start, end, "comment")
+            i = end
+            continue
+        if at_ls and stripped in ("{", "}"):
+            emit(start, min(eol + 1, n), "brace")
+            i = units[-1]["end"]
+            continue
+        if at_ls and (stripped in _STMT_SECTIONS or _STMT_HEADER_RE.match(stripped)):
+            emit(start, min(eol + 1, n), "block_header")
+            i = units[-1]["end"]
+            continue
+        if at_ls and ";" not in stripped and not stripped.startswith('"'):
+            nxt_line = _stmt_line_at(text, eol + 1)
+            if _STMT_KV_RE.match(stripped) or nxt_line.startswith("{"):
+                emit(start, min(eol + 1, n), "block_line")
+                i = units[-1]["end"]
+                continue
+        # 语句态：吃到括号深度 0 的 `;`（字符串/注释里的 ; 不算）
+        j, depth = i, 0
+        in_str = escaped = in_line = in_block = False
+        end = None
+        while j < n:
+            ch = text[j]
+            nxt = text[j + 1] if j + 1 < n else ""
+            if in_line:
+                if ch == nl:
+                    in_line = False
+                j += 1
+                continue
+            if in_block:
+                if ch == "*" and nxt == "/":
+                    in_block = False
+                    j += 2
+                    continue
+                j += 1
+                continue
+            if in_str:
+                if escaped:
+                    escaped = False
+                elif ch == bs:
+                    escaped = True
+                elif ch == '"':
+                    in_str = False
+                j += 1
+                continue
+            if ch == '"':
+                in_str = True
+                j += 1
+                continue
+            if ch == "/" and nxt == "/":
+                in_line = True
+                j += 2
+                continue
+            if ch == "/" and nxt == "*":
+                in_block = True
+                j += 2
+                continue
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                if depth:
+                    depth -= 1
+            elif ch == ";" and depth == 0:
+                j += 1
+                tail = text.find(nl, j)
+                if tail < 0:
+                    tail = n
+                rest = text[j:tail].strip()
+                end = min(tail + 1, n) if (not rest or rest.startswith("//")) else j
+                emit(start, end, "statement")
+                break
+            elif ch == "}" and depth == 0 and j > start:
+                end = j
+                emit(start, end, "block_line")
+                break
+            elif ch == nl and depth == 0:
+                nxt_line = _stmt_line_at(text, j + 1)
+                if (not nxt_line or nxt_line in ("{", "}")
+                        or nxt_line in _STMT_SECTIONS
+                        or _STMT_HEADER_RE.match(nxt_line)
+                        or nxt_line.startswith("//")):
+                    end = j + 1
+                    emit(start, end, "block_line")
+                    break
+            j += 1
+        if end is None:
+            end = n
+            emit(start, end, "block_line")
+        i = end
+    return units
+
+
+
 def _paren_close(text, open_pos):
     """open_pos 是 `(` 的位置，返回配对 `)` 的位置（没配对就返回文本末尾）。"""
     depth, j, n = 1, open_pos + 1, len(text)
@@ -5490,30 +5728,37 @@ def check_odd_quotes_raw(raw, problems):
     - 字符串跨行 → 合法，不报；
     - 扫到文件结束还在字符串里 → 真的少了一个右引号 → 必改。
 
+    v3.37.3 起改读语句单元（split_statements）：一个单元内部的字符串状态自成一体，
+    注释行、块注释里的引号天然不算；跨行字符串仍然是一个单元，不会被切开数奇偶。
+
     依据：issue #1（实机 26 处跨行字符串导入成功）。
     """
-    in_str, escaped, opened_at = False, False, 0
-    for i, line in enumerate(raw.replace("\r\n", "\n").split("\n"), 1):
-        j = 0
-        while j < len(line):
-            ch = line[j]
+    text = raw.replace(chr(13) + chr(10), chr(10))
+    nl = chr(10)
+    bs = chr(92)
+    for u in split_statements(text):
+        if u["kind"] in ("blank", "comment"):
+            continue
+        seg = text[u["start"]:u["end"]]
+        in_str, escaped, opened_at = False, False, u["line_start"]
+        line = u["line_start"]
+        for ch in seg:
+            if ch == nl:
+                line += 1
             if in_str:
                 if escaped:
                     escaped = False
-                elif ch == "\\":
+                elif ch == bs:
                     escaped = True
                 elif ch == '"':
                     in_str = False
             elif ch == '"':
-                in_str, opened_at = True, i
-            elif ch == "/" and j + 1 < len(line) and line[j + 1] == "/":
-                break            # 行尾注释不算字符串
-            j += 1
-    if in_str:
-        problems.append((opened_at, "error",
-                         "第 %d 行开始的字符串一直到文件结束都没有闭合（少了一个右引号）—— "
-                         "游戏会报「文本字符串中出现了换行」或「之后应有逗号」；"
-                         "跨行字符串本身合法，缺的是另一半引号" % opened_at))
+                in_str, opened_at = True, line
+        if in_str:
+            problems.append((opened_at, "error",
+                             "第 %d 行开始的字符串一直到文件结束都没有闭合（少了一个右引号）—— "
+                             "游戏会报「文本字符串中出现了换行」或「之后应有逗号」；"
+                             "跨行字符串本身合法，缺的是另一半引号" % opened_at))
 
 
 def blank_line_comments(text):
@@ -5561,19 +5806,26 @@ def check_braces_raw(raw, problems):
     实测（issue #6，2026-10-31 用户实机）：整份文件少一个 `}`，游戏报
     「第65行的“全局.c1));}”之后应有“}”」并拒绝导入。以前只查圆括号 ()，这类完全漏，
     check 照样说「可以导入」。
+
+    v3.37.3 起改读语句单元的 code 区间（split_statements）：字符串与注释里的 { } 不算，
+    位置换算回原文行号，报的还是最后一个 `}` 所在行（和游戏一致）。
     """
-    text = raw.replace("\r\n", "\n")
-    masked = _mask(text)
-    opens, closes = masked.count("{"), masked.count("}")
+    text = raw.replace(chr(13) + chr(10), chr(10))
+    nl = chr(10)
+    opens, closes, last_close = 0, 0, 0
+    for u in split_statements(text):
+        for a, b in u["code"]:
+            seg = text[a:b]
+            o, c = seg.count("{"), seg.count("}")
+            if not (o or c):
+                continue
+            opens += o
+            closes += c
+            if c:
+                last_close = u["line_start"] + seg[:seg.rfind("}")].count(nl)
     if opens == closes:
         return
-    line = 0
-    if opens > closes:
-        # 和游戏一致：少 } 时指最后一个 } 所在行
-        for i, ln in enumerate(masked.split("\n"), 1):
-            if "}" in ln:
-                line = i
-    problems.append((line, "error",
+    problems.append((last_close, "error",
                      "大括号不配对：左 { %d 个、右 } %d 个（%s %d 个）——"
                      "游戏会报「第N行的“…”之后应有“}”」并拒绝导入"
                      % (opens, closes, "少" if opens > closes else "多", abs(opens - closes))))

@@ -1514,7 +1514,7 @@ def cmd_devcheck(a):
         seg1.append("事实表对账 ✗ → python tools/audit_rules.py -v")
     print("[1/5] 数据与事实         %s" % "｜".join(seg1))
 
-    # 2) 工具自身（重复定义、三处版本号一致）
+    # 2) 工具自身（重复定义、三处版本号一致）+ 语句切分器自检
     rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "selftest"], 300)
     if verbose:
         print("── selftest ──\n%s" % out)
@@ -1522,12 +1522,21 @@ def cmd_devcheck(a):
     ver = "v" + m.group(1) if m else "版本号未读到"
     if rc != 0 and "版本号不一致" in out:
         ver = "版本号不一致（VERSION / SKILL.md / marketplace.json 三处要对齐）"
+    rc_s, out_s, _ = _devcheck_run([py, os.path.join(tools, "selfcheck_statements.py")], 300)
+    if verbose:
+        print("── selfcheck_statements ──\n%s" % out_s)
+    m_s = re.search(r"结论：(全绿|红)", out_s)
+    stmt_txt = m_s.group(1) if m_s else "输出未读到"
     if rc != 0:
         note_fail("selftest", out)
         fails.append("selftest")
-        print("[2/5] selftest            ✗ 失败（%s）→ python tools/ws.py selftest" % ver)
+        print("[2/5] 自检              ✗ 失败（%s）→ python tools/ws.py selftest" % ver)
+    elif rc_s != 0:
+        note_fail("selfcheck_statements", out_s)
+        fails.append("语句切分")
+        print("[2/5] 自检              ✗ 语句切分%s → python tools/selfcheck_statements.py" % stmt_txt)
     else:
-        print("[2/5] selftest            通过（%s）" % ver)
+        print("[2/5] 自检              通过（%s，语句切分 %s）" % (ver, stmt_txt))
 
     # 3) 正/反样本回归：只看汇总行，明细失败会出现在 --verbose
     rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "check-all"], 900)
