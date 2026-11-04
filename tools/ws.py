@@ -521,6 +521,121 @@ def cmd_doc(a):
     return 0
 
 
+def _hn_fmt(row):
+    """数值行 → 展示串；非「已解析」的带上置信度，让读的人知道该不该信。"""
+    v = (row.get("value") or "").strip()
+    unit = (row.get("unit") or "").strip()
+    conf = row.get("confidence") or ""
+    if not v:
+        return "—（%s）" % conf if conf else "—"
+    body = "%s%s" % (v, unit)
+    return body if conf in ("", "已解析") else "%s（%s）" % (body, conf)
+
+
+def _stats_from_hero_numbers(a, kw, ab, fd, as_json):
+    """stats 的新实现：数据源换成 data/hero-numbers.tsv（面板行 + 0x130 变量节点 + 实机读数）。"""
+    import csv
+    path = os.path.join(DATA, "hero-numbers.tsv")
+    rows = list(csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"))
+    limit = getattr(a, "limit", 60)
+
+    # 过滤：技能名/字段名子串；英雄名精确优先、否则当作技能/字段搜索
+    def match(r):
+        if ab and ab not in r["ability"]:
+            return False
+        if fd and fd not in r["field"]:
+            return False
+        return True
+
+    hero_rows = [r for r in rows if r["hero"] == kw]
+    if not hero_rows:
+        hero_rows = [r for r in rows if kw in r["hero"]]
+    pool = [r for r in (hero_rows or rows) if match(r)]
+    if not hero_rows and not pool:
+        hits = [r for r in rows if kw in r["ability"] or kw in r["field"]]
+        pool, hero_rows = hits, []
+
+    if as_json:
+        print(json.dumps(pool[:limit], ensure_ascii=False, indent=2))
+        return 0 if pool else 1
+    if not pool:
+        print("没有匹配「%s」的数值。可查英雄：%s"
+              % (kw, "、".join(sorted({r["hero"] for r in rows}))))
+        return 1
+
+    if hero_rows:
+        hero = hero_rows[0]["hero"]
+        attrs = [r for r in pool if r["scope"] == "英雄属性"]
+        skills = [r for r in pool if r["scope"] != "英雄属性"]
+        if attrs:
+            print("=== %s 英雄属性 ===" % hero)
+            for r in attrs:
+                print("  %-20s %s" % (r["field"], _hn_fmt(r)))
+            print()
+        if skills:
+            print("=== %s 技能数值 ===" % hero)
+            cur = None
+            for r in skills[:limit]:
+                if r["ability"] != cur:
+                    cur = r["ability"]
+                    print("  [%s]" % cur)
+                print("    %-26s %s" % (r["field"], _hn_fmt(r)))
+            if len(skills) > limit:
+                print("  … 还有 %d 条，用 --limit 调大" % (len(skills) - limit))
+            print()
+    else:
+        print("=== 匹配「%s」的数值（%d 条）===" % (kw, len(pool)))
+        for r in pool[:limit]:
+            print("  %-8s %-12s %-22s %s" % (r["hero"], r["ability"] or "（英雄级）", r["field"], _hn_fmt(r)))
+        if len(pool) > limit:
+            print("  … 还有 %d 条，用 --limit 调大" % (len(pool) - limit))
+        print()
+
+    n_ok = sum(1 for r in pool if r["confidence"] == "已解析")
+    n_est = sum(1 for r in pool if r["confidence"] == "推定")
+    n_gap = sum(1 for r in pool if r["confidence"] in ("缺失", "未解析", "存疑"))
+    print("数据来源：客户端 154905 导出 + 实机读数 + 第三方旁证；置信度 已解析 %d / 推定 %d / 待定 %d"
+          % (n_ok, n_est, n_gap))
+    print("判据顺序：实机读数 > 本次导出 > 补丁记录 > 第三方（详见 docs/hero-numbers.md）")
+    return 0
+
+
+def cmd_nums(a):
+    """按字段横查：这个字段全英雄都填了什么（例：ws.py nums --field 射速）。"""
+    import csv
+    path = os.path.join(DATA, "hero-numbers.tsv")
+    if not os.path.isfile(path):
+        sys.exit("缺少 %s（先跑 tools/gen_hero_numbers.py）" % path)
+    rows = list(csv.DictReader(open(path, encoding="utf-8-sig"), delimiter="\t"))
+    fld = (getattr(a, "field", "") or "").strip()
+    hero = (getattr(a, "hero", "") or "").strip()
+    conf = (getattr(a, "conf", "") or "").strip()
+    pool = rows
+    if fld:
+        pool = [r for r in pool if fld in r["field"]]
+    if hero:
+        pool = [r for r in pool if hero in r["hero"]]
+    if conf:
+        pool = [r for r in pool if r["confidence"] == conf]
+    if getattr(a, "json", False):
+        print(json.dumps(pool[: a.limit], ensure_ascii=False, indent=2))
+        return 0 if pool else 1
+    if not pool:
+        print("没有匹配的数值（共 %d 行）。字段名可查：ws.py nums --list-fields" % len(rows))
+        return 1
+    if getattr(a, "list_fields", False):
+        from collections import Counter
+        for f, n in Counter(r["field"] for r in pool).most_common(a.limit):
+            print("%-28s %d" % (f, n))
+        return 0
+    print("=== 「%s」匹配 %d 条 ===" % (fld or hero or "*", len(pool)))
+    for r in pool[: a.limit]:
+        print("  %-8s %-12s %-24s %s" % (r["hero"], r["ability"] or "（英雄级）", r["field"], _hn_fmt(r)))
+    if len(pool) > a.limit:
+        print("  … 还有 %d 条，用 --limit 调大" % (len(pool) - a.limit))
+    return 0
+
+
 def cmd_stats(a):
     """查英雄/技能数值（来自客户端 STU 数据）。"""
     import csv
@@ -538,6 +653,11 @@ def cmd_stats(a):
     ab = (getattr(a, "ability", "") or "").strip()
     fd = (getattr(a, "field", "") or "").strip()
     as_json = getattr(a, "json", False)
+
+    # 首选新表（data/hero-numbers.tsv：面板行 + 0x130 变量节点 + 实机读数，带置信度）；
+    # 没有这张表时退回老实现（hero-stats/ability-stats/ability-values 三张旧表）。
+    if os.path.isfile(os.path.join(DATA, "hero-numbers.tsv")):
+        return _stats_from_hero_numbers(a, kw, ab, fd, as_json)
 
     # 带 --ability / --field 时走「过滤清单」：不按英雄名收敛，直接给匹配行
     if ab or fd:
@@ -1600,6 +1720,8 @@ def cmd_devcheck(a):
                          # 裸词表：源是游戏导出（WS_EXPORT 或 local_paths.json 的 export），
                          # 没有源时按「找不到输入」跳过（暂存于公开仓 / CI 就是这种情况）
                          ("裸词表", "gen_bare_ok.py"),
+                         # 英雄数值参考表：源是本机合并产物（WS_HERO_NUMBERS 或 local_paths.json 的 hero_numbers）
+                         ("英雄数值表", "gen_hero_numbers.py"),
                          ("meta 计数", "gen_meta.py")):
         rc, out, _ = _devcheck_run([py, os.path.join(tools, script), "--check"], 300)
         if verbose:
@@ -1854,6 +1976,16 @@ def main():
     p.add_argument("--json", action="store_true", help="输出结构化结果（给编辑器/CI）")
     p.add_argument("--limit", type=int, default=40)
     p.set_defaults(func=cmd_stats)
+
+    p = sub.add_parser("nums", help="按字段横查英雄默认数值（例：nums --field 射速）")
+    p.add_argument("--field", default="", help="字段名子串，如 射速 / 冷却 / 生命值")
+    p.add_argument("--hero", default="", help="只看某个英雄（子串）")
+    p.add_argument("--conf", default="", choices=["", "已解析", "推定", "存疑", "缺失", "未解析"],
+                   help="按置信度过滤（缺省全部）")
+    p.add_argument("--list-fields", action="store_true", dest="list_fields", help="列出字段与行数")
+    p.add_argument("--json", action="store_true", help="输出结构化结果")
+    p.add_argument("--limit", type=int, default=60)
+    p.set_defaults(func=cmd_nums)
 
     p = sub.add_parser("keyinfo", help="查一个设置键的全貌（页/类型/schema/模式/合法值/层限制）")
     p.add_argument("key")

@@ -24,6 +24,7 @@
 | [settings-map.md](./settings-map.md) | 设置键的层与取值 | 写设置块 |
 | [extensions.md](./extensions.md) | 11 个扩展与副作用 | 要开扩展 |
 | [hero-stats.md](./hero-stats.md) | 54 英雄面板数值 | 调英雄数值 |
+| [hero-numbers.md](./hero-numbers.md) | 英雄默认数值参考表：怎么查、置信度五档、裁决顺序、覆盖边界 | 设计模式前查原值 |
 | [hero-quickref.md](./hero-quickref.md) | 英雄速查 | 只想看一两个英雄 |
 | [element-count.md](./element-count.md) | 元素计数的实测推导记录（复刻诊断面板「总计元素数量」的过程与已知偏差） | 想改估算模型 / 怀疑元素数不准 |
 | [reverse-notes.md](./reverse-notes.md) | **二进制/CASC 逆向**：报错文案在哪、什么工具在 80MB 上不可信、可用锚点、脚本位置 | 要做逆向 / 想拿报错全集 |
@@ -55,6 +56,7 @@
 | `enums.md` | 英雄 / 地图 / 下拉选项全集 |
 | `action-tags.tsv` | 484 动作的功能分类 |
 | `bare-ok.tsv` | 707 条裸词白名单（不加括号直接写在代码里的词）：由 `python tools/gen_bare_ok.py --src <导出>` 从游戏导出重生成，人工补的词在 `tools/bare-ok-src.tsv`；`--check` 已接进 `devcheck` 第 1 步 |
+| `hero-numbers.tsv` | 2,411 行 / 54 英雄的默认数值参考表（属性 + 技能 + 角色被动），带 `confidence` 五档；**不参与校验**，只由 `ws.py stats/nums` 查；由 `python tools/gen_hero_numbers.py --src <源 TSV>` 生成，`--check` 已接进 `devcheck` 第 1 段 |
 | `meta.json` | 数据基线的 build / 导出日期 + 五项计数（actions / values / dropdowns / heroes / maps）；计数由 `python tools/gen_meta.py` 从各表重算，`--check` 已接进 `devcheck` 第 1 行 |
 
 ### 阶段 1 新增（S1a / S1b 表 + 两个生成脚本）

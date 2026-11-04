@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.40.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.41.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -168,6 +168,7 @@ workshop-lite/
 │   ├── defaults.tsv               每个参数省略时的默认值
 │   ├── dropdowns.tsv              下拉参数在编辑器里的常用候选值（非唯一合法值）
 │   ├── enums.md                   英雄 / 地图 / 下拉选项全集
+│   ├── hero-numbers.tsv           2411 行英雄默认数值（属性/技能/角色被动，带置信度；不参与校验）
 │   ├── action-tags.tsv            484 个元素（动作 + 值函数）的功能分类
 │   ├── settings-blocks/           8 份实测导入成功的设置块模板
 │   └── meta.json                  数据基线：build、导出日期
@@ -223,7 +224,8 @@ python tools/ws.py scaffold --rule 测试            # 生成最小骨架（默�
 python tools/ws.py scaffold --mode 占领要点 --rule 测试   # 其它模式骨架
 python tools/ws.py doc 创建HUD文本                  # 查官方说明
 python tools/ws.py doc --search 范围               # 按关键词搜
-python tools/ws.py stats 半藏                      # 查英雄数值
+python tools/ws.py stats 半藏                      # 查英雄数值（默认值参考表，带置信度）
+python tools/ws.py nums --field 射速                 # 按字段横查：谁有射速、各是多少
 python tools/ws.py stats 半藏 --ability 岚          # 只看某个技能
 python tools/ws.py stats 技能 --field 冷却时间       # 跨英雄按字段找
 python tools/ws.py settings --mode 死斗            # 生成该模式的设置块
