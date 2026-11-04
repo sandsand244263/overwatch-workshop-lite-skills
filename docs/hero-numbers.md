@@ -87,6 +87,37 @@ python tools/gen_hero_numbers.py --check            # 漂移检查（已接进 d
 4. 面板值与新导出冲突时，先看官方补丁记录，再实机；裁决结果写进 `note`，不要静默改数。
 5. 这张表**不许**接进 `lint()` 当校验依据——它是参考资料，不是规则。
 
+## 怎么更新这张表（三步，可复算）
+
+数据来自四五条线，每条线各自产出**补丁表**（TSV，列 `hero/ability/field/value/unit/confidence/note/action`），
+再用一个工具合并、一个生成器入库。别再写一次性脚本。
+
+```bash
+# ① 合并：可给多个补丁表，三种动作 fill / set / add
+python tools/merge_hero_numbers.py --base C:/owdump/hero-numbers-v12.tsv \
+    --patch 实机读数.tsv --patch fills.tsv --patch ultmap.tsv --out C:/owdump/hero-numbers-v13.tsv
+
+# ② 入库（写 data/hero-numbers.tsv，devcheck 会校验漂移）
+python tools/gen_hero_numbers.py --src C:/owdump/hero-numbers-v13.tsv
+```
+
+| 动作 | 用途 | 行为 |
+|---|---|---|
+| `fill` | 补空槽（原来 `缺失/未解析` 的行有真值了） | 只在原值为空时写；note 追加出处 |
+| `set` | 裁决/纠错（实机读数、口径修正） | 强制覆盖；旧值写进 note；note 以补丁为准 |
+| `add` | 新字段/新行（如终极充能消耗） | 表里没这个 (英雄,技能,字段) 才加 |
+
+三条保证：**幂等**（同一补丁跑两次结果不变）、**可复算**（同样输入必得同样文件）、**去重键固定**
+（`(hero, ability, field)`，ability 为空即英雄级）。
+
+### 实机读数怎么落表
+
+1. 请用户截「英雄属性」面板（一张屏一个英雄，从英雄 → 更多信息进）
+2. 一次读全：生命值 / 护甲 / 护盾 / 生命恢复延迟 / 持续生命恢复 / 近身攻击伤害量 / 移动速度 / 造成伤害时治疗减免
+3. **用血条交叉校验**：血条数字 = 生命 + 护甲 + 护盾（重装含 +150；金驭是特例，见上节）
+4. 面板上没有的行 = **0**（不是"未知"）
+5. 落表：`confidence=已解析`，`note` 写「实机 面板 2026-11-04」
+
 ## 第三方对照（可重复跑）
 
 两件事分开：**拉**（`fetch_weirdgloop.py`）和**比**（`compare_external.py`）。都能重复跑，都只出报告不改表。
