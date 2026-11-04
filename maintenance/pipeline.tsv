@@ -1,0 +1,17 @@
+# 维护流程登记表 —— 唯一源头（SOP 里不再手写全量清单）
+# 每加一个工具/一步流程，先在这里登记；devcheck 第 2 段会自动查三边一致：
+#   ① 登记的 assets 必须存在  ② 每个 step 必须在技能 SOP 里出现  ③ 近 14 天新增的 tools/data 文件必须登记或进 ignore.tsv
+# 列：step	id	name	when	command	judge	assets(分号分隔)
+step	id	name	when	command	judge	assets
+0	baseline	看版本差	每次更新	python tools/ws.py baseline	退出码 0=最新 / 1=落后，落后才继续	tools/ws.py
+1	crypto	换密钥/重编 DataTool	DataTool 报 not supported	C:\owdump\逆向<build>-完整流程.md 里的步骤	dotnet build 0 错误 + 导出能跑通	docs/hero-numbers.md
+2	export	全量导出	基线落后	mini-extract.dll E:/Overwatch export-all --out=C:/owdump/export-<build>	四份 JSON + export.log	tools/data_diff.py
+3	diff	与上一版比对	导出完成	python tools/data_diff.py --prev <旧> --cur <新>	退出码 1=有变化 / 0=全同（全同就只推基线号）	tools/data_diff.py
+4	derive	生成派生表	比对完成	python tools/ws.py gen --src <导出> --out data → enrich.py all → gen_meta.py → gen_bare_ok.py	tools/gen_bare_ok.py --check 无漂移	tools/enrich.py;tools/gen_data.py;tools/gen_meta.py;tools/gen_bare_ok.py
+4b	hero-stats	英雄/技能面板行	派生表完成	hero-stats/abilall 重编+运行 → build_all_full.py	半藏岚 伤害 75 / 5 秒 / 0.125	C:\owdump\hero-stats\build_all_full.py
+4c	stats-check	数值体检	4b 完成	python C:/owdump/hero-stats/check_completeness.py	退出码 0（7 条断言）	C:\owdump\hero-stats\check_completeness.py
+4d	hero-numbers	重建英雄数值表	4c 完成	v130 → build_hero_numbers.py → merge_hero_numbers.py → gen_hero_numbers.py --src	54 英雄都有生命值；行数波动 ±5%；devcheck 无漂移	tools/merge_hero_numbers.py;tools/gen_hero_numbers.py;docs/hero-numbers.md
+4e	third-party	第三方对照（可选）	4d 完成	python tools/fetch_weirdgloop.py --kind all --out C:/owdump/wg-cache → compare_external.py	一致/口径差/他们滞后/冲突 四类计数，冲突项进 READINGS-NEEDED	tools/fetch_weirdgloop.py;tools/compare_external.py;data/hero-names.tsv
+5	regress	回归	全部生成完	WS_CORPUS=… WS_EXPORT=<导出> python tools/ws.py devcheck	五段全绿；装机份再跑一次	tools/ws.py
+6	baseline-bump	推基线号	回归通过	data/meta.json 的 build/exported + 文档里的 154xxx / 行数	meta.json 与游戏版本一致	data/meta.json
+7	release	发版	基线推完	python tools/bump.py <ver> → CHANGELOG → commit/tag/push → 装机份同步 → 装机份 devcheck	装机份 devcheck 全绿 + tag 已推	tools/bump.py;CHANGELOG.md;tools/maintenance_audit.py

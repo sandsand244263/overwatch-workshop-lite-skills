@@ -14,6 +14,38 @@
 
 ---
 
+## [3.47.0] - 2026-11-04
+
+### 新增：维护层自增长机制（`maintenance/pipeline.tsv` + `tools/maintenance_audit.py`）
+
+问题很具体：维护层每加一个工具/一步流程，就得有人记得回来改技能 SOP。今天一天加了 4d 步骤、合并工具、
+实机读数流程——全靠人记。下次游戏更新时，**漏掉的就是这些新东西**。
+
+改成登记制：清单只有一份（`maintenance/pipeline.tsv`，一行一步），检查是自动的。
+
+| 机制 | 做什么 |
+|---|---|
+| `maintenance/pipeline.tsv` | 唯一源头：`step / id / name / when / command / judge / assets`，12 步（含 4d 重建数值表、4e 第三方对照）|
+| `tools/maintenance_audit.py` | 三边一致检查，已接进 **devcheck 第 2 段** |
+| 硬查 | ① 清单里的 assets 存在 ② 每个 step 在技能 SOP 里出现 ③ 技能点名的 `tools/*.py` 存在 |
+| 软提示 | 自上次发版以来新增的 `tools/*.py`、`data/*.tsv` 未登记 → 列出来，发版前逐个归位 |
+
+**验证过它真能抓漏**：把技能里 `| 4d |` 那行临时删掉 → `maintenance_audit.py` 立刻报
+「清单有 step 4d（重建英雄数值表），技能 SOP 里没有 → 下次更新会漏掉它」，退出码 1。
+
+devcheck 现在长这样：
+
+```
+[2/5] 自检   通过（v3.47.0，语句切分 全绿）｜维护层自洽：通过（12 步）
+```
+
+### 顺带：开场自检脚本
+
+`workshop-data-update/scripts/preflight.py` —— 一条命令出「游戏版本 vs 数据基线 / 私仓当前版本 / 待实机项数 /
+该跑哪几步」，退出码 0=最新、1=落后、2=状态读不到。新会话不必手工翻 HANDOFF/STATUS。
+
+---
+
 ## [3.46.0] - 2026-11-04
 
 ### 新增：`tools/merge_hero_numbers.py` —— 合并流程固化

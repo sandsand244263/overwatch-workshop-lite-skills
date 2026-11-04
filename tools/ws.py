@@ -1795,7 +1795,16 @@ def cmd_devcheck(a):
         fails.append("语句切分")
         print("[2/5] 自检              ✗ 语句切分%s → python tools/selfcheck_statements.py" % stmt_txt)
     else:
-        print("[2/5] 自检              通过（%s，语句切分 %s）" % (ver, stmt_txt))
+        # 维护层自洽：清单(pipeline.tsv) ↔ 技能 SOP ↔ 仓库文件 三边一致，防止新增工具没人记得用
+        rc_a, out_a, _ = _devcheck_run([py, os.path.join(tools, "maintenance_audit.py"), "--quiet"], 120)
+        if verbose:
+            print("── maintenance_audit ──\n%s" % out_a)
+        audit_txt = (out_a.strip().split("\n")[-1] if out_a.strip() else "未读到")
+        if rc_a != 0:
+            fails.append("维护层自洽")
+            print("[2/5] 自检              ✗ %s → python tools/maintenance_audit.py" % audit_txt)
+        else:
+            print("[2/5] 自检              通过（%s，语句切分 %s）｜%s" % (ver, stmt_txt, audit_txt))
 
     # 3) 正/反样本回归：只看汇总行，明细失败会出现在 --verbose
     rc, out, _ = _devcheck_run([py, os.path.join(tools, "ws.py"), "check-all"], 900)
