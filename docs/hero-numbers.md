@@ -38,7 +38,7 @@ python tools/ws.py stats 半藏 --json        # 结构化输出（给脚本用�
 ## 覆盖边界（说清"没有什么"）
 
 - **有**：生命值/护甲/护盾、移动速度、伤害、治疗、冷却、持续时间、半径、射程、弹道（尺寸/速度/衰减）、
-  射速、弹药、角色被动常量（重装三条、铁壁/战术/斗士/先锋等）、部分暴击系数。
+  射速、弹药、击退速度、散布、**终极技能充能消耗**、角色被动常量（重装三条、铁壁/战术/斗士/先锋等）、部分暴击系数。
 - **没有/不全**：
   - 面板不显示数字的字段（击退距离、位移速度、焚身焰百分比…）——约 150 行标 `缺失`
   - 少数占位节点（运行时表达式算出来的）——8 行标 `未解析`
@@ -55,7 +55,7 @@ C:/owdump/hero-stats/out/          客户端导出（abilall 读面板行；var1
   ├─ sentinel_resolved/unresolved 占位值推定/未解
   └─ 实机读数（2026-11-04，8 张面板截图）
         ↓ 合并（build_hero_numbers.py）+ 第三方旁证（overlab 对照）
-data/hero-numbers.tsv              2411 行 / 54 英雄
+data/hero-numbers.tsv              2510 行 / 54 英雄
         ↓ 生成器
 python tools/gen_hero_numbers.py --src <源 TSV>     # 写表
 python tools/gen_hero_numbers.py --check            # 漂移检查（已接进 devcheck 第 1 段）

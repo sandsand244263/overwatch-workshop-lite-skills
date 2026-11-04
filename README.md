@@ -6,7 +6,7 @@
 
 **仅支持中文。**
 
-当前版本 **v3.42.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.43.0**，更新见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -169,7 +169,7 @@ workshop-lite/
 │   ├── dropdowns.tsv              下拉参数在编辑器里的常用候选值（非唯一合法值）
 │   ├── enums.md                   英雄 / 地图 / 下拉选项全集
 │   ├── hero-names.tsv             54 行英雄中英名映射（第三方对照用）
-│   ├── hero-numbers.tsv           2411 行英雄默认数值（属性/技能/角色被动，带置信度；不参与校验）
+│   ├── hero-numbers.tsv           2510 行英雄默认数值（属性/技能/角色被动，带置信度；不参与校验）
 │   ├── action-tags.tsv            484 个元素（动作 + 值函数）的功能分类
 │   ├── settings-blocks/           8 份实测导入成功的设置块模板
 │   └── meta.json                  数据基线：build、导出日期

@@ -1,7 +1,7 @@
 ---
 name: WorkshopLite
 description: 守望先锋工坊/创意工坊/OW 工坊触发：Overwatch Workshop `.ow` 代码生成、审查、调试与校验。
-version: 3.42.0
+version: 3.43.0
 author: 用户
 platforms: [windows]
 metadata:
@@ -27,7 +27,7 @@ metadata:
 | `ws.py locate "游戏报错原文" [--file 模式.ow]` | 报错 → 模板 → 第几行 → 改法（离线，一次到行） |
 | `ws.py deliver 模式.ow` | 交付固定三行：文件 / 怎么跑 / 看哪里；有必改就不打印，先修 |
 | `ws.py devcheck [--corpus]` | 一条命令跑完全部回归，输出 ≤5 行；发版前必须全绿 |
-| `ws.py stats <英雄>` / `ws.py nums --field <字段>` | 查**默认数值**（设计模式前先看原值）：2,411 行 / 54 英雄，带置信度五档；只读参考，不参与校验（见 `docs/hero-numbers.md`） |
+| `ws.py stats <英雄>` / `ws.py nums --field <字段>` | 查**默认数值**（设计模式前先看原值）：2,510 行 / 54 英雄，带置信度五档；只读参考，不参与校验（见 `docs/hero-numbers.md`） |
 
 文档按「你在做什么」查 `docs/INDEX.md`。**不要直接读 `data/` 里的表**——那是工具的数据源，用命令查。
 实测只走 `记入查看器` + `ws.py readlog`：记录会自动落盘，跑完直接读最新那个文件；`--watch` 可以边跑边等。
