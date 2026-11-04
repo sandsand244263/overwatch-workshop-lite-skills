@@ -76,7 +76,10 @@ def new_files(days):
     """自上次发版以来新增的 tools/*.py 与 data/*.tsv（只看新增，改名/修改不算）。
     没有 tag 时退回「最近 N 天」。"""
     tag = last_tag()
-    rng = ["%s..HEAD" % tag] if tag else ["--since=%d.days" % days]
+    if not tag:
+        # 装机份是 skills 仓的子目录，没有版本 tag：这个扫描只在发布仓有意义
+        return []
+    rng = ["%s..HEAD" % tag]
     try:
         out = subprocess.run(
             ["git", "-C", ROOT, "-c", "core.quotepath=false", "log", "--diff-filter=A",
@@ -145,6 +148,8 @@ def main():
         for r in steps:
             print("  %-3s %-14s %s" % (r["step"], r["name"], (r["command"] or "")[:70]))
         print("技能：%s" % SKILL)
+        if not last_tag():
+            print("\n（无版本 tag：跳过「新增文件」扫描，该检查在发布仓做）")
         if hints:
             print("\n待归类的新文件 %d 个（自上次发版以来新增，没登记进流程）：" % len(hints))
             for h in hints:
