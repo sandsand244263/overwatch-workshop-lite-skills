@@ -396,7 +396,7 @@ DataTool "<游戏目录>" list-workshop --language zhCN --rcn --json --out=works
 
 - `--language zhCN` 简体中文；`--rcn` 国服客户端
 - 导出含 `Actions` / `Values` / `Dropdowns` / `TextOptions` / `Extensions` 五类
-- 数据基线：**国服 2.25.1.0.154905**
+- 数据基线：**国服 2.25.1.0.155284**
 - 设置项结构另由 `list-game-ruleset-schemas`、`list-gamemodes`、`list-heroes-rulesets` 导出
 
 中文名词同时参考 [XHanL/overwatch-workshop](https://github.com/XHanL/overwatch-workshop)（MIT），一个工坊 VS Code 扩展。感谢 [@XHanL](https://github.com/XHanL)。两者不一致时以游戏数据为准。
